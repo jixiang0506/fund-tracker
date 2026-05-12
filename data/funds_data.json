@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-12 04:53:46",
+  "update_time": "2026-05-12 12:03:12",
   "funds": {
     "支付宝": [
       {
@@ -16,9 +16,9 @@
         "code": "001438",
         "name": "易方达瑞享混合E",
         "platform": "支付宝",
-        "current_nav": 9.4933,
-        "nav_date": "2026-05-12 11:30",
-        "daily_return": 1.49,
+        "current_nav": 9.5656,
+        "nav_date": "2026-05-12 15:00",
+        "daily_return": 2.26,
         "cumulative_return": 0,
         "history": []
       },
@@ -26,9 +26,9 @@
         "code": "002112",
         "name": "德邦鑫星价值灵活配置混合C",
         "platform": "支付宝",
-        "current_nav": 5.5367,
-        "nav_date": "2026-05-12 11:30",
-        "daily_return": 0.99,
+        "current_nav": 5.6004,
+        "nav_date": "2026-05-12 15:00",
+        "daily_return": 2.16,
         "cumulative_return": 0,
         "history": []
       },
@@ -68,9 +68,9 @@
         "code": "019018",
         "name": "易方达信息产业混合C",
         "platform": "理财通",
-        "current_nav": 7.8694,
-        "nav_date": "2026-05-12 11:30",
-        "daily_return": 1.08,
+        "current_nav": 7.9282,
+        "nav_date": "2026-05-12 15:00",
+        "daily_return": 1.84,
         "cumulative_return": 0,
         "history": []
       }
@@ -90,9 +90,9 @@
         "code": "000390",
         "name": "华商优势行业混合A",
         "platform": "招商银行",
-        "current_nav": 3.1128,
-        "nav_date": "2026-05-12 11:30",
-        "daily_return": 1.36,
+        "current_nav": 3.1429,
+        "nav_date": "2026-05-12 15:00",
+        "daily_return": 2.34,
         "cumulative_return": 0,
         "history": []
       },
@@ -100,9 +100,9 @@
         "code": "020723",
         "name": "国寿安保数字经济股票发起式C",
         "platform": "招商银行",
-        "current_nav": 2.9403,
-        "nav_date": "2026-05-12 11:30",
-        "daily_return": 0.89,
+        "current_nav": 2.9568,
+        "nav_date": "2026-05-12 15:00",
+        "daily_return": 1.46,
         "cumulative_return": 0,
         "history": []
       }

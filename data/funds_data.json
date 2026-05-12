@@ -1,14 +1,14 @@
 {
-  "update_time": "2026-05-12 12:03:12",
+  "update_time": "2026-05-12 17:01:55",
   "funds": {
     "支付宝": [
       {
         "code": "270023",
         "name": "广发全球精选股票(QDII)人民币A",
         "platform": "支付宝",
-        "current_nav": 6.2652,
-        "nav_date": "2026-05-12 04:00",
-        "daily_return": 0.08,
+        "current_nav": 6.3429,
+        "nav_date": "2026-05-12 22:29",
+        "daily_return": -0.34,
         "cumulative_return": 0,
         "history": []
       },
@@ -36,9 +36,9 @@
         "code": "018230",
         "name": "易方达全球优质企业混合(QDII)C(人民币份额)",
         "platform": "支付宝",
-        "current_nav": 2.1038,
-        "nav_date": "2026-05-12 04:00",
-        "daily_return": 0.05,
+        "current_nav": 2.1683,
+        "nav_date": "2026-05-12 22:29",
+        "daily_return": -0.19,
         "cumulative_return": 0,
         "history": []
       }
@@ -48,9 +48,9 @@
         "code": "018147",
         "name": "建信新兴市场混合(QDII)C",
         "platform": "理财通",
-        "current_nav": 2.3709,
-        "nav_date": "2026-05-12 04:00",
-        "daily_return": 0.08,
+        "current_nav": 2.4509,
+        "nav_date": "2026-05-12 22:29",
+        "daily_return": -0.33,
         "cumulative_return": 0,
         "history": []
       },
@@ -58,9 +58,9 @@
         "code": "012922",
         "name": "易方达全球成长精选混合(QDII)人民币C",
         "platform": "理财通",
-        "current_nav": 3.8716,
-        "nav_date": "2026-05-12 04:00",
-        "daily_return": 0.07,
+        "current_nav": 3.9571,
+        "nav_date": "2026-05-12 22:29",
+        "daily_return": -0.28,
         "cumulative_return": 0,
         "history": []
       },
@@ -80,9 +80,9 @@
         "code": "021277",
         "name": "广发全球精选股票(QDII)人民币C",
         "platform": "招商银行",
-        "current_nav": 6.189,
-        "nav_date": "2026-05-12 04:00",
-        "daily_return": 0.08,
+        "current_nav": 6.2655,
+        "nav_date": "2026-05-12 22:29",
+        "daily_return": -0.34,
         "cumulative_return": 0,
         "history": []
       },

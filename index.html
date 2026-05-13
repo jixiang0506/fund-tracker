@@ -264,10 +264,17 @@
             font-size: 12px;
         }
 
+        .chart-wrapper {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
         .chart-container {
             position: relative;
             height: 400px;
-            margin-top: 30px;
         }
 
         .loading {
@@ -756,12 +763,17 @@
                 html += `</div>`;
             });
 
-            html += `
-                    <div class="chart-container">
-                        <canvas id="chart-${platformName}"></canvas>
-                    </div>
-                </div>
-            `;
+              html += `
+                      <div class="chart-wrapper">
+                          <h3 style="font-size: 18px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                              📈 累计损益走势
+                          </h3>
+                          <div class="chart-container">
+                              <canvas id="chart-${platformName}"></canvas>
+                          </div>
+                      </div>
+                  </div>
+              `;
 
             return html;
         }

@@ -629,31 +629,44 @@
                 const dailyClass = fund.daily_return >= 0 ? 'positive' : 'negative';
                 const profit = fund.holdings ? fund.holdings.profit_loss : 0;
                 const profitClass = profit >= 0 ? 'positive' : 'negative';
-                
+
                 // 计算日盈亏
                 let dailyProfit = 0;
                 if (fund.holdings && fund.holdings.total_shares > 0) {
                     dailyProfit = fund.holdings.total_shares * fund.current_nav * (fund.daily_return / 100);
                 }
 
+                // 基金名称+代码作为单独一行（跨列标题）
                 html += `
-                    <tr>
-                        <td>
-                            <div style="font-weight: bold; margin-bottom: 5px;">${fund.name}</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #333;">${fund.current_nav.toFixed(4)}</div>
-                            <div style="font-size: 12px; color: #999; margin-top: 3px;">${fund.code}</div>
+                    <tr style="background: #f8f9fa;">
+                        <td colspan="8" style="padding: 12px 15px; border-bottom: none;">
+                            <span style="font-weight: bold; font-size: 15px; color: #333;">${fund.name}</span>
+                            <span style="color: #999; font-size: 13px; margin-left: 8px;">${fund.code}</span>
                         </td>
-                        <td class="${dailyClass}" style="font-size: 16px; font-weight: bold;">${fund.daily_return >= 0 ? '+' : ''}${fund.daily_return.toFixed(2)}%</td>
-                        <td class="${dailyClass}" style="font-size: 16px; font-weight: bold;">
+                    </tr>
+                    <tr>
+                        <td style="font-size: 18px; font-weight: bold; color: #333; text-align: center; vertical-align: middle;">
+                            ${fund.current_nav.toFixed(4)}
+                        </td>
+                        <td class="${dailyClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
+                            ${fund.daily_return >= 0 ? '+' : ''}${fund.daily_return.toFixed(2)}%
+                        </td>
+                        <td class="${dailyClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
                             ${fund.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}
                         </td>
-                        <td style="font-size: 16px;">${fund.holdings ? fund.holdings.total_shares.toFixed(2) : '-'}</td>
-                        <td style="font-size: 16px;">${fund.holdings ? '¥' + fund.holdings.total_invested.toFixed(2) : '-'}</td>
-                        <td style="font-size: 16px;">${fund.holdings ? '¥' + fund.holdings.current_value.toFixed(2) : '-'}</td>
-                        <td class="${profitClass}" style="font-size: 16px; font-weight: bold;">
+                        <td style="font-size: 16px; text-align: center; vertical-align: middle;">
+                            ${fund.holdings ? fund.holdings.total_shares.toFixed(2) : '-'}
+                        </td>
+                        <td style="font-size: 16px; text-align: center; vertical-align: middle;">
+                            ${fund.holdings ? '¥' + fund.holdings.total_invested.toFixed(2) : '-'}
+                        </td>
+                        <td style="font-size: 16px; text-align: center; vertical-align: middle;">
+                            ${fund.holdings ? '¥' + fund.holdings.current_value.toFixed(2) : '-'}
+                        </td>
+                        <td class="${profitClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
                             ${fund.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}
                         </td>
-                        <td class="${profitClass}" style="font-size: 16px; font-weight: bold;">
+                        <td class="${profitClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
                             ${fund.holdings ? ((fund.holdings.profit_loss_percent >= 0 ? '+' : '') + fund.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}
                         </td>
                     </tr>

@@ -16,7 +16,6 @@ import json
 import os
 from datetime import datetime, timedelta
 import time
-import sys
 
 # 基金列表配置
 FUNDS = {
@@ -126,13 +125,13 @@ def _fetch_latest_from_history(fund_code):
 def _get_fund_name(fund_code):
     """已知基金名称映射（回退方案使用）"""
     FUND_NAMES = {
-        "016665": "华商优势行业混合C",
+        "016665": "天弘全球高端制造混合(QDII)C",
         "270023": "广发全球精选股票(QDII)人民币A",
         "001438": "易方达瑞享混合E",
         "002112": "德邦鑫星价值灵活配置混合C",
-        "018230": "易方达全球优质企业混合(QDII)C",
+        "018230": "易方达全球优质企业混合(QDII)C(人民币份额)",
         "018147": "建信新兴市场混合(QDII)C",
-        "012922": "易方达全球成长精选混合(QDII)人民币",
+        "012922": "易方达全球成长精选混合(QDII)人民币C",
         "019018": "易方达信息产业混合C",
         "021277": "广发全球精选股票(QDII)人民币C",
         "000390": "华商优势行业混合A",
@@ -140,8 +139,22 @@ def _get_fund_name(fund_code):
     }
     return FUND_NAMES.get(fund_code, fund_code)
 
+def _get_earliest_purchase_date(purchase_records):
+    """从持仓记录中找出最早的交易日期，往前推7天作为历史数据起始日期"""
+    earliest = None
+    for fund_code, purchases in purchase_records.items():
+        for p in purchases:
+            d = p.get("date", "")
+            if d and (earliest is None or d < earliest):
+                earliest = d
+    if earliest:
+        # 往前推7天，确保能找到交易日前后的净值
+        dt = datetime.strptime(earliest, "%Y-%m-%d") - timedelta(days=7)
+        return dt.strftime("%Y-%m-%d")
+    return "2020-01-01"  # 兜底默认值
+
 def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
-    """获取基金历史净值数据（一次性获取所有历史数据）"""
+    """获取基金历史净值数据（从start_date开始获取）"""
     try:
         log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
@@ -401,6 +414,11 @@ def main():
 
     # 处理所有基金
     print("\n[3/4] 获取基金数据...")
+
+    # 计算历史数据起始日期（所有基金共享，只需计算一次）
+    history_start_date = _get_earliest_purchase_date(purchase_records)
+    log(f"历史数据起始日期: {history_start_date}")
+
     failed_funds = []
     for platform, codes in FUNDS.items():
         log(f"处理 {platform} 的基金...")
@@ -427,8 +445,8 @@ def main():
                     failed_funds.append(code)
                 continue
 
-            # 获取历史数据（一次性获取所有）
-            history = fetch_fund_history(code)
+            # 获取历史数据（从最早交易记录前7天开始获取，避免拉取大量无用数据）
+            history = fetch_fund_history(code, start_date=history_start_date)
 
             # 计算持仓和收益
             holdings = calculate_holdings(code, purchase_records, realtime["nav"], history)

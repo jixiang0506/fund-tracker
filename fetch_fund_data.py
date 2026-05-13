@@ -134,7 +134,8 @@ def create_template_files():
         "支付宝": {
             "270023": [
                 {"date": "2024-01-15", "amount": 1000.00},
-                {"date": "2024-02-15", "amount": 1000.00}
+                {"date": "2024-02-15", "amount": 1000.00},
+                {"date": "2024-06-15", "amount": 500.00, "type": "sell"}
             ],
             "016665": [
                 {"date": "2024-01-20", "amount": 2000.00}
@@ -158,6 +159,7 @@ def create_template_files():
             json.dump(template_records, f, ensure_ascii=False, indent=2)
         log(f"✓ 已创建模板持仓记录文件: {template_path}")
         log("  请编辑此文件，填入你的实际买入记录")
+        log("  卖出记录格式: {\"date\": \"2024-06-15\", \"amount\": 500.00, \"type\": \"sell\"}")
         return False
 
     return True
@@ -191,7 +193,7 @@ def load_purchase_records():
         return None
 
 def calculate_holdings(fund_code, purchase_records, current_nav, history):
-    """计算持仓信息和实际收益"""
+    """计算持仓信息和实际收益（支持买入和卖出记录）"""
     if not purchase_records or fund_code not in purchase_records:
         return {
             "total_invested": 0,
@@ -203,32 +205,55 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
         }
 
     purchases = purchase_records[fund_code]
-    total_invested = 0
-    total_shares = 0
+    total_invested = 0  # 净投入金额（买入-卖出）
+    total_shares = 0    # 持有份额（买入-卖出）
     purchase_details = []
 
     for purchase in purchases:
         date = purchase["date"]
         amount = purchase["amount"]
+        trans_type = purchase.get("type", "buy")  # 默认为买入
 
-        # 从历史数据中查找买入日的净值
+        # 从历史数据中查找交易日的净值
         nav_on_date = get_nav_from_history(history, date)
 
         if nav_on_date and nav_on_date > 0:
             shares = amount / nav_on_date
-            total_invested += amount
-            total_shares += shares
 
-            purchase_details.append({
-                "date": date,
-                "amount": amount,
-                "nav": round(nav_on_date, 4),
-                "shares": round(shares, 2)
-            })
+            if trans_type == "sell":
+                # 卖出记录：减少份额和投入
+                total_invested -= amount
+                total_shares -= shares
 
-            log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
+                purchase_details.append({
+                    "date": date,
+                    "amount": -amount,
+                    "nav": round(nav_on_date, 4),
+                    "shares": -round(shares, 2),
+                    "type": "sell"
+                })
+
+                log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 -{shares:.2f}")
+            else:
+                # 买入记录
+                total_invested += amount
+                total_shares += shares
+
+                purchase_details.append({
+                    "date": date,
+                    "amount": amount,
+                    "nav": round(nav_on_date, 4),
+                    "shares": round(shares, 2),
+                    "type": "buy"
+                })
+
+                log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
         else:
-            log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔买入记录")
+            log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔记录")
+
+    # 确保份额和投入不为负数（防止数据错误）
+    total_shares = max(0, total_shares)
+    total_invested = max(0, total_invested)
 
     # 计算当前市值和收益
     current_value = total_shares * current_nav if current_nav > 0 else 0

@@ -717,7 +717,7 @@
             return html;
         }
 
-        // 渲染图表
+        // 渲染图表（累计损益走势）
         function renderCharts() {
             for (const platform in fundsData.funds) {
                 const funds = fundsData.funds[platform];
@@ -725,26 +725,48 @@
 
                 if (!ctx) continue;
 
+                const colors = [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 206, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(153, 102, 255)',
+                    'rgb(255, 159, 64)'
+                ];
+
                 const datasets = funds.map((fund, index) => {
-                    const colors = [
-                        'rgb(255, 99, 132)',
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 206, 86)',
-                        'rgb(75, 192, 192)',
-                        'rgb(153, 102, 255)',
-                        'rgb(255, 159, 64)'
-                    ];
+                    const purchases = fund.holdings.purchases || [];
+                    // 按日期排序交易记录
+                    const sorted = [...purchases].sort((a, b) => a.date.localeCompare(b.date));
+
+                    // 对每一天历史净值，计算累计损益
+                    const profitLossData = (fund.history || []).map(h => {
+                        let totalShares = 0;
+                        let totalInvested = 0;
+
+                        for (const p of sorted) {
+                            if (p.date <= h.date) {
+                                totalShares += p.shares;   // 卖出时 shares 为负数
+                                totalInvested += p.amount; // 卖出时 amount 为负数
+                            }
+                        }
+
+                        const value = h.nav * totalShares;
+                        return value - totalInvested; // 累计损益
+                    });
 
                     return {
                         label: `${fund.name} (${fund.code})`,
-                        data: fund.history.map(h => h.nav),
+                        data: profitLossData,
                         borderColor: colors[index % colors.length],
                         backgroundColor: 'transparent',
-                        tension: 0.1
+                        tension: 0.1,
+                        pointRadius: 0,
+                        borderWidth: 2
                     };
                 });
 
-                const labels = funds[0].history.map(h => h.date);
+                const labels = (funds[0].history || []).map(h => h.date);
 
                 new Chart(ctx, {
                     type: 'line',
@@ -758,12 +780,26 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: '净值走势图'
+                                text: '累计损益走势图（¥）'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const v = context.parsed.y;
+                                        const sign = v >= 0 ? '+' : '';
+                                        return context.dataset.label + ': ' + sign + '¥' + v.toFixed(2);
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
-                                beginAtZero: false
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '¥' + value.toFixed(0);
+                                    }
+                                }
                             }
                         }
                     }

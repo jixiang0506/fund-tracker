@@ -39,28 +39,106 @@ def log(message):
     """打印带时间戳的日志"""
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
 
-def fetch_fund_realtime(fund_code):
-    """获取基金实时数据（估算净值和涨跌幅）"""
+def fetch_fund_realtime(fund_code, max_retries=3):
+    """获取基金实时数据（估算净值和涨跌幅），支持重试。
+    如果实时估值API返回空（非交易时段），则回退到历史数据API获取最新净值。"""
+    for attempt in range(1, max_retries + 1):
+        try:
+            url = REALTIME_API.format(fund_code)
+            response = requests.get(url, headers=HEADERS, timeout=10)
+            response.raise_for_status()
+
+            # 解析JSONP响应
+            text = response.text
+            json_str = text[text.find('{'):text.rfind('}')+1]
+
+            # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
+            if not json_str.strip():
+                log(f"  ⚠ 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
+                return _fetch_latest_from_history(fund_code)
+
+            data = json.loads(json_str)
+
+            # 检查返回数据是否有效（有些基金不在交易时段会返回空内容）
+            if not data.get("name") and not data.get("gsz"):
+                log(f"  ⚠ 基金 {fund_code} 实时估值无数据，尝试回退到历史数据API...")
+                return _fetch_latest_from_history(fund_code)
+
+            return {
+                "code": fund_code,
+                "name": data.get("name", ""),
+                "nav": float(data.get("gsz", 0)),  # 估算净值
+                "nav_date": data.get("gztime", ""),  # 估值时间
+                "change_percent": float(data.get("gszzl", 0)),  # 估算涨跌幅
+            }
+        except json.JSONDecodeError:
+            # JSON解析失败 - 回退到历史数据
+            log(f"  ⚠ 基金 {fund_code} 实时估值JSON解析失败，尝试回退到历史数据API...")
+            return _fetch_latest_from_history(fund_code)
+        except Exception as e:
+            if attempt < max_retries:
+                log(f"  ⚠ 获取基金 {fund_code} 实时数据失败 (第{attempt}次), {max_retries - attempt}次重试机会剩余: {e}")
+                time.sleep(2)
+            else:
+                log(f"❌ 获取基金 {fund_code} 实时数据失败 (已重试{max_retries}次): {e}")
+                # 最后一次也尝试回退
+                return _fetch_latest_from_history(fund_code)
+
+def _fetch_latest_from_history(fund_code):
+    """从历史净值API获取最新一条记录，作为实时数据的回退方案"""
     try:
-        url = REALTIME_API.format(fund_code)
-        response = requests.get(url, headers=HEADERS, timeout=10)
+        params = {
+            "fundCode": fund_code,
+            "pageIndex": 1,
+            "pageSize": 2,  # 取最近2条以计算涨跌幅
+            "startDate": "2020-01-01",
+            "endDate": datetime.now().strftime("%Y-%m-%d")
+        }
+        response = requests.get(HISTORY_API, params=params, headers=HEADERS, timeout=10)
         response.raise_for_status()
+        result = response.json()
 
-        # 解析JSONP响应
-        text = response.text
-        json_str = text[text.find('{'):text.rfind('}')+1]
-        data = json.loads(json_str)
+        items = result.get("Data", {}).get("LSJZList", [])
+        if not items:
+            log(f"  ❌ 基金 {fund_code} 历史数据也为空")
+            return None
 
+        latest = items[0]
+        nav = float(latest.get("DWJZ", 0))
+        nav_date = latest.get("FSRQ", "")
+        change_percent = float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
+
+        # 尝试获取基金名称（从历史API中无法直接获取，使用已知映射或留空）
+        fund_name = _get_fund_name(fund_code)
+
+        log(f"  ✓ 基金 {fund_code} 回退成功: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
         return {
             "code": fund_code,
-            "name": data.get("name", ""),
-            "nav": float(data.get("gsz", 0)),  # 估算净值
-            "nav_date": data.get("gztime", ""),  # 估值时间
-            "change_percent": float(data.get("gszzl", 0)),  # 估算涨跌幅
+            "name": fund_name,
+            "nav": nav,
+            "nav_date": nav_date,
+            "change_percent": change_percent,
         }
     except Exception as e:
-        log(f"❌ 获取基金 {fund_code} 实时数据失败: {e}")
+        log(f"  ❌ 基金 {fund_code} 历史数据回退也失败: {e}")
         return None
+
+def _get_fund_name(fund_code):
+    """已知基金名称映射（回退方案使用）"""
+    FUND_NAMES = {
+        "016665": "华商优势行业混合C",
+        "270023": "广发全球精选股票(QDII)人民币A",
+        "001438": "易方达瑞享混合E",
+        "002112": "德邦鑫星价值灵活配置混合C",
+        "018230": "易方达全球优质企业混合(QDII)C",
+        "018147": "建信新兴市场混合(QDII)C",
+        "012922": "易方达全球成长精选混合(QDII)人民币",
+        "019018": "易方达信息产业混合C",
+        "021277": "广发全球精选股票(QDII)人民币C",
+        "000390": "华商优势行业混合A",
+        "020723": "国寿安保数字经济股票发起式C",
+    }
+    return FUND_NAMES.get(fund_code, fund_code)
 
 def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
     """获取基金历史净值数据（一次性获取所有历史数据）"""
@@ -303,8 +381,27 @@ def main():
         }
     }
 
+    # 加载上次数据（用于API失败时保留旧数据）
+    previous_data = None
+    previous_file = "data/funds_data.json"
+    if os.path.exists(previous_file):
+        try:
+            with open(previous_file, "r", encoding="utf-8") as f:
+                previous_data = json.load(f)
+            log(f"✓ 已加载上次数据作为备份 (更新时间: {previous_data.get('update_time', '未知')})")
+        except Exception:
+            pass
+
+    # 构建上次数据的快速查找表: {fund_code: fund_data}
+    prev_fund_map = {}
+    if previous_data:
+        for platform_name, fund_list in previous_data.get("funds", {}).items():
+            for fund_item in fund_list:
+                prev_fund_map[fund_item["code"]] = fund_item
+
     # 处理所有基金
     print("\n[3/4] 获取基金数据...")
+    failed_funds = []
     for platform, codes in FUNDS.items():
         log(f"处理 {platform} 的基金...")
 
@@ -317,6 +414,17 @@ def main():
             # 获取实时数据
             realtime = fetch_fund_realtime(code)
             if not realtime:
+                # API失败：尝试使用上次数据
+                if code in prev_fund_map:
+                    old_fund = prev_fund_map[code]
+                    log(f"  ⚠ 使用上次缓存数据: {old_fund.get('name', code)} (净值 {old_fund.get('current_nav', '?')} @{old_fund.get('nav_date', '?')})")
+                    all_data["funds"][platform].append(old_fund)
+                    all_data["summary"]["total_invested"] += old_fund["holdings"]["total_invested"]
+                    all_data["summary"]["total_value"] += old_fund["holdings"]["current_value"]
+                    failed_funds.append(code)
+                else:
+                    log(f"  ❌ 基金 {code} 无上次缓存数据，本次跳过！")
+                    failed_funds.append(code)
                 continue
 
             # 获取历史数据（一次性获取所有）
@@ -360,6 +468,8 @@ def main():
     print(f"  当前市值: ¥{summary['total_value']:.2f}")
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
     print(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    if failed_funds:
+        print(f"\n  ⚠️  以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
     print("="*60)
 
     # 保存数据

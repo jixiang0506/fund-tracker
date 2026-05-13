@@ -781,15 +781,12 @@
                 html += `</div>`;
             });
 
-
-                  </div>
-              `;
-    
+            html += `</div>`;
 
             return html;
         }
 
-        // 渲染图表（累计损益走势）
+        // 渲染图表（累计收益率走势）
         function renderCharts() {
             const ctx = document.getElementById('chart-all');
             if (!ctx) return;
@@ -1513,3 +1510,4 @@
     </script>
 </body>
 </html>
+

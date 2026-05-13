@@ -776,6 +776,9 @@
                 if (fund.holdings && fund.holdings.purchases && fund.holdings.purchases.length > 0) {
                     html += `
                         <div class="purchase-details" id="details-${fund.code}-${platformName}" style="margin-top: 15px; display: none;">
+                            <div class="fund-chart-wrapper" style="position: relative; height: 280px; margin-bottom: 20px;">
+                                <canvas id="chart-${fund.code}-${platformName}"></canvas>
+                            </div>
                             <h4>交易记录（点击基金名称可收起）</h4>
                             <table>
                                 <thead>
@@ -951,12 +954,150 @@
         function toggleDetails(id) {
             const details = document.getElementById(`details-${id}`);
             if (!details) return;
-            
+
             if (details.style.display === 'none') {
                 details.style.display = 'block';
+                // 展开时渲染该基金走势图
+                renderFundChart(id);
             } else {
                 details.style.display = 'none';
+                // 收起时销毁图表释放资源
+                const chartId = `chart-${id}`;
+                if (fundCharts[chartId]) {
+                    fundCharts[chartId].destroy();
+                    delete fundCharts[chartId];
+                }
             }
+        }
+
+        // 存储各基金图表实例
+        const fundCharts = {};
+
+        // 渲染单个基金走势图
+        function renderFundChart(id) {
+            const parts = id.split('-');
+            const platformName = parts.pop();
+            const fundCode = parts.join('-');
+            const canvasId = `chart-${id}`;
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            // 查找基金数据
+            const fund = fundsData.funds[platformName]?.find(f => f.code === fundCode);
+            if (!fund || !fund.history || fund.history.length === 0) return;
+
+            const history = fund.history;
+            const purchases = fund.holdings?.purchases || [];
+
+            // 以第一笔买入净值为基准，计算累计收益率
+            const buyRecords = purchases.filter(p => p.type !== 'sell');
+            const firstPurchase = buyRecords.sort((a, b) => a.date.localeCompare(b.date))[0];
+            const baseNav = firstPurchase ? firstPurchase.nav : history[0].nav;
+
+            const labels = history.map(h => h.date);
+            const dataPoints = history.map(h => ((h.nav / baseNav - 1) * 100));
+
+            // 标记交易日期：买入红点，卖出绿点（同日多笔交易汇总）
+            const pointColors = labels.map(() => null);
+            const pointRadii = labels.map(() => 0);
+            const tradeInfo = {};
+
+            purchases.forEach(p => {
+                const idx = history.findIndex(h => h.date === p.date);
+                if (idx !== -1) {
+                    pointColors[idx] = p.type === 'sell' ? '#67c23a' : '#f56c6c';
+                    pointRadii[idx] = 5;
+                    if (!tradeInfo[idx]) tradeInfo[idx] = [];
+                    tradeInfo[idx].push(p);
+                }
+            });
+
+            const ctx = canvas.getContext('2d');
+
+            // 如果已有图表，先销毁
+            if (fundCharts[canvasId]) {
+                fundCharts[canvasId].destroy();
+                delete fundCharts[canvasId];
+            }
+
+            fundCharts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '累计收益率',
+                        data: dataPoints,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: pointRadii,
+                        pointBackgroundColor: pointColors,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(items) {
+                                    return items[0].label;
+                                },
+                                label: function(context) {
+                                    const idx = context.dataIndex;
+                                    const nav = history[idx].nav;
+                                    const returnRate = dataPoints[idx];
+                                    const sign = returnRate >= 0 ? '+' : '';
+                                    const lines = [`收益率: ${sign}${returnRate.toFixed(2)}%`, `净值: ${nav.toFixed(4)}`];
+                                    const trades = tradeInfo[idx];
+                                    if (trades && trades.length > 0) {
+                                        // 按买入/卖出分组汇总
+                                        const buys = trades.filter(t => t.type !== 'sell');
+                                        const sells = trades.filter(t => t.type === 'sell');
+                                        if (buys.length > 0) {
+                                            const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                                            lines.push(`买入: ¥${totalBuy.toFixed(2)}（${buys.length}笔）`);
+                                        }
+                                        if (sells.length > 0) {
+                                            const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                                            lines.push(`卖出: ¥${totalSell.toFixed(2)}（${sells.length}笔）`);
+                                        }
+                                    }
+                                    return lines;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: { size: 11 }
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return (value >= 0 ? '+' : '') + value.toFixed(0) + '%';
+                                },
+                                font: { size: 11 }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        }
+                    }
+                }
+            });
         }
 
         // 打开管理Modal

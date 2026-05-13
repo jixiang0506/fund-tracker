@@ -162,6 +162,13 @@
             font-size: 16px;
             font-weight: bold;
             color: #333;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .fund-name:hover {
+            color: #667eea;
+            text-decoration: underline;
         }
 
         .fund-code {
@@ -677,7 +684,7 @@
                 html += `
                     <div class="fund-card">
                         <div class="fund-header">
-                            <span class="fund-name">${fund.name}</span>
+                            <span class="fund-name" onclick="toggleDetails('${fund.code}-${platformName}')">${fund.name} 📊</span>
                             <span class="fund-code">${fund.code}</span>
                             <span class="fund-platform">${platformName}</span>
                         </div>
@@ -707,8 +714,8 @@
 
                 if (fund.holdings && fund.holdings.purchases && fund.holdings.purchases.length > 0) {
                     html += `
-                        <div class="purchase-details" style="margin-top: 15px;">
-                            <h4>交易记录</h4>
+                        <div class="purchase-details" id="details-${fund.code}-${platformName}" style="margin-top: 15px; display: none;">
+                            <h4>交易记录（点击基金名称可收起）</h4>
                             <table>
                                 <thead>
                                     <tr>
@@ -848,6 +855,18 @@
                         }
                     }
                 });
+            }
+        }
+
+        // 切换交易记录显示/隐藏
+        function toggleDetails(id) {
+            const details = document.getElementById(`details-${id}`);
+            if (!details) return;
+            
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+            } else {
+                details.style.display = 'none';
             }
         }
 

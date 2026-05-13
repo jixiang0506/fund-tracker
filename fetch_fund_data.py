@@ -202,16 +202,24 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
         return []
 
 def get_nav_from_history(history, target_date):
-    """从历史事件中查找指定日期的净值"""
+    """从历史数据中查找指定日期的净值。
+    
+    基金交易规则：
+    - 工作日15点前提交 → 按当天净值确认
+    - 工作日15点后或周末提交 → 按下一个工作日净值确认
+    
+    由于 purchase_records.json 只记录日期不含时间，无法区分15点前后。
+    当日期不在history中（周末/节假日）时，映射到最近的后一个交易日。
+    """
     # 先尝试精确匹配
     for record in reversed(history):
         if record["date"] == target_date:
             return record["nav"]
 
-    # 如果找不到，找最近的交易日（往前找）
-    for record in reversed(history):
-        if record["date"] <= target_date:
-            log(f"  注意：未找到 {target_date} 的净值，使用 {record['date']} 的净值: {record['nav']}")
+    # 如果找不到（周末/节假日），找最近的后一个交易日
+    for record in history:
+        if record["date"] > target_date:
+            log(f"  注意：{target_date} 非交易日，使用下一交易日 {record['date']} 的净值: {record['nav']}")
             return record["nav"]
 
     return None

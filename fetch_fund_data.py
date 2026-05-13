@@ -460,7 +460,7 @@ def main():
                 "nav_date": realtime["nav_date"],
                 "daily_return": realtime["change_percent"],
                 "holdings": holdings,
-                "history": [{"date": h["date"], "nav": h["nav"]} for h in history[-30:]]  # 只保留最近30天
+                "history": [{"date": h["date"], "nav": h["nav"]} for h in history]  # 保留全部历史数据
             }
 
             all_data["funds"][platform].append(fund_data)

@@ -354,7 +354,7 @@
             <h1>📊 我的基金收益追踪</h1>
             <div class="update-time" id="updateTime">加载中...</div>
             <div style="margin-top: 15px;">
-                <button class="btn btn-primary" onclick="openManageModal()">📝 管理买入记录</button>
+                <button class="btn btn-primary" onclick="openManageModal()">📝 管理交易记录</button>
                 <button class="btn btn-success" onclick="triggerWorkflow()" style="margin-left: 10px;">🚀 更新数据</button>
                 <button class="btn btn-warning" onclick="location.reload()" style="margin-left: 10px;">🔄 刷新页面</button>
             </div>
@@ -365,11 +365,11 @@
         </div>
     </div>
 
-    <!-- 管理买入记录 Modal -->
+    <!-- 管理交易记录 Modal -->
     <div id="manageModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📝 管理买入记录</h2>
+                <h2>📝 管理交易记录</h2>
                 <span class="close" onclick="closeManageModal()">&times;</span>
             </div>
             <div class="modal-body">
@@ -382,7 +382,7 @@
                     <h3>⚙️ GitHub 设置（可选）</h3>
                     <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
                         💡 提示：当前为本地模式（file://），由于浏览器CORS安全限制，无法直接访问GitHub API。<br>
-                        ✅ 买入记录会自动保存在浏览器本地存储中（关闭页面不会丢失）。<br>
+                        ✅ 交易记录会自动保存在浏览器本地存储中（关闭页面不会丢失）。<br>
                         ✅ 如需同步到GitHub，请使用「导出JSON文件」功能手动上传。
                     </p>
                     <div class="form-group">
@@ -409,10 +409,10 @@
                 <div style="margin-bottom: 20px;">
                     <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importFromFile(event)">
                     <button class="btn btn-warning" onclick="document.getElementById('importFileInput').click()">📂 从文件导入记录</button>
-                    <span style="margin-left: 10px; color: #666; font-size: 12px;">选择 purchase_records.json 文件</span>
+                    <span style="margin-left: 10px; color: #666; font-size: 12px;">选择 purchase_records.json 文件（支持买入和卖出记录）</span>
                 </div>
 
-                <h3 style="margin-bottom: 20px;">添加买入记录</h3>
+                <h3 style="margin-bottom: 20px;">添加交易记录</h3>
                 <div class="form-group">
                     <label>选择平台</label>
                     <select id="recordPlatform" onchange="updateFundCodes()">
@@ -426,11 +426,18 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>买入日期</label>
+                    <label>交易类型</label>
+                    <select id="recordType">
+                        <option value="buy">买入</option>
+                        <option value="sell">卖出</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>交易日期</label>
                     <input type="date" id="recordDate">
                 </div>
                 <div class="form-group">
-                    <label>买入金额 (元)</label>
+                    <label>交易金额 (元)</label>
                     <input type="number" id="recordAmount" placeholder="1000.00" step="0.01">
                 </div>
                 <button class="btn btn-success" id="addOrUpdateBtn" onclick="addOrUpdatePurchaseRecord()">✅ 添加记录</button>
@@ -438,7 +445,7 @@
 
                 <hr style="margin: 30px 0;">
 
-                <h3 style="margin-bottom: 20px;">当前买入记录</h3>
+                <h3 style="margin-bottom: 20px;">当前交易记录</h3>
                 <div id="recordsList" class="records-list">
                     <p style="color: #999; text-align: center;">请先加载买入记录</p>
                 </div>
@@ -495,7 +502,7 @@
                     }
                 }
             } catch (error) {
-                console.error('加载买入记录文件失败:', error);
+                console.error('加载交易记录文件失败:', error);
                 // 尝试从本地存储加载
                 const localData = localStorage.getItem('purchase_records');
                 if (localData) {
@@ -653,26 +660,33 @@
                         <tr>
                             <td colspan="8">
                                 <div class="purchase-details">
-                                    <h4>买入记录</h4>
+                                    <h4>交易记录</h4>
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>买入日期</th>
-                                                <th>买入金额</th>
-                                                <th>买入净值</th>
-                                                <th>获得份额</th>
+                                                <th>日期</th>
+                                                <th>类型</th>
+                                                <th>金额</th>
+                                                <th>净值</th>
+                                                <th>份额变动</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                     `;
 
                     fund.holdings.purchases.forEach(p => {
+                        const isSell = p.type === 'sell';
+                        const typeLabel = isSell ? '卖出' : '买入';
+                        const typeClass = isSell ? 'negative' : 'positive';
+                        const amountPrefix = isSell ? '-' : '';
+
                         html += `
                             <tr>
                                 <td>${p.date}</td>
-                                <td>¥${p.amount.toFixed(2)}</td>
+                                <td class="${typeClass}" style="font-weight: bold;">${typeLabel}</td>
+                                <td class="${typeClass}">¥${amountPrefix}${Math.abs(p.amount).toFixed(2)}</td>
                                 <td>${p.nav.toFixed(4)}</td>
-                                <td>${p.shares.toFixed(2)}</td>
+                                <td class="${typeClass}">${isSell ? '-' : '+'}${Math.abs(p.shares).toFixed(2)}</td>
                             </tr>
                         `;
                     });
@@ -837,15 +851,15 @@
                 if (localData) {
                     purchaseRecords = JSON.parse(localData);
                     renderRecordsList();
-                    showMessage('本地买入记录加载成功', 'success');
+                    showMessage('本地交易记录加载成功', 'success');
                 } else {
                     purchaseRecords = {};
                     renderRecordsList();
-                    showMessage('暂无本地记录，将创建新记录', 'info');
+                    showMessage('暂无本地交易记录，将创建新记录', 'info');
                 }
             } catch (error) {
-                console.error('加载本地记录失败:', error);
-                showMessage('加载本地记录失败', 'error');
+                console.error('加载本地交易记录失败:', error);
+                showMessage('加载本地交易记录失败', 'error');
             }
         }
 
@@ -853,7 +867,7 @@
         function saveLocalRecords() {
             try {
                 localStorage.setItem('purchase_records', JSON.stringify(purchaseRecords));
-                showMessage('买入记录已保存到本地', 'success');
+                showMessage('交易记录已保存到本地', 'success');
             } catch (error) {
                 console.error('保存本地记录失败:', error);
                 showMessage('保存本地记录失败', 'error');
@@ -883,11 +897,11 @@
                     const content = atob(data.content);
                     purchaseRecords = JSON.parse(content);
                     renderRecordsList();
-                    showMessage('买入记录加载成功', 'success');
+                    showMessage('交易记录加载成功', 'success');
                 } else if (response.status === 404) {
                     purchaseRecords = {};
                     renderRecordsList();
-                    showMessage('未找到买入记录文件，将创建新文件', 'info');
+                    showMessage('未找到交易记录文件，将创建新文件', 'info');
                 } else {
                     throw new Error('加载失败');
                 }
@@ -896,7 +910,7 @@
                 if (error.message === 'Failed to fetch') {
                     showMessage('加载失败: 浏览器CORS限制，本地文件无法访问GitHub API。请先使用「加载本地记录」。', 'error');
                 } else {
-                    showMessage('加载买入记录失败: ' + error.message, 'error');
+                    showMessage('加载交易记录失败: ' + error.message, 'error');
                 }
             }
         }
@@ -910,12 +924,13 @@
             }
         }
 
-        // 添加买入记录
+        // 添加交易记录
         function addPurchaseRecord() {
             const platform = document.getElementById('recordPlatform').value;
             const fundCode = document.getElementById('recordFund').value;
             const date = document.getElementById('recordDate').value;
             const amount = document.getElementById('recordAmount').value;
+            const type = document.getElementById('recordType').value;
 
             if (!platform || !fundCode || !date || !amount) {
                 showMessage('请填写完整信息', 'error');
@@ -930,22 +945,31 @@
                 purchaseRecords[platform][fundCode] = [];
             }
 
-            purchaseRecords[platform][fundCode].push({
+            const record = {
                 date: date,
                 amount: parseFloat(amount)
-            });
+            };
+            
+            // 如果是卖出记录，添加类型标记
+            if (type === 'sell') {
+                record.type = 'sell';
+            }
+
+            purchaseRecords[platform][fundCode].push(record);
 
             renderRecordsList();
             saveLocalRecords();
             clearRecordForm();
-            showMessage('买入记录已添加并保存到本地', 'success');
+            showMessage('交易记录已添加并保存到本地', 'success');
         }
 
-        // 编辑买入记录（进入编辑模式）
+        // 编辑交易记录（进入编辑模式）
         function editPurchaseRecord(platform, fundCode, index) {
             editingPlatform = platform;
             editingFundCode = fundCode;
             editingIndex = index;
+
+            const record = purchaseRecords[platform][fundCode][index];
 
             // 填充表单
             document.getElementById('recordPlatform').value = platform;
@@ -954,8 +978,9 @@
             setTimeout(() => {
                 document.getElementById('recordFund').value = fundCode;
             }, 100);
-            document.getElementById('recordDate').value = purchaseRecords[platform][fundCode][index].date;
-            document.getElementById('recordAmount').value = purchaseRecords[platform][fundCode][index].amount;
+            document.getElementById('recordDate').value = record.date;
+            document.getElementById('recordAmount').value = record.amount;
+            document.getElementById('recordType').value = record.type || 'buy';
 
             // 修改按钮文本和显示
             document.getElementById('addOrUpdateBtn').textContent = '✅ 更新记录';
@@ -964,16 +989,25 @@
             showMessage('正在编辑记录，修改后点击「更新记录」', 'info');
         }
 
-        // 更新买入记录
+        // 更新交易记录
         function updatePurchaseRecord() {
             const platform = document.getElementById('recordPlatform').value;
             const fundCode = document.getElementById('recordFund').value;
             const date = document.getElementById('recordDate').value;
             const amount = document.getElementById('recordAmount').value;
+            const type = document.getElementById('recordType').value;
 
             if (!platform || !fundCode || !date || !amount) {
                 showMessage('请填写完整信息', 'error');
                 return;
+            }
+
+            const record = {
+                date: date,
+                amount: parseFloat(amount)
+            };
+            if (type === 'sell') {
+                record.type = 'sell';
             }
 
             // 如果平台或基金代码改变了，需要删除旧记录并添加到新位置
@@ -994,22 +1028,16 @@
                 if (!purchaseRecords[platform][fundCode]) {
                     purchaseRecords[platform][fundCode] = [];
                 }
-                purchaseRecords[platform][fundCode].push({
-                    date: date,
-                    amount: parseFloat(amount)
-                });
+                purchaseRecords[platform][fundCode].push(record);
             } else {
-                // 只更新日期和金额
-                purchaseRecords[platform][fundCode][editingIndex] = {
-                    date: date,
-                    amount: parseFloat(amount)
-                };
+                // 只更新记录
+                purchaseRecords[platform][fundCode][editingIndex] = record;
             }
 
             renderRecordsList();
             saveLocalRecords();
             cancelEdit();
-            showMessage('买入记录已更新并保存到本地', 'success');
+            showMessage('交易记录已更新并保存到本地', 'success');
         }
 
         // 取消编辑
@@ -1029,6 +1057,7 @@
         function clearRecordForm() {
             document.getElementById('recordDate').value = '';
             document.getElementById('recordAmount').value = '';
+            document.getElementById('recordType').value = 'buy';
         }
 
         // 从文件导入买入记录
@@ -1042,7 +1071,7 @@
                     purchaseRecords = JSON.parse(e.target.result);
                     renderRecordsList();
                     saveLocalRecords(); // 同时保存到本地存储
-                    showMessage('已从文件导入买入记录并保存到本地', 'success');
+                    showMessage('已从文件导入交易记录并保存到本地', 'success');
                 } catch (error) {
                     console.error('导入失败:', error);
                     showMessage('导入失败: JSON格式错误', 'error');
@@ -1130,11 +1159,17 @@
 
                     records.forEach((record, index) => {
                         const fundName = getFundName(platform, fundCode);
+                        const isSell = record.type === 'sell';
+                        const typeLabel = isSell ? '卖出' : '买入';
+                        const typeColor = isSell ? '#f56c6c' : '#67c23a';
+                        const amountPrefix = isSell ? '-' : '';
+
                         html += `
                             <div class="record-item">
                                 <div class="record-info">
                                     <strong>${platform}</strong> - ${fundName} (${fundCode})<br>
-                                    日期: ${record.date}, 金额: ¥${record.amount.toFixed(2)}
+                                    <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
+                                    日期: ${record.date}, 金额: ¥${amountPrefix}${record.amount.toFixed(2)}
                                 </div>
                                 <div class="record-actions">
                                     <button class="btn btn-primary" onclick="editPurchaseRecord('${platform}', '${fundCode}', ${index})" style="margin-right: 5px;">编辑</button>
@@ -1201,7 +1236,7 @@
                 // 保存文件
                 const content = btoa(unescape(encodeURIComponent(JSON.stringify(purchaseRecords, null, 2))));
                 const body = {
-                    message: '📝 更新买入记录',
+                    message: '📝 更新交易记录',
                     content: content,
                     branch: 'main'
                 };
@@ -1224,12 +1259,12 @@
                 );
 
                 if (response.ok) {
-                    showMessage('买入记录已保存到 GitHub', 'success');
+                    showMessage('交易记录已保存到 GitHub', 'success');
                 } else {
                     throw new Error('保存失败');
                 }
             } catch (error) {
-                console.error('保存买入记录失败:', error);
+                console.error('保存交易记录失败:', error);
                 if (error.message === 'Failed to fetch') {
                     showMessage('保存失败: 浏览器CORS限制，本地文件无法访问GitHub API。请使用「导出JSON文件」功能手动上传。', 'error');
                 } else {

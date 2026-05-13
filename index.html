@@ -628,15 +628,33 @@
             if (!fundsData) return;
 
             document.getElementById('updateTime').textContent = `最后更新: ${fundsData.update_time}`;
+
             let html = renderSummary(fundsData.summary);
 
+            // 为所有平台创建基金卡片
             for (const platform in fundsData.funds) {
                 html += renderPlatform(platform, fundsData.funds[platform]);
             }
 
+            // 添加统一的累计收益率图表
+            html += `
+                <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
+                    <div class="chart-wrapper">
+                        <h3 style="font-size: 18px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                            📈 累计收益率走势
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="chart-all"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             document.getElementById('content').innerHTML = html;
             renderCharts();
         }
+
+
 
         // 渲染总体统计
         function renderSummary(summary) {
@@ -763,112 +781,121 @@
                 html += `</div>`;
             });
 
-              html += `
-                      <div class="chart-wrapper">
-                          <h3 style="font-size: 18px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
-                              📈 累计损益走势
-                          </h3>
-                          <div class="chart-container">
-                              <canvas id="chart-${platformName}"></canvas>
-                          </div>
-                      </div>
+
                   </div>
               `;
+    
 
             return html;
         }
 
         // 渲染图表（累计损益走势）
         function renderCharts() {
+            const ctx = document.getElementById('chart-all');
+            if (!ctx) return;
+
+            // 收集所有基金
+            let allFunds = [];
             for (const platform in fundsData.funds) {
-                const funds = fundsData.funds[platform];
-                const ctx = document.getElementById(`chart-${platform}`);
+                allFunds = allFunds.concat(fundsData.funds[platform]);
+            }
 
-                if (!ctx) continue;
+            const colors = [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 206, 86)',
+                'rgb(75, 192, 192)',
+                'rgb(153, 102, 255)',
+                'rgb(255, 159, 64)',
+                'rgb(199, 199, 199)',
+                'rgb(83, 102, 255)'
+            ];
 
-                const colors = [
-                    { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.1)' },
-                    { border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.1)' },
-                    { border: 'rgb(255, 206, 86)', background: 'rgba(255, 206, 86, 0.1)' },
-                    { border: 'rgb(75, 192, 192)', background: 'rgba(75, 192, 192, 0.1)' },
-                    { border: 'rgb(153, 102, 255)', background: 'rgba(153, 102, 255, 0.1)' },
-                    { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.1)' }
-                ];
+            const datasets = allFunds.map((fund, index) => {
+                const purchases = fund.holdings.purchases || [];
+                // 按日期排序交易记录
+                const sorted = [...purchases].sort((a, b) => a.date.localeCompare(b.date));
 
-                const datasets = funds.map((fund, index) => {
-                    const colorIndex = index % colors.length;
-                    const purchases = fund.holdings.purchases || [];
-                    // 按日期排序交易记录
-                    const sorted = [...purchases].sort((a, b) => a.date.localeCompare(b.date));
+                // 对每一天历史净值，计算累计收益率
+                const returnRateData = (fund.history || []).map(h => {
+                    let totalShares = 0;
+                    let totalInvested = 0;
 
-                    // 对每一天历史净值，计算累计损益
-                    const profitLossData = (fund.history || []).map(h => {
-                        let totalShares = 0;
-                        let totalInvested = 0;
-
-                        for (const p of sorted) {
-                            if (p.date <= h.date) {
-                                totalShares += p.shares;   // 卖出时 shares 为负数
-                                totalInvested += p.amount; // 卖出时 amount 为负数
-                            }
+                    for (const p of sorted) {
+                        if (p.date <= h.date) {
+                            totalShares += p.shares;   // 卖出时 shares 为负数
+                            totalInvested += p.amount; // 卖出时 amount 为负数
                         }
+                    }
 
-                        const value = h.nav * totalShares;
-                        return value - totalInvested; // 累计损益
-                    });
+                    if (totalInvested <= 0) return 0; // 避免除以0
 
-                    return {
-                        label: `${fund.name} (${fund.code})`,
-                        data: profitLossData,
-                        borderColor: colors[colorIndex].border,
-                        backgroundColor: colors[colorIndex].background,
-                        fill: true,
-                        tension: 0.1,
-                        pointRadius: 0,
-                        borderWidth: 2
-                    };
+                    const value = h.nav * totalShares;
+                    const profit = value - totalInvested;
+                    return (profit / totalInvested * 100); // 累计收益率（百分比）
                 });
 
-                const labels = (funds[0].history || []).map(h => h.date);
+                return {
+                    label: `${fund.name} (${fund.code})`,
+                    data: returnRateData,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    borderWidth: 2
+                };
+            });
 
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: '累计损益走势图（¥）'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const v = context.parsed.y;
-                                        const sign = v >= 0 ? '+' : '';
-                                        return context.dataset.label + ': ' + sign + '¥' + v.toFixed(2);
-                                    }
+            // 使用第一个基金的历史日期作为标签
+            let labels = [];
+            for (const platform in fundsData.funds) {
+                const funds = fundsData.funds[platform];
+                if (funds.length > 0 && funds[0].history) {
+                    labels = funds[0].history.map(h => h.date);
+                    break;
+                }
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '累计收益率走势（%）'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const v = context.parsed.y;
+                                    const sign = v >= 0 ? '+' : '';
+                                    return context.dataset.label + ': ' + sign + v.toFixed(2) + '%';
                                 }
                             }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '¥' + value.toFixed(0);
-                                    }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '%';
                                 }
                             }
                         }
                     }
-                });
-            }
+                }
+            });
         }
+
+
 
         // 切换交易记录显示/隐藏
         function toggleDetails(id) {

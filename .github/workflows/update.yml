@@ -1,9 +1,9 @@
 name: 每日更新基金数据
 
 on:
-  # 每天北京时间 01:00（UTC 17:00）执行
+  # 每天北京时间 10:00（UTC 02:00）执行
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 2 * * *'
   # 支持手动触发
   workflow_dispatch:
   # 推送到 main 分支时也触发
@@ -20,9 +20,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ===== 第一步：更新基金数据 =====
-  update:
+  # ===== 合并为单步：更新数据并部署 =====
+  update-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -42,20 +45,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/funds_data.json
+          git add data/
           git diff --cached --quiet || git commit -m "自动更新基金数据 $(date +%Y-%m-%d)"
           git push
-
-  # ===== 第二步：部署到 GitHub Pages =====
-  deploy:
-    needs: update
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
 
       - name: 设置 Pages
         uses: actions/configure-pages@v5

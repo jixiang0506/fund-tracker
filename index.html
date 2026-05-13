@@ -188,12 +188,16 @@
         .fund-metrics {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .fund-metrics td {
             text-align: center;
-            padding: 6px 4px;
+            padding: 6px 2px;
             border: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .metric-labels td {
@@ -207,6 +211,16 @@
             font-weight: 600;
             padding-top: 4px;
         }
+
+        /* 固定8列宽度，确保不同基金卡片之间纵向对齐 */
+        .fund-metrics td:nth-child(1) { width: 10%; }
+        .fund-metrics td:nth-child(2) { width: 10%; }
+        .fund-metrics td:nth-child(3) { width: 12%; }
+        .fund-metrics td:nth-child(4) { width: 14%; }
+        .fund-metrics td:nth-child(5) { width: 14%; }
+        .fund-metrics td:nth-child(6) { width: 14%; }
+        .fund-metrics td:nth-child(7) { width: 14%; }
+        .fund-metrics td:nth-child(8) { width: 12%; }
 
         .funds-table {
             width: 100%;
@@ -787,9 +801,16 @@
         }
 
         // 渲染图表（累计收益率走势）
+        let chartAllInstance = null;  // 保存图表实例，避免重复创建
         function renderCharts() {
             const ctx = document.getElementById('chart-all');
             if (!ctx) return;
+
+            // 销毁旧图表，防止重复叠加
+            if (chartAllInstance) {
+                chartAllInstance.destroy();
+                chartAllInstance = null;
+            }
 
             // 收集所有基金
             let allFunds = [];
@@ -854,7 +875,7 @@
                 }
             }
 
-            new Chart(ctx, {
+            chartAllInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,

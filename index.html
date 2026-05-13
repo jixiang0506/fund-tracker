@@ -481,12 +481,14 @@
             loadData();
         };
 
-        // 从本地JSON文件加载买入记录
+        // 从本地JSON文件加载买入记录（强制UTF-8解码）
         async function loadPurchaseRecordsFromFile() {
             try {
                 const response = await fetch('data/purchase_records.json?t=' + new Date().getTime());
                 if (response.ok) {
-                    purchaseRecords = await response.json();
+                    const buffer = await response.arrayBuffer();
+                    const text = new TextDecoder('utf-8').decode(buffer);
+                    purchaseRecords = JSON.parse(text);
                     console.log('从文件加载买入记录成功:', purchaseRecords);
                     showMessage('已从文件加载买入记录', 'success');
                 } else {
@@ -530,14 +532,16 @@
             showMessage('设置已保存', 'success');
         }
 
-        // 加载数据
+        // 加载数据（强制UTF-8解码，避免中文乱码）
         async function loadData() {
             try {
                 const response = await fetch('data/funds_data.json?t=' + new Date().getTime());
                 if (!response.ok) {
                     throw new Error('数据加载失败');
                 }
-                fundsData = await response.json();
+                const buffer = await response.arrayBuffer();
+                const text = new TextDecoder('utf-8').decode(buffer);
+                fundsData = JSON.parse(text);
                 renderData();
             } catch (error) {
                 console.error('加载数据失败:', error);
@@ -1077,7 +1081,7 @@
                     showMessage('导入失败: JSON格式错误', 'error');
                 }
             };
-            reader.readAsText(file);
+            reader.readAsText(file, 'utf-8');
             
             // 清空input，允许重复选择同一文件
             event.target.value = '';

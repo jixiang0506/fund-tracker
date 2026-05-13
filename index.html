@@ -136,14 +136,69 @@
         }
 
         .platform-title {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .fund-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .fund-header {
+            margin-bottom: 15px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .fund-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .fund-code {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .fund-platform {
+            display: inline-block;
+            background: #e9ecef;
+            color: #666;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .fund-metrics {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .fund-metrics td {
+            text-align: center;
+            padding: 6px 4px;
+            border: none;
+        }
+
+        .metric-labels td {
+            color: #999;
+            font-size: 12px;
+            padding-bottom: 4px;
+        }
+
+        .metric-values td {
+            font-size: 15px;
+            font-weight: 600;
+            padding-top: 4px;
         }
 
         .funds-table {
@@ -605,24 +660,8 @@
         // 渲染平台数据
         function renderPlatform(platformName, funds) {
             let html = `
-                <div class="platform-section">
-                    <div class="platform-title">
-                        <span>${platformName}</span>
-                    </div>
-                    <table class="funds-table">
-                        <thead>
-                            <tr>
-                                <th>最新净值</th>
-                                <th>日收益率</th>
-                                <th>日盈亏</th>
-                                <th>持有份额</th>
-                                <th>投入金额</th>
-                                <th>当前市值</th>
-                                <th>累计盈亏</th>
-                                <th>累计收益率</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
+                    <div class="platform-title">${platformName}</div>
             `;
 
             funds.forEach(fund => {
@@ -636,59 +675,52 @@
                     dailyProfit = fund.holdings.total_shares * fund.current_nav * (fund.daily_return / 100);
                 }
 
-                // 基金名称+代码作为单独一行（跨列标题）
                 html += `
-                    <tr style="background: #f8f9fa;">
-                        <td colspan="8" style="padding: 12px 15px; border-bottom: none;">
-                            <span style="font-weight: bold; font-size: 15px; color: #333;">${fund.name}</span>
-                            <span style="color: #999; font-size: 13px; margin-left: 8px;">${fund.code}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-size: 18px; font-weight: bold; color: #333; text-align: center; vertical-align: middle;">
-                            ${fund.current_nav.toFixed(4)}
-                        </td>
-                        <td class="${dailyClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
-                            ${fund.daily_return >= 0 ? '+' : ''}${fund.daily_return.toFixed(2)}%
-                        </td>
-                        <td class="${dailyClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
-                            ${fund.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}
-                        </td>
-                        <td style="font-size: 16px; text-align: center; vertical-align: middle;">
-                            ${fund.holdings ? fund.holdings.total_shares.toFixed(2) : '-'}
-                        </td>
-                        <td style="font-size: 16px; text-align: center; vertical-align: middle;">
-                            ${fund.holdings ? '¥' + fund.holdings.total_invested.toFixed(2) : '-'}
-                        </td>
-                        <td style="font-size: 16px; text-align: center; vertical-align: middle;">
-                            ${fund.holdings ? '¥' + fund.holdings.current_value.toFixed(2) : '-'}
-                        </td>
-                        <td class="${profitClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
-                            ${fund.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}
-                        </td>
-                        <td class="${profitClass}" style="font-size: 16px; font-weight: bold; text-align: center; vertical-align: middle;">
-                            ${fund.holdings ? ((fund.holdings.profit_loss_percent >= 0 ? '+' : '') + fund.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}
-                        </td>
-                    </tr>
+                    <div class="fund-card">
+                        <div class="fund-header">
+                            <span class="fund-name">${fund.name}</span>
+                            <span class="fund-code">${fund.code}</span>
+                            <span class="fund-platform">${platformName}</span>
+                        </div>
+                        <table class="fund-metrics">
+                            <tr class="metric-labels">
+                                <td>最新净值</td>
+                                <td>日收益率</td>
+                                <td>日盈亏</td>
+                                <td>持有份额</td>
+                                <td>投入金额</td>
+                                <td>当前市值</td>
+                                <td>累计盈亏</td>
+                                <td>累计收益率</td>
+                            </tr>
+                            <tr class="metric-values">
+                                <td>${fund.current_nav.toFixed(4)}</td>
+                                <td class="${dailyClass}">${fund.daily_return >= 0 ? '+' : ''}${fund.daily_return.toFixed(2)}%</td>
+                                <td class="${dailyClass}">${fund.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}</td>
+                                <td>${fund.holdings ? fund.holdings.total_shares.toFixed(2) : '-'}</td>
+                                <td>${fund.holdings ? '¥' + fund.holdings.total_invested.toFixed(2) : '-'}</td>
+                                <td>${fund.holdings ? '¥' + fund.holdings.current_value.toFixed(2) : '-'}</td>
+                                <td class="${profitClass}">${fund.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>
+                                <td class="${profitClass}">${fund.holdings ? ((fund.holdings.profit_loss_percent >= 0 ? '+' : '') + fund.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>
+                            </tr>
+                        </table>
                 `;
 
                 if (fund.holdings && fund.holdings.purchases && fund.holdings.purchases.length > 0) {
                     html += `
-                        <tr>
-                            <td colspan="8">
-                                <div class="purchase-details">
-                                    <h4>交易记录</h4>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>日期</th>
-                                                <th>类型</th>
-                                                <th>金额</th>
-                                                <th>净值</th>
-                                                <th>份额变动</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                        <div class="purchase-details" style="margin-top: 15px;">
+                            <h4>交易记录</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>类型</th>
+                                        <th>金额</th>
+                                        <th>净值</th>
+                                        <th>份额变动</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                     `;
 
                     fund.holdings.purchases.forEach(p => {
@@ -709,18 +741,16 @@
                     });
 
                     html += `
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </td>
-                        </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     `;
                 }
+
+                html += `</div>`;
             });
 
             html += `
-                        </tbody>
-                    </table>
                     <div class="chart-container">
                         <canvas id="chart-${platformName}"></canvas>
                     </div>

@@ -62,18 +62,19 @@ def fetch_fund_realtime(fund_code):
         log(f"❌ 获取基金 {fund_code} 实时数据失败: {e}")
         return None
 
-def fetch_fund_history(fund_code, start_date="2020-01-01", pages=500):
+def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
     """获取基金历史净值数据（一次性获取所有历史数据）"""
     try:
         log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
         page_index = 1
+        page_size = 20  # API每页最大返回20条
 
-        while True:
+        while page_index <= max_pages:
             params = {
                 "fundCode": fund_code,
                 "pageIndex": page_index,
-                "pageSize": 50,  # 每页50条记录
+                "pageSize": page_size,
                 "startDate": start_date,
                 "endDate": datetime.now().strftime("%Y-%m-%d")
             }
@@ -85,20 +86,20 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", pages=500):
             if not result.get("Data") or not result["Data"].get("LSJZList"):
                 break
 
-            for item in result["Data"]["LSJZList"]:
+            items = result["Data"]["LSJZList"]
+            for item in items:
                 all_history.append({
                     "date": item.get("FSRQ", ""),
                     "nav": float(item.get("DWJZ", 0)),
                     "change_percent": float(item.get("JZZZL", 0)) if item.get("JZZZL") else 0
                 })
 
-            # 检查是否还有更多页
-            total_count = result["Data"].get("TotalCount", 0)
-            if len(all_history) >= total_count:
+            # 如果返回的数据少于page_size，说明没有更多页了
+            if len(items) < page_size:
                 break
 
             page_index += 1
-            time.sleep(0.2)  # 避免请求过快
+            time.sleep(0.3)  # 避免请求过快
 
         # 按日期排序（从旧到新）
         all_history = sorted(all_history, key=lambda x: x["date"])

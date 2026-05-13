@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/27709397/README.md)
+[README.md](https://github.com/user-attachments/files/27720070/README.md)
 # 📊 基金收益追踪系统
 
 自动化追踪你在多个平台的基金收益情况，每天自动更新数据并生成可视化报告。

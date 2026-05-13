@@ -661,7 +661,6 @@
         function renderPlatform(platformName, funds) {
             let html = `
                 <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
-                    <div class="platform-title">${platformName}</div>
             `;
 
             funds.forEach(fund => {
@@ -680,7 +679,6 @@
                         <div class="fund-header">
                             <span class="fund-name">${fund.name}</span>
                             <span class="fund-code">${fund.code}</span>
-                            <span class="fund-platform">${platformName}</span>
                         </div>
                         <table class="fund-metrics">
                             <tr class="metric-labels">
@@ -769,15 +767,16 @@
                 if (!ctx) continue;
 
                 const colors = [
-                    'rgb(255, 99, 132)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 206, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(153, 102, 255)',
-                    'rgb(255, 159, 64)'
+                    { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.1)' },
+                    { border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.1)' },
+                    { border: 'rgb(255, 206, 86)', background: 'rgba(255, 206, 86, 0.1)' },
+                    { border: 'rgb(75, 192, 192)', background: 'rgba(75, 192, 192, 0.1)' },
+                    { border: 'rgb(153, 102, 255)', background: 'rgba(153, 102, 255, 0.1)' },
+                    { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.1)' }
                 ];
 
                 const datasets = funds.map((fund, index) => {
+                    const colorIndex = index % colors.length;
                     const purchases = fund.holdings.purchases || [];
                     // 按日期排序交易记录
                     const sorted = [...purchases].sort((a, b) => a.date.localeCompare(b.date));
@@ -801,8 +800,9 @@
                     return {
                         label: `${fund.name} (${fund.code})`,
                         data: profitLossData,
-                        borderColor: colors[index % colors.length],
-                        backgroundColor: 'transparent',
+                        borderColor: colors[colorIndex].border,
+                        backgroundColor: colors[colorIndex].background,
+                        fill: true,
                         tension: 0.1,
                         pointRadius: 0,
                         borderWidth: 2

@@ -1003,7 +1003,11 @@
             const tradeInfo = {};
 
             purchases.forEach(p => {
-                const idx = history.findIndex(h => h.date === p.date);
+                let idx = history.findIndex(h => h.date === p.date);
+                // 交易日期不在history中（如周末/节假日），映射到最近的后一个交易日
+                if (idx === -1) {
+                    idx = history.findIndex(h => h.date > p.date);
+                }
                 if (idx !== -1) {
                     pointColors[idx] = p.type === 'sell' ? '#67c23a' : '#f56c6c';
                     pointRadii[idx] = 5;

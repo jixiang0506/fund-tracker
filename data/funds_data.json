@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-13 12:11:23",
+  "update_time": "2026-05-13 12:44:17",
   "funds": {
     "支付宝": [
       {
@@ -12,8 +12,8 @@
         "holdings": {
           "total_invested": 0,
           "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
+          "current_value": 0.0,
+          "profit_loss": 0.0,
           "profit_loss_percent": 0,
           "purchases": []
         },
@@ -108,12 +108,27 @@
         "nav_date": "2026-05-13 15:00",
         "daily_return": 2.09,
         "holdings": {
-          "total_invested": 0,
-          "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
-          "profit_loss_percent": 0,
-          "purchases": []
+          "total_invested": 80474.99,
+          "total_shares": 10144.67,
+          "current_value": 99055.61,
+          "profit_loss": 18580.62,
+          "profit_loss_percent": 23.09,
+          "purchases": [
+            {
+              "date": "2026-04-23",
+              "amount": 30000.0,
+              "nav": 8.5283,
+              "shares": 3517.7,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 50474.99,
+              "nav": 7.6166,
+              "shares": 6626.97,
+              "type": "buy"
+            }
+          ]
         },
         "history": [
           {
@@ -206,12 +221,34 @@
         "nav_date": "2026-05-13 15:00",
         "daily_return": 3.95,
         "holdings": {
-          "total_invested": 0,
-          "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
-          "profit_loss_percent": 0,
-          "purchases": []
+          "total_invested": 70000.0,
+          "total_shares": 14835.59,
+          "current_value": 86438.06,
+          "profit_loss": 16438.06,
+          "profit_loss_percent": 23.48,
+          "purchases": [
+            {
+              "date": "2026-04-18",
+              "amount": 30000.0,
+              "nav": 4.9568,
+              "shares": 6052.29,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 20000.0,
+              "nav": 4.5541,
+              "shares": 4391.65,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 20000.0,
+              "nav": 4.5541,
+              "shares": 4391.65,
+              "type": "buy"
+            }
+          ]
         },
         "history": [
           {
@@ -304,12 +341,27 @@
         "nav_date": "2026-05-13 04:00",
         "daily_return": 0.05,
         "holdings": {
-          "total_invested": 0,
-          "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
-          "profit_loss_percent": 0,
-          "purchases": []
+          "total_invested": 60000.0,
+          "total_shares": 29560.54,
+          "current_value": 64243.93,
+          "profit_loss": 4243.93,
+          "profit_loss_percent": 7.07,
+          "purchases": [
+            {
+              "date": "2026-05-07",
+              "amount": 50000.0,
+              "nav": 2.0784,
+              "shares": 24056.97,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 10000.0,
+              "nav": 1.817,
+              "shares": 5503.58,
+              "type": "buy"
+            }
+          ]
         },
         "history": [
           {
@@ -404,12 +456,48 @@
         "nav_date": "2026-05-13 04:00",
         "daily_return": 0.08,
         "holdings": {
-          "total_invested": 0,
-          "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
-          "profit_loss_percent": 0,
-          "purchases": []
+          "total_invested": 100.0,
+          "total_shares": 53.1,
+          "current_value": 130.67,
+          "profit_loss": 30.67,
+          "profit_loss_percent": 30.67,
+          "purchases": [
+            {
+              "date": "2026-04-16",
+              "amount": 20.0,
+              "nav": 1.916,
+              "shares": 10.44,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 20.0,
+              "nav": 1.903,
+              "shares": 10.51,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-14",
+              "amount": 20.0,
+              "nav": 1.904,
+              "shares": 10.5,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-13",
+              "amount": 20.0,
+              "nav": 1.858,
+              "shares": 10.76,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-10",
+              "amount": 20.0,
+              "nav": 1.838,
+              "shares": 10.88,
+              "type": "buy"
+            }
+          ]
         },
         "history": [
           {
@@ -502,12 +590,48 @@
         "nav_date": "2026-05-13 04:00",
         "daily_return": 0.07,
         "holdings": {
-          "total_invested": 0,
-          "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
-          "profit_loss_percent": 0,
-          "purchases": []
+          "total_invested": 250.0,
+          "total_shares": 77.67,
+          "current_value": 308.42,
+          "profit_loss": 58.42,
+          "profit_loss_percent": 23.37,
+          "purchases": [
+            {
+              "date": "2026-04-16",
+              "amount": 50.0,
+              "nav": 3.2904,
+              "shares": 15.2,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 50.0,
+              "nav": 3.1943,
+              "shares": 15.65,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-14",
+              "amount": 50.0,
+              "nav": 3.2418,
+              "shares": 15.42,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-13",
+              "amount": 50.0,
+              "nav": 3.2003,
+              "shares": 15.62,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-10",
+              "amount": 50.0,
+              "nav": 3.1692,
+              "shares": 15.78,
+              "type": "buy"
+            }
+          ]
         },
         "history": [
           {
@@ -600,12 +724,34 @@
         "nav_date": "2026-05-13 15:00",
         "daily_return": 1.59,
         "holdings": {
-          "total_invested": 0,
-          "total_shares": 0,
-          "current_value": 0,
-          "profit_loss": 0,
-          "profit_loss_percent": 0,
-          "purchases": []
+          "total_invested": 1155.3,
+          "total_shares": 177.18,
+          "current_value": 1421.61,
+          "profit_loss": 266.31,
+          "profit_loss_percent": 23.05,
+          "purchases": [
+            {
+              "date": "2026-05-01",
+              "amount": 138.81,
+              "nav": 7.129,
+              "shares": 19.47,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-18",
+              "amount": 16.49,
+              "nav": 6.868,
+              "shares": 2.4,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 1000.0,
+              "nav": 6.439,
+              "shares": 155.3,
+              "type": "buy"
+            }
+          ]
         },
         "history": [
           {
@@ -710,19 +856,22 @@
               "date": "2026-04-17",
               "amount": 15000,
               "nav": 5.5943,
-              "shares": 2681.3
+              "shares": 2681.3,
+              "type": "buy"
             },
             {
               "date": "2026-04-22",
               "amount": 71197.05,
               "nav": 5.7309,
-              "shares": 12423.36
+              "shares": 12423.36,
+              "type": "buy"
             },
             {
               "date": "2026-04-27",
               "amount": 5000,
               "nav": 5.7302,
-              "shares": 872.57
+              "shares": 872.57,
+              "type": "buy"
             }
           ]
         },
@@ -827,21 +976,19 @@
               "date": "2026-04-16",
               "amount": 500,
               "nav": 2.62,
-              "shares": 190.84
+              "shares": 190.84,
+              "type": "buy"
             },
             {
               "date": "2026-04-21",
               "amount": 49362.26,
               "nav": 2.756,
-              "shares": 17910.83
+              "shares": 17910.83,
+              "type": "buy"
             }
           ]
         },
         "history": [
-          {
-            "date": "2026-04-10",
-            "nav": 2.502
-          },
           {
             "date": "2026-04-13",
             "nav": 2.523
@@ -917,6 +1064,10 @@
           {
             "date": "2026-05-12",
             "nav": 3.13
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 3.195
           }
         ]
       },
@@ -938,15 +1089,12 @@
               "date": "2026-04-13",
               "amount": 20000,
               "nav": 2.4756,
-              "shares": 8078.85
+              "shares": 8078.85,
+              "type": "buy"
             }
           ]
         },
         "history": [
-          {
-            "date": "2026-04-10",
-            "nav": 2.4942
-          },
           {
             "date": "2026-04-13",
             "nav": 2.4756
@@ -1022,15 +1170,19 @@
           {
             "date": "2026-05-12",
             "nav": 2.9659
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 2.997
           }
         ]
       }
     ]
   },
   "summary": {
-    "total_invested": 161059.31,
-    "total_value": 182541.28999999998,
-    "total_profit_loss": 21481.98,
-    "total_profit_loss_percent": 13.34
+    "total_invested": 373039.6,
+    "total_value": 434139.58999999997,
+    "total_profit_loss": 61099.99,
+    "total_profit_loss_percent": 16.38
   }
 }

@@ -500,6 +500,67 @@
             background: #f8f9fa;
         }
 
+        /* 基金搜索下拉结果 */
+        .search-results {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 200;
+            margin-top: 2px;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: #f5f7ff;
+        }
+
+        .search-result-code {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .search-result-name {
+            color: #666;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .search-result-platform {
+            color: #999;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .search-no-result {
+            padding: 12px;
+            color: #999;
+            text-align: center;
+            font-size: 13px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -599,7 +660,7 @@
             </div>
             <div class="modal-body">
                 <div id="profitLossSummary" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
-                    <h3 style="margin-bottom: 10px;">📊 盈亏概览（截至最新日期）</</h3>
+                    <h3 style="margin-bottom: 10px;">📊 盈亏概览（截至最新日期）</h3>
                     <div id="summaryContent"></div>
                 </div>
 
@@ -638,6 +699,11 @@
                 </div>
 
                 <h3 style="margin-bottom: 20px;">添加交易记录</h3>
+                <div class="form-group" style="position: relative;">
+                    <label>搜索基金（输入代码或名称）</label>
+                    <input type="text" id="fundSearchInput" placeholder="例如：270023 或 广发全球精选" oninput="searchFunds(this.value)" onblur="hideSearchResultsDelayed()" onfocus="if(this.value)searchFunds(this.value)">
+                    <div id="fundSearchResults" class="search-results"></div>
+                </div>
                 <div class="form-group">
                     <label>选择平台</label>
                     <select id="recordPlatform" onchange="updateFundCodes()">
@@ -646,7 +712,7 @@
                 </div>
                 <div class="form-group">
                     <label>选择基金</label>
-                    <select id="recordFund">
+                    <select id="recordFund" onchange="onFundSelect()">
                         <option value="">-- 先选择平台 --</option>
                     </select>
                 </div>
@@ -843,9 +909,9 @@
             // 计算今日盈亏和今日收益率
             let dailyProfit = 0;
             for (const platform in fundsData.funds) {
-                fundsData.funds[platform].forEach(fund => {
-                    if (fund.holdings && fund.holdings.total_shares > 0) {
-                        dailyProfit += fund.holdings.total_shares * fund.current_nav * (fund.daily_return / 100);
+                fundsData.funds[platform].forEach(fnd => {
+                    if (fnd.holdings && fnd.holdings.total_shares > 0) {
+                        dailyProfit += fnd.holdings.total_shares * fnd.current_nav * (fnd.daily_return / 100);
                     }
                 });
             }
@@ -896,22 +962,22 @@
                 <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
             `;
 
-            funds.forEach(fund => {
-                const dailyClass = fund.daily_return >= 0 ? 'positive' : 'negative';
-                const profit = fund.holdings ? fund.holdings.profit_loss : 0;
+            funds.forEach(fnd => {
+                const dailyClass = fnd.daily_return >= 0 ? 'positive' : 'negative';
+                const profit = fnd.holdings ? fnd.holdings.profit_loss : 0;
                 const profitClass = profit >= 0 ? 'positive' : 'negative';
 
                 // 计算日盈亏
                 let dailyProfit = 0;
-                if (fund.holdings && fund.holdings.total_shares > 0) {
-                    dailyProfit = fund.holdings.total_shares * fund.current_nav * (fund.daily_return / 100);
+                if (fnd.holdings && fnd.holdings.total_shares > 0) {
+                    dailyProfit = fnd.holdings.total_shares * fnd.current_nav * (fnd.daily_return / 100);
                 }
 
                 html += `
                     <div class="fund-card">
                         <div class="fund-header">
-                            <span class="fund-name" onclick="toggleDetails('${fund.code}-${platformName}')">${fund.name} 📊</span>
-                            <span class="fund-code">${fund.code}</span>
+                            <span class="fund-name" onclick="toggleDetails('${fnd.code}-${platformName}')">${fnd.name} 📊</span>
+                            <span class="fund-code">${fnd.code}</span>
                             <span class="fund-platform">${platformName}</span>
                         </div>
                         <table class="fund-metrics">
@@ -924,21 +990,21 @@
                                 <td>累计盈亏</td>
                             </tr>
                             <tr class="metric-values">
-                                <td>${fund.current_nav.toFixed(4)}</td>
-                                <td>${fund.holdings ? '¥' + fund.holdings.current_value.toFixed(2) : '-'}</td>
-                                <td class="${dailyClass}">${fund.daily_return >= 0 ? '+' : ''}${fund.daily_return.toFixed(2)}%</td>
-                                <td class="${dailyClass}">${fund.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}</td>
-                                <td class="${profitClass}">${fund.holdings ? ((fund.holdings.profit_loss_percent >= 0 ? '+' : '') + fund.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>
-                                <td class="${profitClass}">${fund.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>
+                                <td>${fnd.current_nav.toFixed(4)}</td>
+                                <td>${fnd.holdings ? '¥' + fnd.holdings.current_value.toFixed(2) : '-'}</td>
+                                <td class="${dailyClass}">${fnd.daily_return >= 0 ? '+' : ''}${fnd.daily_return.toFixed(2)}%</td>
+                                <td class="${dailyClass}">${fnd.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}</td>
+                                <td class="${profitClass}">${fnd.holdings ? ((fnd.holdings.profit_loss_percent >= 0 ? '+' : '') + fnd.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>
+                                <td class="${profitClass}">${fnd.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>
                             </tr>
                         </table>
                 `;
 
-                if (fund.holdings && fund.holdings.purchases && fund.holdings.purchases.length > 0) {
+                if (fnd.holdings && fnd.holdings.purchases && fnd.holdings.purchases.length > 0) {
                     html += `
-                        <div class="purchase-details" id="details-${fund.code}-${platformName}" style="margin-top: 15px; display: none;">
+                        <div class="purchase-details" id="details-${fnd.code}-${platformName}" style="margin-top: 15px; display: none;">
                             <div class="fund-chart-wrapper" style="position: relative; height: 280px; margin-bottom: 20px;">
-                                <canvas id="chart-${fund.code}-${platformName}"></canvas>
+                                <canvas id="chart-${fnd.code}-${platformName}"></canvas>
                             </div>
                             <h4>交易记录（点击基金名称可收起）</h4>
                             <table>
@@ -954,7 +1020,7 @@
                                 <tbody>
                     `;
 
-                    fund.holdings.purchases.forEach(p => {
+                    fnd.holdings.purchases.forEach(p => {
                         const isSell = p.type === 'sell';
                         const typeLabel = isSell ? '卖出' : '买入';
                         const typeClass = isSell ? 'negative' : 'positive';
@@ -972,8 +1038,8 @@
                     });
 
                     // 汇总行：投入总金额（金额列最下面）、持有份额（份额变动列最下面）
-                    const totalInvested = fund.holdings.total_invested || 0;
-                    const totalShares = fund.holdings.total_shares || 0;
+                    const totalInvested = fnd.holdings.total_invested || 0;
+                    const totalShares = fnd.holdings.total_shares || 0;
                     html += `
                             <tr style="background: #f8f9fa; font-weight: bold;">
                                 <td colspan="2" style="text-align: right; color: #666;">投入总金额：</td>
@@ -1069,8 +1135,8 @@
 
             // 收集所有基金的日期，合并去重并排序
             const allDatesSet = new Set();
-            allFunds.forEach(fund => {
-                (fund.history || []).forEach(h => allDatesSet.add(h.date));
+            allFunds.forEach(fnd => {
+                (fnd.history || []).forEach(h => allDatesSet.add(h.date));
             });
             const labels = [...allDatesSet].sort();
 
@@ -1346,12 +1412,127 @@
                 funds = DEFAULT_FUNDS[platform];
             }
 
-            funds.forEach(fund => {
+            funds.forEach(fnd => {
                 const option = document.createElement('option');
-                option.value = fund.code;
-                option.textContent = `${fund.code} - ${fund.name}`;
+                option.value = fnd.code;
+                option.textContent = `${fnd.code} - ${fnd.name}`;
                 select.appendChild(option);
             });
+        }
+
+        // 构建基金搜索索引（从已加载数据和默认数据合并）
+        function buildFundSearchIndex() {
+            const index = [];
+            const seen = new Set();
+
+            // 从已加载的数据构建
+            if (fundsData && fundsData.funds) {
+                Object.entries(fundsData.funds).forEach(([platform, funds]) => {
+                    funds.forEach(fnd => {
+                        const key = `${platform}-${fnd.code}`;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            index.push({
+                                code: fnd.code,
+                                name: fnd.name,
+                                platform: platform
+                            });
+                        }
+                    });
+                });
+            }
+
+            // 从默认数据补充（避免重复）
+            Object.entries(DEFAULT_FUNDS).forEach(([platform, funds]) => {
+                funds.forEach(fnd => {
+                    const key = `${platform}-${fnd.code}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        index.push({
+                            code: fnd.code,
+                            name: fnd.name,
+                            platform: platform
+                        });
+                    }
+                });
+            });
+
+            return index;
+        }
+
+        // 搜索基金
+        function searchFunds(kw) {
+            const resultsDiv = document.getElementById('fundSearchResults');
+            kw = kw.trim();
+
+            if (!kw) {
+                resultsDiv.classList.remove('show');
+                return;
+            }
+
+            const index = buildFundSearchIndex();
+            const lowerKw = kw.toLowerCase();
+
+            // 模糊匹配：代码或名称包含关键字
+            const matches = index.filter(item =>
+                item.code.includes(kw) ||
+                item.name.toLowerCase().includes(lowerKw)
+            );
+
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = '<div class="search-no-result">未找到匹配的基金，可手动选择平台和基金</div>';
+                resultsDiv.classList.add('show');
+                return;
+            }
+
+            // 生成结果HTML
+            let html = '';
+            matches.forEach(item => {
+                html += `
+                    <div class="search-result-item" onclick="selectFundFromSearch('${item.code}', '${item.name}', '${item.platform}')">
+                        <div class="search-result-code">${item.code}</div>
+                        <div class="search-result-name">${item.name}</div>
+                        <div class="search-result-platform">平台：${item.platform}</div>
+                    </div>
+                `;
+            });
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+        }
+
+        
+        function selectFundFromSearch(code, fundName, platform) {
+            // 填充平台选择框
+            const platformSelect = document.getElementById('recordPlatform');
+            platformSelect.value = platform;
+
+            // 更新基金选择框
+            updateFundCodes();
+
+            // 填充基金选择框
+            const fundSelect = document.getElementById('recordFund');
+            fundSelect.value = code;
+
+            // 清空搜索框
+            document.getElementById('fundSearchInput').value = '';
+            document.getElementById('fundSearchResults').classList.remove('show');
+        }
+
+        // 延迟隐藏搜索结果（允许点击结果项）
+        let hideSearchTimer = null;
+        function hideSearchResultsDelayed() {
+            hideSearchTimer = setTimeout(() => {
+                document.getElementById('fundSearchResults').classList.remove('show');
+            }, 200);
+        }
+
+        // 基金选择框变更时同步搜索框
+        function onFundSelect() {
+            const fundSelect = document.getElementById('recordFund');
+            const selectedOption = fundSelect.options[fundSelect.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                document.getElementById('fundSearchInput').value = selectedOption.textContent;
+            }
         }
 
         // 从本地存储加载买入记录

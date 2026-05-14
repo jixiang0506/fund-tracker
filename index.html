@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的基金收益追踪</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -98,12 +98,6 @@
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -451,6 +445,61 @@
             }
         }
 
+        /* 设置下拉菜单 */
+        .settings-dropdown {
+            position: relative;
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .settings-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 180px;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .settings-menu.show {
+            display: block;
+        }
+
+        .settings-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .settings-menu a:last-child {
+            border-bottom: none;
+        }
+
+        .settings-menu a:hover {
+            background: #f8f9fa;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -520,12 +569,19 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 我的基金收益追踪</h1>
-            <div class="update-time" id="updateTime">加载中...</div>
-            <div style="margin-top: 15px;">
-                <button class="btn btn-primary" onclick="openManageModal()">📝 管理交易记录</button>
-                <button class="btn btn-success" onclick="triggerWorkflow()" style="margin-left: 10px;">🚀 更新数据</button>
-                <button class="btn btn-warning" onclick="location.reload()" style="margin-left: 10px;">🔄 刷新页面</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h1>📊 我的基金收益追踪</h1>
+                    <div class="update-time" id="updateTime">加载中...</div>
+                </div>
+                <div class="settings-dropdown">
+                    <button class="settings-btn" onclick="toggleSettingsMenu(event)">⚙️</button>
+                    <div class="settings-menu" id="settingsMenu">
+                        <a onclick="openManageModal(); hideSettingsMenu();">📝 管理交易记录</a>
+                        <a onclick="triggerWorkflow(); hideSettingsMenu();">🚀 更新数据</a>
+                        <a onclick="location.reload();">🔄 刷新页面</a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -643,12 +699,33 @@
             if (currentToken) document.getElementById('githubToken').value = currentToken;
             if (currentOwner) document.getElementById('repoOwner').value = currentOwner;
             if (currentRepo) document.getElementById('repoName').value = currentRepo;
-            
+
             // 自动从 data/purchase_records.json 加载买入记录
             loadPurchaseRecordsFromFile();
-            
+
             loadData();
+
+            // 点击页面其他地方关闭设置菜单
+            document.addEventListener('click', function(e) {
+                const dropdown = document.querySelector('.settings-dropdown');
+                if (dropdown && !dropdown.contains(e.target)) {
+                    hideSettingsMenu();
+                }
+            });
         };
+
+        // 切换设置菜单显示/隐藏
+        function toggleSettingsMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('show');
+        }
+
+        // 隐藏设置菜单
+        function hideSettingsMenu() {
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.remove('show');
+        }
 
         // 从本地JSON文件加载买入记录（强制UTF-8解码）
         async function loadPurchaseRecordsFromFile() {

@@ -1212,6 +1212,13 @@
         // 存储各基金图表实例
         const fundCharts = {};
 
+        // 转义HTML特殊字符（防XSS）
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         // 渲染单个基金走势图
         function renderFundChart(id) {
             const parts = id.split('-');
@@ -1220,6 +1227,12 @@
             const canvasId = `chart-${id}`;
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
+
+            // 销毁旧图表，防止内存泄漏
+            if (fundCharts[id]) {
+                fundCharts[id].destroy();
+                delete fundCharts[id];
+            }
 
             // 查找基金数据
             const fund = fundsData.funds[platformName]?.find(f => f.code === fundCode);
@@ -1404,6 +1417,14 @@
 
             if (!platform) return;
 
+            // 如果有暂存的新基金，添加到当前平台
+            if (pendingNewFund) {
+                if (DEFAULT_FUNDS[platform] && !DEFAULT_FUNDS[platform].some(f => f.code === pendingNewFund.code)) {
+                    DEFAULT_FUNDS[platform].push({ code: pendingNewFund.code, name: pendingNewFund.name });
+                }
+                pendingNewFund = null;
+            }
+
             // 优先使用已加载的数据，否则使用默认值
             let funds = [];
             if (fundsData && fundsData.funds && fundsData.funds[platform]) {
@@ -1460,7 +1481,55 @@
             return index;
         }
 
-        // 搜索基金
+        // ========== 基金联网搜索（JSONP方式绕过CORS） ==========
+        let jsonpCallbackId = 0;
+        let searchDebounceTimer = null;
+        let searchRequestId = 0;       // 竞态保护：每次搜索递增，忽略过期回调
+        let pendingNewFund = null;      // 用户选了新基金但还没选平台时暂存
+
+        function jsonpRequest(url, callback) {
+            const script = document.createElement('script');
+            const cbName = 'fundSearchCb' + (++jsonpCallbackId);
+            window[cbName] = function(data) {
+                callback(data);
+                delete window[cbName];
+                document.head.removeChild(script);
+            };
+            script.src = url + '&cb=' + cbName;
+            script.onerror = function() {
+                delete window[cbName];
+                document.head.removeChild(script);
+                callback(null);
+            };
+            document.head.appendChild(script);
+            // 5秒超时：清理回调和script标签
+            setTimeout(() => {
+                if (window[cbName]) {
+                    delete window[cbName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+            }, 5000);
+        }
+
+        // 从天天基金网搜索基金（JSONP）
+        function searchFundOnline(kw, onResult) {
+            const apiUrl = 'https://searchapi.eastmoney.com/api/suggest/get?input=' + encodeURIComponent(kw) + '&type=14&count=20';
+            jsonpRequest(apiUrl, function(data) {
+                if (!data || !data.QuotationCodeTable || !data.QuotationCodeTable.Data) {
+                    onResult([]);
+                    return;
+                }
+                // 只保留 SecurityTypeName === '基金' 的结果
+                const funds = data.QuotationCodeTable.Data.filter(item => item.SecurityTypeName === '基金');
+                onResult(funds.map(item => ({
+                    code: item.Code,
+                    name: item.Name,
+                    pinyin: item.PinYin || ''
+                })));
+            });
+        }
+
+        // 搜索基金（本地 + 联网）
         function searchFunds(kw) {
             const resultsDiv = document.getElementById('fundSearchResults');
             kw = kw.trim();
@@ -1470,52 +1539,154 @@
                 return;
             }
 
+            // 防抖：清除之前的定时器
+            if (searchDebounceTimer) {
+                clearTimeout(searchDebounceTimer);
+            }
+
+            // 先搜索本地数据并展示（立即响应）
             const index = buildFundSearchIndex();
             const lowerKw = kw.toLowerCase();
-
-            // 模糊匹配：代码或名称包含关键字
-            const matches = index.filter(item =>
+            const localMatches = index.filter(item =>
                 item.code.includes(kw) ||
                 item.name.toLowerCase().includes(lowerKw)
             );
 
-            if (matches.length === 0) {
-                resultsDiv.innerHTML = '<div class="search-no-result">未找到匹配的基金，可手动选择平台和基金</div>';
-                resultsDiv.classList.add('show');
-                return;
+            // 如果有关键字长度>=2或纯数字（基金代码），再联网搜索
+            const shouldSearchOnline = kw.length >= 2 || /^\d+$/.test(kw);
+
+            // 先渲染本地结果
+            renderSearchResults(localMatches, [], kw, shouldSearchOnline);
+
+            if (shouldSearchOnline) {
+                // 递增请求ID，用于忽略过期回调
+                const currentRequestId = ++searchRequestId;
+                // 300ms防抖后联网搜索
+                searchDebounceTimer = setTimeout(() => {
+                    searchFundOnline(kw, function(onlineFunds) {
+                        // 竞态保护：忽略过期请求的回调
+                        if (currentRequestId !== searchRequestId) return;
+                        // 联网结果中排除已在本地数据中的基金
+                        const localCodes = new Set(index.map(i => i.code));
+                        const newFunds = onlineFunds.filter(f => !localCodes.has(f.code));
+                        renderSearchResults(localMatches, newFunds, kw, false);
+                    });
+                }, 300);
+            }
+        }
+
+        // 渲染搜索结果（本地结果 + 联网新基金）—— 使用DOM创建，防XSS
+        function renderSearchResults(localMatches, newFunds, kw, isSearching) {
+            const resultsDiv = document.getElementById('fundSearchResults');
+            resultsDiv.innerHTML = '';
+
+            // 本地已有基金
+            if (localMatches.length > 0) {
+                const header = document.createElement('div');
+                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: #999; background: #f8f9fa;';
+                header.textContent = '已有基金';
+                resultsDiv.appendChild(header);
+
+                localMatches.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.onclick = () => selectFundFromSearch(item.code, item.name, item.platform);
+                    div.innerHTML = `
+                        <div class="search-result-code">${escapeHtml(item.code)}</div>
+                        <div class="search-result-name">${escapeHtml(item.name)}</div>
+                        <div class="search-result-platform">平台：${escapeHtml(item.platform)}</div>
+                    `;
+                    resultsDiv.appendChild(div);
+                });
             }
 
-            // 生成结果HTML
-            let html = '';
-            matches.forEach(item => {
-                html += `
-                    <div class="search-result-item" onclick="selectFundFromSearch('${item.code}', '${item.name}', '${item.platform}')">
-                        <div class="search-result-code">${item.code}</div>
-                        <div class="search-result-name">${item.name}</div>
-                        <div class="search-result-platform">平台：${item.platform}</div>
-                    </div>
-                `;
-            });
-            resultsDiv.innerHTML = html;
+            // 联网搜索到的新基金
+            if (newFunds.length > 0) {
+                const header = document.createElement('div');
+                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: #999; background: #f8f9fa;';
+                header.textContent = '新基金（未持有）';
+                resultsDiv.appendChild(header);
+
+                newFunds.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.onclick = () => selectFundFromSearch(item.code, item.name, '');
+                    div.innerHTML = `
+                        <div class="search-result-code">${escapeHtml(item.code)}</div>
+                        <div class="search-result-name">${escapeHtml(item.name)}</div>
+                        <div class="search-result-platform" style="color: #e6a23c;">新基金 - 点击选择购买平台</div>
+                    `;
+                    resultsDiv.appendChild(div);
+                });
+            }
+
+            // 搜索中提示
+            if (isSearching) {
+                const div = document.createElement('div');
+                div.className = 'search-no-result';
+                div.textContent = '正在联网搜索...';
+                resultsDiv.appendChild(div);
+            }
+
+            // 无结果
+            if (!isSearching && localMatches.length === 0 && newFunds.length === 0) {
+                resultsDiv.innerHTML = '<div class="search-no-result">未找到匹配的基金，请检查输入或手动选择</div>';
+            }
+
             resultsDiv.classList.add('show');
         }
 
-        
         function selectFundFromSearch(code, fundName, platform) {
-            // 填充平台选择框
-            const platformSelect = document.getElementById('recordPlatform');
-            platformSelect.value = platform;
-
-            // 更新基金选择框
-            updateFundCodes();
-
-            // 填充基金选择框
-            const fundSelect = document.getElementById('recordFund');
-            fundSelect.value = code;
-
             // 清空搜索框
             document.getElementById('fundSearchInput').value = '';
             document.getElementById('fundSearchResults').classList.remove('show');
+
+            if (platform) {
+                // 已有基金：填充平台选择框
+                pendingNewFund = null;
+                const platformSelect = document.getElementById('recordPlatform');
+                platformSelect.value = platform;
+                // 更新基金选择框
+                updateFundCodes();
+                // 填充基金选择框
+                const fundSelect = document.getElementById('recordFund');
+                fundSelect.value = code;
+            } else {
+                // 新基金：检查用户是否已选平台
+                const platformSelect = document.getElementById('recordPlatform');
+                const currentPlatform = platformSelect.value;
+
+                if (currentPlatform) {
+                    // 用户已选平台：只添加到当前平台
+                    addNewFundToDefault(code, fundName, currentPlatform);
+                    pendingNewFund = null;
+                    updateFundCodes();
+                    document.getElementById('recordFund').value = code;
+                    showMessage('新基金「' + fundName + '」已添加到「' + currentPlatform + '」', 'info');
+                } else {
+                    // 用户未选平台：暂存，等选平台时再添加
+                    pendingNewFund = { code, name: fundName };
+                    const fundSelect = document.getElementById('recordFund');
+                    fundSelect.innerHTML = '<option value="">-- 请先选择平台 --</option>';
+                    const customOpt = document.createElement('option');
+                    customOpt.value = code;
+                    customOpt.textContent = code + ' - ' + fundName;
+                    customOpt.selected = true;
+                    fundSelect.appendChild(customOpt);
+                    showMessage('新基金「' + fundName + '」已添加，请选择购买平台', 'info');
+                }
+            }
+        }
+
+        // 将新基金添加到默认数据中
+        function addNewFundToDefault(code, fundName, targetPlatform) {
+            const targets = targetPlatform ? [targetPlatform] : Object.keys(DEFAULT_FUNDS);
+            targets.forEach(plat => {
+                if (DEFAULT_FUNDS[plat] && !DEFAULT_FUNDS[plat].some(f => f.code === code)) {
+                    DEFAULT_FUNDS[plat].push({ code, name: fundName });
+                }
+            });
+            console.log('已将新基金', code, fundName, '添加到', targetPlatform || '所有平台');
         }
 
         // 延迟隐藏搜索结果（允许点击结果项）
@@ -1855,15 +2026,15 @@
                         const fundName = getFundName(platform, fundCode);
                         const isSell = record.type === 'sell';
                         const typeLabel = isSell ? '卖出' : '买入';
-                        const typeColor = isSell ? '#f56c6c' : '#67c23a';
+                        const typeColor = isSell ? '#67c23a' : '#f56c6c';
                         const amountPrefix = isSell ? '-' : '';
 
                         html += `
                             <div class="record-item">
                                 <div class="record-info">
-                                    <strong>${platform}</strong> - ${fundName} (${fundCode})<br>
+                                    <strong>${escapeHtml(platform)}</strong> - ${escapeHtml(fundName)} (${escapeHtml(fundCode)})<br>
                                     <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
-                                    日期: ${record.date}, 金额: ¥${amountPrefix}${record.amount.toFixed(2)}
+                                    日期: ${escapeHtml(record.date)}, 金额: ¥${amountPrefix}${record.amount.toFixed(2)}
                                 </div>
                                 <div class="record-actions">
                                     <button class="btn btn-primary" onclick="editPurchaseRecord('${platform}', '${fundCode}', ${index})" style="margin-right: 5px;">编辑</button>
@@ -2024,12 +2195,16 @@
             }
         }
 
-        // 显示消息
+        // 显示消息（自动堆叠，防止重叠）
         function showMessage(message, type) {
+            const existing = document.querySelectorAll('.msg-toast');
+            const topOffset = 20 + existing.length * 70;
+
             const div = document.createElement('div');
+            div.className = 'msg-toast';
             div.style.cssText = `
                 position: fixed;
-                top: 20px;
+                top: ${topOffset}px;
                 right: 20px;
                 padding: 15px 20px;
                 border-radius: 5px;

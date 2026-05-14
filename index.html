@@ -224,15 +224,13 @@
             padding-top: 4px;
         }
 
-        /* 固定8列宽度，确保不同基金卡片之间纵向对齐 */
-        .fund-metrics td:nth-child(1) { width: 10%; }
-        .fund-metrics td:nth-child(2) { width: 10%; }
-        .fund-metrics td:nth-child(3) { width: 12%; }
-        .fund-metrics td:nth-child(4) { width: 14%; }
-        .fund-metrics td:nth-child(5) { width: 14%; }
-        .fund-metrics td:nth-child(6) { width: 14%; }
-        .fund-metrics td:nth-child(7) { width: 14%; }
-        .fund-metrics td:nth-child(8) { width: 12%; }
+        /* 固定6列宽度，确保不同基金卡片之间纵向对齐 */
+        .fund-metrics td:nth-child(1) { width: 14%; }
+        .fund-metrics td:nth-child(2) { width: 16%; }
+        .fund-metrics td:nth-child(3) { width: 14%; }
+        .fund-metrics td:nth-child(4) { width: 16%; }
+        .fund-metrics td:nth-child(5) { width: 18%; }
+        .fund-metrics td:nth-child(6) { width: 22%; }
 
         .funds-table {
             width: 100%;
@@ -454,8 +452,62 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .stat-card {
+                padding: 10px;
+                border-radius: 10px;
+            }
+
+            .stat-card .label {
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+
+            .stat-card .value {
+                font-size: 14px;
+            }
+
+            .fund-card {
+                padding: 12px;
+            }
+
+            .fund-name {
+                font-size: 14px;
+            }
+
+            .fund-metrics {
+                table-layout: auto;
+            }
+
+            .fund-metrics td {
+                padding: 4px 2px;
+                white-space: normal;
+                font-size: 11px;
+            }
+
+            .metric-labels td {
+                font-size: 10px;
+            }
+
+            .metric-values td {
+                font-size: 12px;
             }
 
             .funds-table {

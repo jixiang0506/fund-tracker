@@ -1832,7 +1832,8 @@
                 updateSellHoldingsInfo();
                 setSellMode('amount'); // 默认按金额
             } else {
-                // 买入模式：只显示金额输入
+                // 买入模式：只显示金额输入，重置卖出模式状态
+                currentSellMode = 'amount';
                 document.getElementById('amountGroup').style.display = 'block';
                 document.getElementById('sharesGroup').style.display = 'none';
                 document.getElementById('amountLabel').textContent = '交易金额 (元)';
@@ -2080,10 +2081,19 @@
             // 使用 setTimeout 确保下拉框更新后再设置值
             setTimeout(() => {
                 document.getElementById('recordFund').value = fundCode;
+                // 恢复交易类型并触发UI更新
+                document.getElementById('recordType').value = record.type || 'buy';
+                onRecordTypeChange();
+                // 如果是卖出记录且有份额字段，切换到按份额模式
+                if (record.type === 'sell' && record.shares) {
+                    setSellMode('shares');
+                    document.getElementById('recordShares').value = record.shares;
+                    onSharesInput(); // 触发金额预估更新
+                }
+                // 填充金额（按金额卖出 or 买入）
+                document.getElementById('recordAmount').value = record.amount;
             }, 100);
             document.getElementById('recordDate').value = record.date;
-            document.getElementById('recordAmount').value = record.amount;
-            document.getElementById('recordType').value = record.type || 'buy';
 
             // 修改按钮文本和显示
             document.getElementById('addOrUpdateBtn').textContent = '✅ 更新记录';
@@ -2111,6 +2121,13 @@
             };
             if (type === 'sell') {
                 record.type = 'sell';
+                // 如果是按份额卖出，保存份额
+                if (currentSellMode === 'shares') {
+                    const sharesVal = document.getElementById('recordShares').value;
+                    if (sharesVal) {
+                        record.shares = parseFloat(sharesVal);
+                    }
+                }
             }
 
             // 如果平台或基金代码改变了，需要删除旧记录并添加到新位置

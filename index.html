@@ -455,7 +455,7 @@
 
         @media (max-width: 768px) {
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .funds-table {
@@ -846,6 +846,18 @@
                         `;
                     });
 
+                    // 汇总行：投入总金额（金额列最下面）、持有份额（份额变动列最下面）
+                    const totalInvested = fund.holdings.total_invested || 0;
+                    const totalShares = fund.holdings.total_shares || 0;
+                    html += `
+                            <tr style="background: #f8f9fa; font-weight: bold;">
+                                <td colspan="2" style="text-align: right; color: #666;">投入总金额：</td>
+                                <td style="color: #333;">¥${totalInvested.toFixed(2)}</td>
+                                <td></td>
+                                <td style="color: #333;">${totalShares.toFixed(2)}</td>
+                            </tr>
+                    `;
+
                     html += `
                                 </tbody>
                             </table>
@@ -1022,16 +1034,16 @@
             const fund = fundsData.funds[platformName]?.find(f => f.code === fundCode);
             if (!fund || !fund.history || fund.history.length === 0) return;
 
-            const history = fund.history;
+            const fundHistory = fund.history;
             const purchases = fund.holdings?.purchases || [];
 
             // 以第一笔买入净值为基准，计算累计收益率
             const buyRecords = purchases.filter(p => p.type !== 'sell');
             const firstPurchase = buyRecords.sort((a, b) => a.date.localeCompare(b.date))[0];
-            const baseNav = firstPurchase ? firstPurchase.nav : history[0].nav;
+            const baseNav = firstPurchase ? firstPurchase.nav : fundHistory[0].nav;
 
-            const labels = history.map(h => h.date);
-            const dataPoints = history.map(h => ((h.nav / baseNav - 1) * 100));
+            const labels = fundHistory.map(h => h.date);
+            const dataPoints = fundHistory.map(h => ((h.nav / baseNav - 1) * 100));
 
             // 标记交易日期：买入红点，卖出绿点（同日多笔交易汇总）
             const pointColors = labels.map(() => null);
@@ -1039,10 +1051,10 @@
             const tradeInfo = {};
 
             purchases.forEach(p => {
-                let idx = history.findIndex(h => h.date === p.date);
+                let idx = fundHistory.findIndex(h => h.date === p.date);
                 // 交易日期不在history中（如周末/节假日），映射到最近的后一个交易日
                 if (idx === -1) {
-                    idx = history.findIndex(h => h.date > p.date);
+                    idx = fundHistory.findIndex(h => h.date > p.date);
                 }
                 if (idx !== -1) {
                     pointColors[idx] = p.type === 'sell' ? '#67c23a' : '#f56c6c';
@@ -1095,7 +1107,7 @@
                                 },
                                 label: function(context) {
                                     const idx = context.dataIndex;
-                                    const nav = history[idx].nav;
+                                    const nav = fundHistory[idx].nav;
                                     const returnRate = dataPoints[idx];
                                     const sign = returnRate >= 0 ? '+' : '';
                                     const lines = [`收益率: ${sign}${returnRate.toFixed(2)}%`, `净值: ${nav.toFixed(4)}`];
@@ -1105,11 +1117,11 @@
                                         const buys = trades.filter(t => t.type !== 'sell');
                                         const sells = trades.filter(t => t.type === 'sell');
                                         if (buys.length > 0) {
-                                            const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                                            const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount),0);
                                             lines.push(`买入: ¥${totalBuy.toFixed(2)}（${buys.length}笔）`);
                                         }
                                         if (sells.length > 0) {
-                                            const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                                            const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount),0);
                                             lines.push(`卖出: ¥${totalSell.toFixed(2)}（${sells.length}笔）`);
                                         }
                                     }

@@ -90,9 +90,21 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
             margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         .stat-card {
@@ -699,6 +711,18 @@
             const totalProfit = summary.total_profit_loss || 0;
             const totalProfitPercent = summary.total_profit_loss_percent || 0;
 
+            // 计算今日盈亏和今日收益率
+            let dailyProfit = 0;
+            for (const platform in fundsData.funds) {
+                fundsData.funds[platform].forEach(fund => {
+                    if (fund.holdings && fund.holdings.total_shares > 0) {
+                        dailyProfit += fund.holdings.total_shares * fund.current_nav * (fund.daily_return / 100);
+                    }
+                });
+            }
+            const dailyProfitPercent = totalValue > 0 ? (dailyProfit / totalValue * 100) : 0;
+            const dailyClass = dailyProfit >= 0 ? 'positive' : 'negative';
+
             return `
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -708,6 +732,18 @@
                     <div class="stat-card">
                         <div class="label">当前总市值</div>
                         <div class="value">¥${totalValue.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">今日盈亏</div>
+                        <div class="value ${dailyClass}">
+                            ${dailyProfit >= 0 ? '+' : ''}¥${dailyProfit.toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">今日收益率</div>
+                        <div class="value ${dailyClass}">
+                            ${dailyProfitPercent >= 0 ? '+' : ''}${dailyProfitPercent.toFixed(2)}%
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">总盈亏</div>

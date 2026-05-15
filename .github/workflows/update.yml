@@ -1,12 +1,9 @@
 name: 每日更新基金数据
 
 on:
-  # 每天北京时间 17:00（UTC 09:00）执行，确保收盘后获取确认净值
   schedule:
     - cron: '0 9 * * *'
-  # 支持手动触发
   workflow_dispatch:
-  # 推送到 main 分支时也触发
   push:
     branches: [main]
 
@@ -20,7 +17,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ===== 合并为单步：更新数据并部署 =====
   update-and-deploy:
     runs-on: ubuntu-latest
     environment:
@@ -48,7 +44,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
           git diff --cached --quiet || git commit -m "自动更新基金数据+持仓快照 $(date +%Y-%m-%d)"
-          git push
+          # 先拉取远程最新更改，避免推送冲突
+          git pull --rebase origin main
+          git push origin main
 
       - name: 设置 Pages
         uses: actions/configure-pages@v5

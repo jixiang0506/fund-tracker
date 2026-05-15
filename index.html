@@ -1352,7 +1352,7 @@
                                 <td>累计盈亏</td>
                             </tr>
                             <tr class="metric-values">
-                                <td>${fnd.current_nav.toFixed(4)}</td>
+                                <td>${fnd.current_nav.toFixed(4)} <span style="font-size:10px;color:#999">${fnd.nav_date ? fnd.nav_date.split(' ')[0] : ''}</span></td>
                                 <td>${fnd.holdings ? '¥' + fnd.holdings.current_value.toFixed(2) : '-'}</td>
                                 <td class="${dailyClass}">${fnd.daily_return >= 0 ? '+' : ''}${fnd.daily_return.toFixed(2)}%</td>
                                 <td class="${dailyClass}">${fnd.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}</td>

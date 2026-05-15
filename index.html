@@ -1209,7 +1209,7 @@
             try {
                 const response = await fetch('data/funds_data.json?t=' + new Date().getTime());
                 if (!response.ok) {
-                    throw new Error('数据加载失败');
+                    throw new Error('HTTP ' + response.status);
                 }
                 const buffer = await response.arrayBuffer();
                 const text = new TextDecoder('utf-8').decode(buffer);
@@ -1217,10 +1217,23 @@
                 renderData();
             } catch (error) {
                 console.error('加载数据失败:', error);
-                document.getElementById('content').innerHTML = `
-                    <div class="error">
-                        数据加载失败: ${error.message}<br>
-                        请检查 data/funds_data.json 文件是否存在。
+                document.getElementById('skeletonScreen').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="error" style="text-align:center;padding:40px;">
+                        <h3>⚠️ 数据加载失败</h3>
+                        <p style="margin:15px 0;">${error.message}</p>
+                        <p style="color:#666;font-size:14px;">
+                            如果你是通过 <code>file://</code> 协议直接打开此文件，<br>
+                            请使用本地 HTTP 服务器运行，或访问线上版本。
+                        </p>
+                        <div style="margin-top:20px;">
+                            <a href="https://jixiang0506.github.io/fund-tracker/" 
+                               style="display:inline-block;padding:10px 20px;background:#667eea;color:white;text-decoration:none;border-radius:5px;"
+                               target="_blank">
+                                🌐 访问线上版本
+                            </a>
+                        </div>
                     </div>
                 `;
             }
@@ -1230,33 +1243,46 @@
         function renderData() {
             if (!fundsData) return;
 
-            document.getElementById('updateTime').textContent = `最后更新: ${fundsData.update_time}`;
+            try {
+                document.getElementById('updateTime').textContent = `最后更新: ${fundsData.update_time}`;
 
-            let html = renderSummary(fundsData.summary);
+                let html = renderSummary(fundsData.summary);
 
-            // 为所有平台创建基金卡片
-            for (const platform in fundsData.funds) {
-                html += renderPlatform(platform, fundsData.funds[platform]);
-            }
+                // 为所有平台创建基金卡片
+                for (const platform in fundsData.funds) {
+                    html += renderPlatform(platform, fundsData.funds[platform]);
+                }
 
-            // 添加统一的累计收益率图表
-            html += `
-                <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
-                    <div class="chart-wrapper">
-                        <h3 style="font-size: 18px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
-                            📈 累计收益率走势
-                        </h3>
-                        <div class="chart-container">
-                            <canvas id="chart-all"></canvas>
+                // 添加统一的累计收益率图表
+                html += `
+                    <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
+                        <div class="chart-wrapper">
+                            <h3 style="font-size: 18px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                                📈 累计收益率走势
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="chart-all"></canvas>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            document.getElementById('skeletonScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            document.getElementById('mainContent').innerHTML = html;
-            renderCharts();
+                document.getElementById('skeletonScreen').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('mainContent').innerHTML = html;
+                renderCharts();
+            } catch (error) {
+                console.error('渲染数据失败:', error);
+                document.getElementById('skeletonScreen').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="error" style="text-align:center;padding:40px;">
+                        <h3>⚠️ 渲染失败</h3>
+                        <p style="margin:15px 0;">${error.message}</p>
+                        <p style="color:#666;font-size:14px;">请检查控制台(F12)获取详细错误信息。</p>
+                    </div>
+                `;
+            }
         }
 
 

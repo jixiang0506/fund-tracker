@@ -16,6 +16,8 @@ import json
 import os
 from datetime import datetime, timedelta
 import time
+import subprocess
+import sys
 
 # 基金列表配置
 FUNDS = {
@@ -369,6 +371,38 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
         "purchases": purchase_details
     }
 
+def calculate_cumulative_returns(history, purchases):
+    """为历史数据中每一天预计算累计收益率，避免前端重复计算。"""
+    if not history:
+        return []
+
+    sorted_purchases = sorted(purchases, key=lambda p: p["date"])
+    return_rates = []
+
+    for h in history:
+        total_shares = 0
+        total_invested = 0
+
+        for p in sorted_purchases:
+            if p["date"] <= h["date"]:
+                if p.get("type") == "sell":
+                    total_shares -= abs(p["shares"])
+                    total_invested -= abs(p["amount"])
+                else:
+                    total_shares += p["shares"]
+                    total_invested += p["amount"]
+
+        if total_invested > 0:
+            value = h["nav"] * total_shares
+            profit = value - total_invested
+            return_rate = (profit / total_invested) * 100
+            return_rates.append(round(return_rate, 2))
+        else:
+            return_rates.append(None)
+
+    return return_rates
+
+
 def main():
     """主函数"""
     print("="*60)
@@ -459,6 +493,9 @@ def main():
             # 计算持仓和收益
             holdings = calculate_holdings(code, purchase_records, realtime["nav"], history)
 
+            # 预计算累计收益率（避免前端重复计算）
+            cumulative_returns = calculate_cumulative_returns(history, holdings["purchases"])
+
             # 组织数据
             fund_data = {
                 "code": code,
@@ -468,7 +505,7 @@ def main():
                 "nav_date": realtime["nav_date"],
                 "daily_return": realtime["change_percent"],
                 "holdings": holdings,
-                "history": [{"date": h["date"], "nav": h["nav"]} for h in history]  # 保留全部历史数据
+                "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
             }
 
             all_data["funds"][platform].append(fund_data)
@@ -495,7 +532,7 @@ def main():
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
     print(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
     if failed_funds:
-        print(f"\n  ⚠️  以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
+        print(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
     print("="*60)
 
     # 保存数据
@@ -505,6 +542,13 @@ def main():
 
     print(f"\n✓ 数据已保存到 {output_file}")
     print(f"  更新时间: {all_data['update_time']}")
+
+    # 生成持仓快照
+    print("\n生成持仓快照...")
+    try:
+        subprocess.run([sys.executable, "generate_holdings.py"], check=True)
+    except Exception as e:
+        print(f"  ⚠️ 持仓快照生成失败: {e}")
 
 if __name__ == "__main__":
     main()

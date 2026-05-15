@@ -1360,6 +1360,22 @@
                                 <td class="${profitClass}">${fnd.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>
                             </tr>
                         </table>
+                        ${fnd.holdings && fnd.holdings.realized_profit_loss !== 0 ? `
+                        <div class="realized-profit" style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">
+                            <span style="color: #666;">已实现盈亏：</span>
+                            <span style="font-weight: bold; color: ${fnd.holdings.realized_profit_loss >= 0 ? '#f56c6c' : '#67c23a'};">
+                                ${fnd.holdings.realized_profit_loss >= 0 ? '+' : ''}¥${fnd.holdings.realized_profit_loss.toFixed(2)}
+                            </span>
+                        </div>
+                        ` : ''}
+                        ${fnd.holdings && fnd.holdings.avg_cost_nav > 0 ? `
+                        <div class="avg-cost" style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">
+                            <span style="color: #666;">持仓成本：</span>
+                            <span style="font-weight: bold; color: #333;">
+                                ¥${fnd.holdings.avg_cost_nav.toFixed(4)}
+                            </span>
+                        </div>
+                        ` : ''}
                 `;
 
                 if (fnd.holdings && fnd.holdings.purchases && fnd.holdings.purchases.length > 0) {
@@ -1370,15 +1386,16 @@
                             </div>
                             <h4>交易记录（点击基金名称可收起）</h4>
                             <table>
-                                <thead>
-                                    <tr>
-                                        <th>日期</th>
-                                        <th>类型</th>
-                                        <th>金额</th>
-                                        <th>净值</th>
-                                        <th>份额变动</th>
-                                    </tr>
-                                </thead>
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>类型</th>
+                                    <th>金额</th>
+                                    <th>净值</th>
+                                    <th>份额变动</th>
+                                    <th>已实现盈亏</th>
+                                </tr>
+                            </thead>
                                 <tbody>
                     `;
 
@@ -1395,6 +1412,9 @@
                                 <td class="${typeClass}">¥${amountPrefix}${Math.abs(p.amount).toFixed(2)}</td>
                                 <td>${p.nav.toFixed(4)}</td>
                                 <td class="${typeClass}">${isSell ? '-' : '+'}${Math.abs(p.shares).toFixed(2)}</td>
+                                <td class="${isSell && p.realized_profit !== undefined ? (p.realized_profit >= 0 ? 'positive' : 'negative') : ''}">
+                                    ${isSell && p.realized_profit !== undefined ? ((p.realized_profit >= 0 ? '+' : '') + '¥' + p.realized_profit.toFixed(2)) : '-'}
+                                </td>
                             </tr>
                         `;
                     });
@@ -1600,6 +1620,10 @@
             const labels = fundHistory.map(h => h.date);
             const dataPoints = fundHistory.map(h => ((h.nav / baseNav - 1) * 100));
 
+            // 持仓成本线：计算成本对应的收益率
+            const avgCostNav = fund.holdings?.avg_cost_nav || 0;
+            const costReturnRate = avgCostNav > 0 ? ((avgCostNav - baseNav) / baseNav) * 100 : null;
+
             // 标记交易日期：买入红点，卖出绿点（同日多笔交易汇总）
             const pointColors = labels.map(() => null);
             const pointRadii = labels.map(() => 0);
@@ -1644,7 +1668,17 @@
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointHoverRadius: 5
-                    }]
+                    },
+                    // 持仓成本线（虚线）
+                    ...(costReturnRate !== null ? [{
+                        label: '持仓成本',
+                        data: labels.map(() => costReturnRate),
+                        borderColor: '#999',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }] : [])
                 },
                 options: {
                     responsive: true,
@@ -2546,9 +2580,12 @@ function getFundName(platform, fundCode) {
             const totalValue = summary.total_value || 0;
             const totalProfit = summary.total_profit_loss || 0;
             const totalProfitPercent = summary.total_profit_loss_percent || 0;
+            const totalRealizedProfit = summary.total_realized_profit_loss || 0;
 
             const profitClass = totalProfit >= 0 ? 'color: #f56c6c;' : 'color: #67c23a;';
             const profitSign = totalProfit >= 0 ? '+' : '';
+            const realizedClass = totalRealizedProfit >= 0 ? 'color: #f56c6c;' : 'color: #67c23a;';
+            const realizedSign = totalRealizedProfit >= 0 ? '+' : '';
 
             contentDiv.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
@@ -2561,12 +2598,16 @@ function getFundName(platform, fundCode) {
                         <div style="font-size: 18px; font-weight: bold;">¥${totalValue.toFixed(2)}</div>
                     </div>
                     <div>
-                        <div style="color: #666; font-size: 12px;">总盈亏</div>
+                        <div style="color: #666; font-size: 12px;">未实现盈亏</div>
                         <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}¥${totalProfit.toFixed(2)}</div>
                     </div>
                     <div>
                         <div style="color: #666; font-size: 12px;">总收益率</div>
                         <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}${totalProfitPercent.toFixed(2)}%</div>
+                    </div>
+                    <div>
+                        <div style="color: #666; font-size: 12px;">已实现盈亏</div>
+                        <div style="font-size: 18px; font-weight: bold; ${realizedClass}">${realizedSign}¥${totalRealizedProfit.toFixed(2)}</div>
                     </div>
                 </div>
                 <div style="margin-top: 10px; font-size: 12px; color: #999;">最后更新: ${fundsData.update_time}</div>

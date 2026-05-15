@@ -1207,8 +1207,9 @@
 
                     for (const p of sorted) {
                         if (p.date <= h.date) {
-                            totalShares += p.shares;   // 卖出时 shares 为负数
-                            totalInvested += p.amount; // 卖出时 amount 为负数
+                            const isSell = p.type === 'sell';
+                            totalShares += isSell ? -Math.abs(p.shares) : p.shares;;   // 卖出时 shares 为负数
+                            totalInvested += isSell ? -Math.abs(p.amount) : p.amount;; // 卖出时 amount 为负数
                         }
                     }
 
@@ -1603,6 +1604,7 @@
             };
             script.src = url + '&cb=' + cbName;
             script.onerror = function() {
+                console.warn('基金搜索请求失败，请检查网络或API参数');
                 delete window[cbName];
                 document.head.removeChild(script);
                 callback(null);
@@ -1991,174 +1993,186 @@
             }
         }
 
-        // 添加交易记录
-        function addPurchaseRecord() {
-            const platform = document.getElementById('recordPlatform').value;
-            const fundCode = document.getElementById('recordFund').value;
-            const date = document.getElementById('recordDate').value;
-            const type = document.getElementById('recordType').value;
+// 添加交易记录 - 增强空值检查
+function addPurchaseRecord() {
+    const platform = document.getElementById('recordPlatform').value;
+    const fundCode = document.getElementById('recordFund').value;
+    const date = document.getElementById('recordDate').value;
+    const type = document.getElementById('recordType').value;
 
-            if (!platform || !fundCode || !date) {
-                showMessage('请填写完整信息', 'error');
+    if (!platform || !fundCode || !date) {
+        showMessage('请填写完整信息', 'error');
+        return;
+    }
+
+    let amount;
+    let shares = null;
+
+    if (type === 'sell' && currentSellMode === 'shares') {
+        const sharesVal = document.getElementById('recordShares').value;
+        if (!sharesVal) {
+            showMessage('请输入卖出份额', 'error');
+            return;
+        }
+        shares = parseFloat(sharesVal);
+        if (currentSellNav > 0) {
+            amount = shares * currentSellNav;
+        } else {
+            const fund = fundsData?.funds?.[platform]?.find(f => f.code === fundCode);
+            const nav = fund?.current_nav || 0;
+            if (nav > 0) {
+                amount = shares * nav;
+            } else {
+                showMessage('无法获取基金净值，无法计算卖出金额', 'error');
                 return;
             }
+        }
+    } else {
+        const amountVal = document.getElementById('recordAmount').value;
+        if (!amountVal) {
+            showMessage('请输入交易金额', 'error');
+            return;
+        }
+        amount = parseFloat(amountVal);
+    }
 
-            let amount;
-            let shares = null;
+    // ✅ 安全初始化嵌套对象（避免重复创建）
+    if (!purchaseRecords[platform]) {
+        purchaseRecords[platform] = {};
+    }
+    if (!purchaseRecords[platform][fundCode]) {
+        purchaseRecords[platform][fundCode] = [];
+    }
 
-            if (type === 'sell' && currentSellMode === 'shares') {
-                // 按份额卖出：需要计算金额
-                const sharesVal = document.getElementById('recordShares').value;
-                if (!sharesVal) {
-                    showMessage('请输入卖出份额', 'error');
-                    return;
-                }
-                shares = parseFloat(sharesVal);
-                // 使用最新净值计算金额（如果已知）
-                if (currentSellNav > 0) {
-                    amount = shares * currentSellNav;
-                } else {
-                    // 净值未知时，尝试从 fundsData 获取
-                    const fund = fundsData?.funds?.[platform]?.find(f => f.code === fundCode);
-                    const nav = fund?.current_nav || 0;
-                    if (nav > 0) {
-                        amount = shares * nav;
-                    } else {
-                        showMessage('无法获取基金净值，无法计算卖出金额', 'error');
-                        return;
-                    }
-                }
-            } else {
-                // 买入或按金额卖出
-                const amountVal = document.getElementById('recordAmount').value;
-                if (!amountVal) {
-                    showMessage('请输入交易金额', 'error');
-                    return;
-                }
-                amount = parseFloat(amountVal);
+    const record = {
+        date: date,
+        amount: amount
+    };
+
+    if (type === 'sell') {
+        record.type = 'sell';
+        if (shares !== null) {
+            record.shares = shares;
+        }
+    }
+
+    purchaseRecords[platform][fundCode].push(record);
+
+    renderRecordsList();
+    saveLocalRecords();
+    clearRecordForm();
+    showMessage('交易记录已添加并保存到本地', 'success');
+}
+
+// 编辑交易记录 - 添加空值检查
+function editPurchaseRecord(platform, fundCode, index) {
+    // ✅ 检查记录是否存在
+    if (!purchaseRecords[platform]?.[fundCode]?.[index]) {
+        showMessage('记录不存在，请刷新后重试', 'error');
+        return;
+    }
+
+    editingPlatform = platform;
+    editingFundCode = fundCode;
+    editingIndex = index;
+
+    const record = purchaseRecords[platform][fundCode][index];
+
+    // 填充表单
+    document.getElementById('recordPlatform').value = platform;
+    updateFundCodes();
+    
+    setTimeout(() => {
+        document.getElementById('recordFund').value = fundCode;
+        document.getElementById('recordType').value = record.type || 'buy';
+        onRecordTypeChange();
+        
+        if (record.type === 'sell' && record.shares) {
+            setSellMode('shares');
+            document.getElementById('recordShares').value = record.shares;
+            onSharesInput();
+        }
+        document.getElementById('recordAmount').value = record.amount;
+    }, 100);
+    
+    document.getElementById('recordDate').value = record.date;
+    document.getElementById('addOrUpdateBtn').textContent = '✅ 更新记录';
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+
+    showMessage('正在编辑记录，修改后点击「更新记录」', 'info');
+}
+
+// 更新交易记录 - 添加完整空值检查
+function updatePurchaseRecord() {
+    const platform = document.getElementById('recordPlatform').value;
+    const fundCode = document.getElementById('recordFund').value;
+    const date = document.getElementById('recordDate').value;
+    const amount = document.getElementById('recordAmount').value;
+    const type = document.getElementById('recordType').value;
+
+    if (!platform || !fundCode || !date || !amount) {
+        showMessage('请填写完整信息', 'error');
+        return;
+    }
+
+    const record = {
+        date: date,
+        amount: parseFloat(amount)
+    };
+    if (type === 'sell') {
+        record.type = 'sell';
+        if (currentSellMode === 'shares') {
+            const sharesVal = document.getElementById('recordShares').value;
+            if (sharesVal) {
+                record.shares = parseFloat(sharesVal);
             }
+        }
+    }
 
-            if (!purchaseRecords[platform]) {
-                purchaseRecords[platform] = {};
-            }
+    // ✅ 防御性检查：编辑源对象是否存在
+    if (!purchaseRecords[editingPlatform]?.[editingFundCode]) {
+        showMessage('原记录不存在，请重新加载数据', 'error');
+        cancelEdit();
+        return;
+    }
 
-            if (!purchaseRecords[platform][fundCode]) {
-                purchaseRecords[platform][fundCode] = [];
-            }
-
-            const record = {
-                date: date,
-                amount: amount
-            };
-
-            // 如果是卖出记录，添加类型标记
-            if (type === 'sell') {
-                record.type = 'sell';
-                if (shares !== null) {
-                    record.shares = shares; // 记录卖出的份额
-                }
-            }
-
-            purchaseRecords[platform][fundCode].push(record);
-
-            renderRecordsList();
-            saveLocalRecords();
-            clearRecordForm();
-            showMessage('交易记录已添加并保存到本地', 'success');
+    // 如果平台或基金代码改变了，需要删除旧记录并添加到新位置
+    if (platform !== editingPlatform || fundCode !== editingFundCode) {
+        // 删除旧记录（已检查存在性）
+        purchaseRecords[editingPlatform][editingFundCode].splice(editingIndex, 1);
+        
+        // 清理空对象
+        if (purchaseRecords[editingPlatform][editingFundCode]?.length === 0) {
+            delete purchaseRecords[editingPlatform][editingFundCode];
+        }
+        if (Object.keys(purchaseRecords[editingPlatform] || {}).length === 0) {
+            delete purchaseRecords[editingPlatform];
         }
 
-        // 编辑交易记录（进入编辑模式）
-        function editPurchaseRecord(platform, fundCode, index) {
-            editingPlatform = platform;
-            editingFundCode = fundCode;
-            editingIndex = index;
-
-            const record = purchaseRecords[platform][fundCode][index];
-
-            // 填充表单
-            document.getElementById('recordPlatform').value = platform;
-            updateFundCodes(); // 更新基金下拉框
-            // 使用 setTimeout 确保下拉框更新后再设置值
-            setTimeout(() => {
-                document.getElementById('recordFund').value = fundCode;
-                // 恢复交易类型并触发UI更新
-                document.getElementById('recordType').value = record.type || 'buy';
-                onRecordTypeChange();
-                // 如果是卖出记录且有份额字段，切换到按份额模式
-                if (record.type === 'sell' && record.shares) {
-                    setSellMode('shares');
-                    document.getElementById('recordShares').value = record.shares;
-                    onSharesInput(); // 触发金额预估更新
-                }
-                // 填充金额（按金额卖出 or 买入）
-                document.getElementById('recordAmount').value = record.amount;
-            }, 100);
-            document.getElementById('recordDate').value = record.date;
-
-            // 修改按钮文本和显示
-            document.getElementById('addOrUpdateBtn').textContent = '✅ 更新记录';
-            document.getElementById('cancelEditBtn').style.display = 'inline-block';
-
-            showMessage('正在编辑记录，修改后点击「更新记录」', 'info');
+        // 初始化新位置（安全创建嵌套对象）
+        if (!purchaseRecords[platform]) {
+            purchaseRecords[platform] = {};
         }
-
-        // 更新交易记录
-        function updatePurchaseRecord() {
-            const platform = document.getElementById('recordPlatform').value;
-            const fundCode = document.getElementById('recordFund').value;
-            const date = document.getElementById('recordDate').value;
-            const amount = document.getElementById('recordAmount').value;
-            const type = document.getElementById('recordType').value;
-
-            if (!platform || !fundCode || !date || !amount) {
-                showMessage('请填写完整信息', 'error');
-                return;
-            }
-
-            const record = {
-                date: date,
-                amount: parseFloat(amount)
-            };
-            if (type === 'sell') {
-                record.type = 'sell';
-                // 如果是按份额卖出，保存份额
-                if (currentSellMode === 'shares') {
-                    const sharesVal = document.getElementById('recordShares').value;
-                    if (sharesVal) {
-                        record.shares = parseFloat(sharesVal);
-                    }
-                }
-            }
-
-            // 如果平台或基金代码改变了，需要删除旧记录并添加到新位置
-            if (platform !== editingPlatform || fundCode !== editingFundCode) {
-                // 删除旧记录
-                purchaseRecords[editingPlatform][editingFundCode].splice(editingIndex, 1);
-                if (purchaseRecords[editingPlatform][editingFundCode].length === 0) {
-                    delete purchaseRecords[editingPlatform][editingFundCode];
-                }
-                if (Object.keys(purchaseRecords[editingPlatform]).length === 0) {
-                    delete purchaseRecords[editingPlatform];
-                }
-
-                // 添加到新位置
-                if (!purchaseRecords[platform]) {
-                    purchaseRecords[platform] = {};
-                }
-                if (!purchaseRecords[platform][fundCode]) {
-                    purchaseRecords[platform][fundCode] = [];
-                }
-                purchaseRecords[platform][fundCode].push(record);
-            } else {
-                // 只更新记录
-                purchaseRecords[platform][fundCode][editingIndex] = record;
-            }
-
-            renderRecordsList();
-            saveLocalRecords();
+        if (!purchaseRecords[platform][fundCode]) {
+            purchaseRecords[platform][fundCode] = [];
+        }
+        purchaseRecords[platform][fundCode].push(record);
+    } else {
+        // 只更新记录（确保索引有效）
+        if (editingIndex >= 0 && editingIndex < purchaseRecords[platform][fundCode].length) {
+            purchaseRecords[platform][fundCode][editingIndex] = record;
+        } else {
+            showMessage('记录索引无效，请刷新后重试', 'error');
             cancelEdit();
-            showMessage('交易记录已更新并保存到本地', 'success');
+            return;
         }
+    }
+
+    renderRecordsList();
+    saveLocalRecords();
+    cancelEdit();
+    showMessage('交易记录已更新并保存到本地', 'success');
+}
 
         // 取消编辑
         function cancelEdit() {
@@ -2206,20 +2220,25 @@
             event.target.value = '';
         }
 
-        // 获取基金名称
-        function getFundName(platform, fundCode) {
-            // 先从 fundsData 查找
-            if (fundsData && fundsData.funds && fundsData.funds[platform]) {
-                const fund = fundsData.funds[platform].find(f => f.code === fundCode);
-                if (fund) return fund.name;
-            }
-            // 从 DEFAULT_FUNDS 查找
-            if (DEFAULT_FUNDS[platform]) {
-                const fund = DEFAULT_FUNDS[platform].find(f => f.code === fundCode);
-                if (fund) return fund.name;
-            }
-            return fundCode; // 找不到就返回代码
-        }
+ // 获取基金名称 - 添加空值检查
+function getFundName(platform, fundCode) {
+    // ✅ 安全检查：确保参数有效
+    if (!platform || !fundCode) return fundCode || '未知基金';
+    
+    // 先从 fundsData 查找
+    if (fundsData?.funds?.[platform]) {
+        const fund = fundsData.funds[platform].find(f => f?.code === fundCode);
+        if (fund?.name) return fund.name;
+    }
+    
+    // 从 DEFAULT_FUNDS 查找
+    if (DEFAULT_FUNDS[platform]) {
+        const fund = DEFAULT_FUNDS[platform].find(f => f?.code === fundCode);
+        if (fund?.name) return fund.name;
+    }
+    
+    return fundCode; // 找不到就返回代码
+}
 
         // 更新盈亏概览
         function updateProfitLossSummary() {
@@ -2265,68 +2284,84 @@
             summaryDiv.style.display = 'block';
         }
 
-        // 渲染记录列表
-        function renderRecordsList() {
-            const container = document.getElementById('recordsList');
+// 渲染记录列表 - 添加空值检查
+function renderRecordsList() {
+    const container = document.getElementById('recordsList');
 
-            if (Object.keys(purchaseRecords).length === 0) {
-                container.innerHTML = '<p style="color: #999; text-align: center;">暂无买入记录</p>';
-                return;
-            }
+    if (!purchaseRecords || Object.keys(purchaseRecords).length === 0) {
+        container.innerHTML = '<p style="color: #999; text-align: center;">暂无买入记录</p>';
+        return;
+    }
 
-            let html = '';
+    let html = '';
 
-            for (const platform in purchaseRecords) {
-                for (const fundCode in purchaseRecords[platform]) {
-                    const records = purchaseRecords[platform][fundCode];
+    for (const platform in purchaseRecords) {
+        // ✅ 检查平台对象有效性
+        if (!purchaseRecords[platform] || typeof purchaseRecords[platform] !== 'object') continue;
+        
+        for (const fundCode in purchaseRecords[platform]) {
+            // ✅ 检查基金数组有效性
+            const records = purchaseRecords[platform][fundCode];
+            if (!Array.isArray(records)) continue;
 
-                    records.forEach((record, index) => {
-                        const fundName = getFundName(platform, fundCode);
-                        const isSell = record.type === 'sell';
-                        const typeLabel = isSell ? '卖出' : '买入';
-                        const typeColor = isSell ? '#67c23a' : '#f56c6c';
-                        const amountPrefix = isSell ? '-' : '';
+            records.forEach((record, index) => {
+                // ✅ 检查单条记录有效性
+                if (!record || !record.date) return;
+                
+                const fundName = getFundName(platform, fundCode);
+                const isSell = record.type === 'sell';
+                const typeLabel = isSell ? '卖出' : '买入';
+                const typeColor = isSell ? '#67c23a' : '#f56c6c';
+                const amountPrefix = isSell ? '-' : '';
+                const amountValue = typeof record.amount === 'number' ? record.amount.toFixed(2) : '0.00';
 
-                        html += `
-                            <div class="record-item">
-                                <div class="record-info">
-                                    <strong>${escapeHtml(platform)}</strong> - ${escapeHtml(fundName)} (${escapeHtml(fundCode)})<br>
-                                    <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
-                                    日期: ${escapeHtml(record.date)}, 金额: ¥${amountPrefix}${record.amount.toFixed(2)}
-                                </div>
-                                <div class="record-actions">
-                                    <button class="btn btn-primary" onclick="editPurchaseRecord('${platform}', '${fundCode}', ${index})" style="margin-right: 5px;">编辑</button>
-                                    <button class="btn btn-danger" onclick="deletePurchaseRecord('${platform}', '${fundCode}', ${index})">删除</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-            }
+                html += `
+                    <div class="record-item">
+                        <div class="record-info">
+                            <strong>${escapeHtml(platform)}</strong> - ${escapeHtml(fundName)} (${escapeHtml(fundCode)})<br>
+                            <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
+                            日期: ${escapeHtml(record.date)}, 金额: ¥${amountPrefix}${amountValue}
+                        </div>
+                        <div class="record-actions">
+                            <button class="btn btn-primary" onclick="editPurchaseRecord('${platform}', '${fundCode}', ${index})" style="margin-right: 5px;">编辑</button>
+                            <button class="btn btn-danger" onclick="deletePurchaseRecord('${platform}', '${fundCode}', ${index})">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
 
-            container.innerHTML = html;
+    container.innerHTML = html || '<p style="color: #999; text-align: center;">暂无有效记录</p>';
+}
+
+// 删除买入记录 - 添加完整空值检查
+function deletePurchaseRecord(platform, fundCode, index) {
+    if (confirm('确定要删除这条记录吗？')) {
+        // ✅ 防御性检查：确保嵌套对象存在
+        if (!purchaseRecords[platform]?.[fundCode]) {
+            showMessage('记录不存在，可能已被删除', 'error');
+            return;
         }
 
-        // 删除买入记录
-        function deletePurchaseRecord(platform, fundCode, index) {
-            if (confirm('确定要删除这条记录吗？')) {
-                purchaseRecords[platform][fundCode].splice(index, 1);
+        // 安全删除指定索引的记录
+        purchaseRecords[platform][fundCode].splice(index, 1);
 
-                // 如果基金没有记录了，删除基金键
-                if (purchaseRecords[platform][fundCode].length === 0) {
-                    delete purchaseRecords[platform][fundCode];
-                }
-
-                // 如果平台没有基金了，删除平台键
-                if (Object.keys(purchaseRecords[platform]).length === 0) {
-                    delete purchaseRecords[platform];
-                }
-
-                renderRecordsList();
-                saveLocalRecords();
-                showMessage('记录已删除并更新本地保存', 'success');
-            }
+        // 如果基金没有记录了，删除基金键
+        if (purchaseRecords[platform][fundCode]?.length === 0) {
+            delete purchaseRecords[platform][fundCode];
         }
+
+        // 如果平台没有基金了，删除平台键
+        if (Object.keys(purchaseRecords[platform] || {}).length === 0) {
+            delete purchaseRecords[platform];
+        }
+
+        renderRecordsList();
+        saveLocalRecords();
+        showMessage('记录已删除并更新本地保存', 'success');
+    }
+}
 
         // 保存买入记录到GitHub
         async function savePurchaseRecords() {

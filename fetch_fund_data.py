@@ -295,7 +295,7 @@ def load_purchase_records():
         return None
 
 def calculate_holdings(fund_code, purchase_records, current_nav, history):
-    """计算持仓信息和实际收益（支持买入和卖出记录）"""
+    """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）"""
     if not purchase_records or fund_code not in purchase_records:
         return {
             "total_invested": 0,
@@ -303,72 +303,120 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
             "current_value": 0,
             "profit_loss": 0,
             "profit_loss_percent": 0,
-            "purchases": []
+            "purchases": [],
+            "realized_profit_loss": 0  # 已实现盈亏
         }
 
     purchases = purchase_records[fund_code]
-    total_invested = 0  # 净投入金额（买入-卖出）
-    total_shares = 0    # 持有份额（买入-卖出）
+
+    # FIFO队列：{date, amount, shares, nav, remaining_shares}
+    buy_queue = []
+    realized_profit_loss = 0  # 已实现盈亏（卖出时确认）
     purchase_details = []
 
-    for purchase in purchases:
+    # 按日期排序（确保FIFO顺序）
+    sorted_purchases = sorted(purchases, key=lambda x: x["date"])
+
+    for purchase in sorted_purchases:
         date = purchase["date"]
         amount = purchase["amount"]
-        trans_type = purchase.get("type", "buy")  # 默认为买入
+        trans_type = purchase.get("type", "buy")
 
         # 从历史数据中查找交易日的净值
         nav_on_date = get_nav_from_history(history, date)
 
-        if nav_on_date and nav_on_date > 0:
-            shares = amount / nav_on_date
-
-            if trans_type == "sell":
-                # 卖出记录：减少份额和投入
-                total_invested -= amount
-                total_shares -= shares
-
-                purchase_details.append({
-                    "date": date,
-                    "amount": -amount,
-                    "nav": round(nav_on_date, 4),
-                    "shares": -round(shares, 2),
-                    "type": "sell"
-                })
-
-                log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 -{shares:.2f}")
-            else:
-                # 买入记录
-                total_invested += amount
-                total_shares += shares
-
-                purchase_details.append({
-                    "date": date,
-                    "amount": amount,
-                    "nav": round(nav_on_date, 4),
-                    "shares": round(shares, 2),
-                    "type": "buy"
-                })
-
-                log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
-        else:
+        if not nav_on_date or nav_on_date <= 0:
             log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔记录")
+            continue
 
-    # 确保份额和投入不为负数（防止数据错误）
-    total_shares = max(0, total_shares)
-    total_invested = max(0, total_invested)
+        if trans_type == "sell":
+            # 卖出记录：按FIFO法从最早买入抵扣
+            sell_shares = amount / nav_on_date
+            remaining_sell_shares = sell_shares
+            sell_realized_profit = 0  # 本笔卖出实现的盈亏
+
+            log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {sell_shares:.2f}")
+
+            # FIFO抵扣
+            for buy in buy_queue:
+                if remaining_sell_shares <= 0:
+                    break
+
+                if buy["remaining_shares"] <= 0:
+                    continue
+
+                # 本次抵扣的份额
+                deduct_shares = min(remaining_sell_shares, buy["remaining_shares"])
+                deduct_amount = deduct_shares * buy["nav"]  # 成本金额
+                sell_value = deduct_shares * nav_on_date  # 卖出金额
+                profit = sell_value - deduct_amount
+
+                # 更新
+                buy["remaining_shares"] -= deduct_shares
+                remaining_sell_shares -= deduct_shares
+                realized_profit_loss += profit
+                sell_realized_profit += profit
+
+                log(f"    FIFO抵扣: 从 {buy['date']} 买入记录抵扣 {deduct_shares:.2f} 份, 成本 ¥{deduct_amount:.2f}, 卖出 ¥{sell_value:.2f}, 盈亏 ¥{profit:.2f}")
+
+            # 记录卖出详情（使用本笔卖出的已实现盈亏）
+            purchase_details.append({
+                "date": date,
+                "amount": -round(amount, 2),
+                "nav": round(nav_on_date, 4),
+                "shares": -round(sell_shares, 2),
+                "type": "sell",
+                "realized_profit": round(sell_realized_profit, 2)  # 本笔卖出的盈亏
+            })
+
+        else:
+            # 买入记录：加入FIFO队列
+            shares = amount / nav_on_date
+            buy_queue.append({
+                "date": date,
+                "amount": amount,
+                "shares": shares,
+                "nav": nav_on_date,
+                "remaining_shares": shares
+            })
+
+            purchase_details.append({
+                "date": date,
+                "amount": amount,
+                "nav": round(nav_on_date, 4),
+                "shares": round(shares, 2),
+                "type": "buy"
+            })
+
+            log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
+
+    # 计算剩余持仓
+    remaining_shares = sum(b["remaining_shares"] for b in buy_queue)
+    remaining_cost = sum(b["remaining_shares"] * b["nav"] for b in buy_queue)
+
+    # 计算平均持仓成本
+    avg_cost_nav = remaining_cost / remaining_shares if remaining_shares > 0 else 0
+
+    # 确保份额和投入不为负数
+    remaining_shares = max(0, remaining_shares)
+    remaining_cost = max(0, remaining_cost)
 
     # 计算当前市值和收益
-    current_value = total_shares * current_nav if current_nav > 0 else 0
-    profit_loss = current_value - total_invested
-    profit_loss_percent = (profit_loss / total_invested * 100) if total_invested > 0 else 0
+    current_value = remaining_shares * current_nav if current_nav > 0 else 0
+    unrealized_profit = current_value - remaining_cost
+    profit_loss_percent = (unrealized_profit / remaining_cost * 100) if remaining_cost > 0 else 0
+
+    log(f"  持仓汇总: 剩余份额 {remaining_shares:.2f}, 剩余成本 ¥{remaining_cost:.2f}, 已实现盈亏 ¥{realized_profit_loss:.2f}, 平均成本 {avg_cost_nav:.4f}")
 
     return {
-        "total_invested": round(total_invested, 2),
-        "total_shares": round(total_shares, 2),
+        "total_invested": round(remaining_cost, 2),
+        "total_shares": round(remaining_shares, 2),
         "current_value": round(current_value, 2),
-        "profit_loss": round(profit_loss, 2),
+        "profit_loss": round(unrealized_profit, 2),
         "profit_loss_percent": round(profit_loss_percent, 2),
-        "purchases": purchase_details
+        "purchases": purchase_details,
+        "realized_profit_loss": round(realized_profit_loss, 2),  # 新增：已实现盈亏
+        "avg_cost_nav": round(avg_cost_nav, 4)  # 新增：平均持仓成本
     }
 
 def calculate_cumulative_returns(history, purchases):
@@ -523,13 +571,25 @@ def main():
     summary["total_profit_loss"] = round(summary["total_value"] - summary["total_invested"], 2)
     if summary["total_invested"] > 0:
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
-
+    
+    # 累计算已实现盈亏
+    total_realized_profit = 0
+    for platform_funds in all_data["funds"].values():
+        for fund in platform_funds:
+            if fund.get("holdings") and fund["holdings"].get("realized_profit_loss"):
+                total_realized_profit += fund["holdings"]["realized_profit_loss"]
+    
+    summary["total_realized_profit_loss"] = round(total_realized_profit, 2)
+    
     # 打印汇总信息
     print("\n" + "="*60)
     print("✓ 数据抓取完成！")
     print(f"  总投入: ¥{summary['total_invested']:.2f}")
     print(f"  当前市值: ¥{summary['total_value']:.2f}")
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
+    print(f"  未实现盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
+    print(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
     print(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
     if failed_funds:
         print(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")

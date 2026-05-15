@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-15 17:02:25",
+  "update_time": "2026-05-16 01:38:03",
   "funds": {
     "支付宝": [
       {
@@ -10,110 +10,12 @@
         "nav_date": "2026-05-15 22:29",
         "daily_return": -0.45,
         "holdings": {
-          "total_invested": 95177.56,
+          "total_invested": 93245.61,
           "total_shares": 23190.38,
           "current_value": 149035.28,
-          "profit_loss": 53857.72,
-          "profit_loss_percent": 56.59,
+          "profit_loss": 55789.68,
+          "profit_loss_percent": 59.83,
           "purchases": [
-            {
-              "date": "2025-11-24",
-              "amount": 9000.0,
-              "nav": 4.5919,
-              "shares": 1959.97,
-              "type": "buy"
-            },
-            {
-              "date": "2025-05-14",
-              "amount": 83695.75,
-              "nav": 3.9683,
-              "shares": 21091.08,
-              "type": "buy"
-            },
-            {
-              "date": "2025-03-15",
-              "amount": -74778.92,
-              "nav": 3.7623,
-              "shares": -19875.85,
-              "type": "sell"
-            },
-            {
-              "date": "2025-03-06",
-              "amount": -75551.06,
-              "nav": 3.7956,
-              "shares": -19904.91,
-              "type": "sell"
-            },
-            {
-              "date": "2025-01-16",
-              "amount": 3000.0,
-              "nav": 3.9467,
-              "shares": 760.13,
-              "type": "buy"
-            },
-            {
-              "date": "2025-01-05",
-              "amount": 2000.0,
-              "nav": 4.0214,
-              "shares": 497.34,
-              "type": "buy"
-            },
-            {
-              "date": "2025-01-04",
-              "amount": 2000.0,
-              "nav": 4.0214,
-              "shares": 497.34,
-              "type": "buy"
-            },
-            {
-              "date": "2025-01-03",
-              "amount": 2000.0,
-              "nav": 3.9734,
-              "shares": 503.35,
-              "type": "buy"
-            },
-            {
-              "date": "2025-01-01",
-              "amount": 2000.0,
-              "nav": 3.9224,
-              "shares": 509.89,
-              "type": "buy"
-            },
-            {
-              "date": "2024-12-31",
-              "amount": 1000.0,
-              "nav": 3.929,
-              "shares": 254.52,
-              "type": "buy"
-            },
-            {
-              "date": "2024-12-28",
-              "amount": 838.36,
-              "nav": 3.9582,
-              "shares": 211.8,
-              "type": "buy"
-            },
-            {
-              "date": "2024-12-25",
-              "amount": 75683.04,
-              "nav": 4.0525,
-              "shares": 18675.64,
-              "type": "buy"
-            },
-            {
-              "date": "2024-11-19",
-              "amount": 5000.0,
-              "nav": 3.8813,
-              "shares": 1288.23,
-              "type": "buy"
-            },
-            {
-              "date": "2024-05-28",
-              "amount": 8000.0,
-              "nav": 3.6843,
-              "shares": 2171.38,
-              "type": "buy"
-            },
             {
               "date": "2024-03-06",
               "amount": 45000.0,
@@ -127,8 +29,110 @@
               "nav": 3.525,
               "shares": 1784.51,
               "type": "buy"
+            },
+            {
+              "date": "2024-05-28",
+              "amount": 8000.0,
+              "nav": 3.6843,
+              "shares": 2171.38,
+              "type": "buy"
+            },
+            {
+              "date": "2024-11-19",
+              "amount": 5000.0,
+              "nav": 3.8813,
+              "shares": 1288.23,
+              "type": "buy"
+            },
+            {
+              "date": "2024-12-25",
+              "amount": 75683.04,
+              "nav": 4.0525,
+              "shares": 18675.64,
+              "type": "buy"
+            },
+            {
+              "date": "2024-12-28",
+              "amount": 838.36,
+              "nav": 3.9582,
+              "shares": 211.8,
+              "type": "buy"
+            },
+            {
+              "date": "2024-12-31",
+              "amount": 1000.0,
+              "nav": 3.929,
+              "shares": 254.52,
+              "type": "buy"
+            },
+            {
+              "date": "2025-01-01",
+              "amount": 2000.0,
+              "nav": 3.9224,
+              "shares": 509.89,
+              "type": "buy"
+            },
+            {
+              "date": "2025-01-03",
+              "amount": 2000.0,
+              "nav": 3.9734,
+              "shares": 503.35,
+              "type": "buy"
+            },
+            {
+              "date": "2025-01-04",
+              "amount": 2000.0,
+              "nav": 4.0214,
+              "shares": 497.34,
+              "type": "buy"
+            },
+            {
+              "date": "2025-01-05",
+              "amount": 2000.0,
+              "nav": 4.0214,
+              "shares": 497.34,
+              "type": "buy"
+            },
+            {
+              "date": "2025-01-16",
+              "amount": 3000.0,
+              "nav": 3.9467,
+              "shares": 760.13,
+              "type": "buy"
+            },
+            {
+              "date": "2025-03-06",
+              "amount": -75551.06,
+              "nav": 3.7956,
+              "shares": -19904.91,
+              "type": "sell",
+              "realized_profit": 3581.85
+            },
+            {
+              "date": "2025-03-15",
+              "amount": -74778.92,
+              "nav": 3.7623,
+              "shares": -19875.85,
+              "type": "sell",
+              "realized_profit": -5513.8
+            },
+            {
+              "date": "2025-05-14",
+              "amount": 83695.75,
+              "nav": 3.9683,
+              "shares": 21091.08,
+              "type": "buy"
+            },
+            {
+              "date": "2025-11-24",
+              "amount": 9000.0,
+              "nav": 4.5919,
+              "shares": 1959.97,
+              "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": -1931.95,
+          "avg_cost_nav": 4.0209
         },
         "history": [
           {
@@ -2823,20 +2827,22 @@
           "profit_loss_percent": 40.7,
           "purchases": [
             {
-              "date": "2026-04-15",
-              "amount": 10000.0,
-              "nav": 2.4928,
-              "shares": 4011.55,
-              "type": "buy"
-            },
-            {
               "date": "2026-03-12",
               "amount": 10000.0,
               "nav": 2.1451,
               "shares": 4661.79,
               "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 10000.0,
+              "nav": 2.4928,
+              "shares": 4011.55,
+              "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.3059
         },
         "history": [
           {
@@ -5531,34 +5537,6 @@
           "profit_loss_percent": 24.08,
           "purchases": [
             {
-              "date": "2026-04-23",
-              "amount": 30000.0,
-              "nav": 8.5283,
-              "shares": 3517.7,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 50474.99,
-              "nav": 7.6166,
-              "shares": 6626.97,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-11",
-              "amount": 20000.0,
-              "nav": 7.5846,
-              "shares": 2636.92,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-09",
-              "amount": 23350.91,
-              "nav": 7.405,
-              "shares": 3153.4,
-              "type": "buy"
-            },
-            {
               "date": "2026-03-12",
               "amount": 8289.93,
               "nav": 6.3453,
@@ -5571,8 +5549,38 @@
               "nav": 6.3453,
               "shares": 1575.97,
               "type": "buy"
+            },
+            {
+              "date": "2026-04-09",
+              "amount": 23350.91,
+              "nav": 7.405,
+              "shares": 3153.4,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-11",
+              "amount": 20000.0,
+              "nav": 7.5846,
+              "shares": 2636.92,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 50474.99,
+              "nav": 7.6166,
+              "shares": 6626.97,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-23",
+              "amount": 30000.0,
+              "nav": 8.5283,
+              "shares": 3517.7,
+              "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 7.5524
         },
         "history": [
           {
@@ -8272,27 +8280,29 @@
           "profit_loss_percent": 19.44,
           "purchases": [
             {
+              "date": "2026-04-15",
+              "amount": 20000.0,
+              "nav": 4.5541,
+              "shares": 4391.65,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 20000.0,
+              "nav": 4.5541,
+              "shares": 4391.65,
+              "type": "buy"
+            },
+            {
               "date": "2026-04-18",
               "amount": 30000.0,
               "nav": 4.9456,
               "shares": 6066.0,
               "type": "buy"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 20000.0,
-              "nav": 4.5541,
-              "shares": 4391.65,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 20000.0,
-              "nav": 4.5541,
-              "shares": 4391.65,
-              "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 4.714
         },
         "history": [
           {
@@ -10992,129 +11002,10 @@
           "profit_loss_percent": 12.64,
           "purchases": [
             {
-              "date": "2026-05-07",
-              "amount": 50000.0,
-              "nav": 2.0784,
-              "shares": 24056.97,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 10000.0,
-              "nav": 1.817,
-              "shares": 5503.58,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-09",
+              "date": "2026-03-12",
               "amount": 1000.0,
-              "nav": 1.7787,
-              "shares": 562.21,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-08",
-              "amount": 1000.0,
-              "nav": 1.7503,
-              "shares": 571.33,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-02",
-              "amount": 1000.0,
-              "nav": 1.6322,
-              "shares": 612.67,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-01",
-              "amount": 1000.0,
-              "nav": 1.6569,
-              "shares": 603.54,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-31",
-              "amount": 1000.0,
-              "nav": 1.5945,
-              "shares": 627.16,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-30",
-              "amount": 1000.0,
-              "nav": 1.6108,
-              "shares": 620.81,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-27",
-              "amount": 1000.0,
-              "nav": 1.6203,
-              "shares": 617.17,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-26",
-              "amount": 1000.0,
-              "nav": 1.6398,
-              "shares": 609.83,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-25",
-              "amount": 1000.0,
-              "nav": 1.7087,
-              "shares": 585.24,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-24",
-              "amount": 1000.0,
-              "nav": 1.6778,
-              "shares": 596.02,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-23",
-              "amount": 1000.0,
-              "nav": 1.6141,
-              "shares": 619.54,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-20",
-              "amount": 1000.0,
-              "nav": 1.6628,
-              "shares": 601.4,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-19",
-              "amount": 1000.0,
-              "nav": 1.6844,
-              "shares": 593.68,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-18",
-              "amount": 1000.0,
-              "nav": 1.7212,
-              "shares": 580.99,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-17",
-              "amount": 1000.0,
-              "nav": 1.6593,
-              "shares": 602.66,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-16",
-              "amount": 1000.0,
-              "nav": 1.6926,
-              "shares": 590.81,
+              "nav": 1.6912,
+              "shares": 591.3,
               "type": "buy"
             },
             {
@@ -11125,13 +11016,134 @@
               "type": "buy"
             },
             {
-              "date": "2026-03-12",
+              "date": "2026-03-16",
               "amount": 1000.0,
-              "nav": 1.6912,
-              "shares": 591.3,
+              "nav": 1.6926,
+              "shares": 590.81,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-17",
+              "amount": 1000.0,
+              "nav": 1.6593,
+              "shares": 602.66,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-18",
+              "amount": 1000.0,
+              "nav": 1.7212,
+              "shares": 580.99,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-19",
+              "amount": 1000.0,
+              "nav": 1.6844,
+              "shares": 593.68,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-20",
+              "amount": 1000.0,
+              "nav": 1.6628,
+              "shares": 601.4,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-23",
+              "amount": 1000.0,
+              "nav": 1.6141,
+              "shares": 619.54,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-24",
+              "amount": 1000.0,
+              "nav": 1.6778,
+              "shares": 596.02,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-25",
+              "amount": 1000.0,
+              "nav": 1.7087,
+              "shares": 585.24,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-26",
+              "amount": 1000.0,
+              "nav": 1.6398,
+              "shares": 609.83,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-27",
+              "amount": 1000.0,
+              "nav": 1.6203,
+              "shares": 617.17,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-30",
+              "amount": 1000.0,
+              "nav": 1.6108,
+              "shares": 620.81,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-31",
+              "amount": 1000.0,
+              "nav": 1.5945,
+              "shares": 627.16,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-01",
+              "amount": 1000.0,
+              "nav": 1.6569,
+              "shares": 603.54,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-02",
+              "amount": 1000.0,
+              "nav": 1.6322,
+              "shares": 612.67,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-08",
+              "amount": 1000.0,
+              "nav": 1.7503,
+              "shares": 571.33,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-09",
+              "amount": 1000.0,
+              "nav": 1.7787,
+              "shares": 562.21,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 10000.0,
+              "nav": 1.817,
+              "shares": 5503.58,
+              "type": "buy"
+            },
+            {
+              "date": "2026-05-07",
+              "amount": 50000.0,
+              "nav": 2.0784,
+              "shares": 24056.97,
               "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 1.9333
         },
         "history": [
           {
@@ -13828,192 +13840,10 @@
           "profit_loss_percent": 41.93,
           "purchases": [
             {
-              "date": "2026-04-16",
-              "amount": 20.0,
-              "nav": 1.916,
-              "shares": 10.44,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 20.0,
-              "nav": 1.903,
-              "shares": 10.51,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-14",
-              "amount": 20.0,
-              "nav": 1.904,
-              "shares": 10.5,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-13",
-              "amount": 20.0,
-              "nav": 1.858,
-              "shares": 10.76,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-10",
-              "amount": 20.0,
-              "nav": 1.838,
-              "shares": 10.88,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-09",
-              "amount": 20.0,
-              "nav": 1.815,
-              "shares": 11.02,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-08",
-              "amount": 20.0,
-              "nav": 1.807,
-              "shares": 11.07,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-02",
-              "amount": 20.0,
-              "nav": 1.656,
-              "shares": 12.08,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-01",
-              "amount": 20.0,
-              "nav": 1.671,
-              "shares": 11.97,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-31",
-              "amount": 20.0,
-              "nav": 1.607,
-              "shares": 12.45,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-30",
-              "amount": 20.0,
-              "nav": 1.573,
-              "shares": 12.71,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-27",
-              "amount": 20.0,
-              "nav": 1.619,
-              "shares": 12.35,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-26",
-              "amount": 20.0,
-              "nav": 1.626,
-              "shares": 12.3,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-25",
-              "amount": 20.0,
-              "nav": 1.695,
-              "shares": 11.8,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-24",
-              "amount": 20.0,
-              "nav": 1.695,
-              "shares": 11.8,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-23",
-              "amount": 20.0,
-              "nav": 1.675,
-              "shares": 11.94,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-20",
-              "amount": 20.0,
-              "nav": 1.678,
-              "shares": 11.92,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-19",
-              "amount": 20.0,
-              "nav": 1.722,
-              "shares": 11.61,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-18",
-              "amount": 20.0,
-              "nav": 1.72,
-              "shares": 11.63,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-17",
-              "amount": 20.0,
-              "nav": 1.703,
-              "shares": 11.74,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-16",
-              "amount": 20.0,
-              "nav": 1.689,
-              "shares": 11.84,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-13",
-              "amount": 50.0,
-              "nav": 1.658,
-              "shares": 30.16,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-10",
-              "amount": 50.0,
-              "nav": 1.682,
-              "shares": 29.73,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-09",
-              "amount": 50.0,
-              "nav": 1.652,
-              "shares": 30.27,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-06",
-              "amount": 50.0,
-              "nav": 1.629,
-              "shares": 30.69,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-05",
-              "amount": 50.0,
-              "nav": 1.67,
-              "shares": 29.94,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-04",
-              "amount": 50.0,
-              "nav": 1.667,
-              "shares": 29.99,
+              "date": "2026-03-01",
+              "amount": 1000.0,
+              "nav": 1.737,
+              "shares": 575.71,
               "type": "buy"
             },
             {
@@ -14024,13 +13854,197 @@
               "type": "buy"
             },
             {
-              "date": "2026-03-01",
-              "amount": 1000.0,
-              "nav": 1.737,
-              "shares": 575.71,
+              "date": "2026-03-04",
+              "amount": 50.0,
+              "nav": 1.667,
+              "shares": 29.99,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-05",
+              "amount": 50.0,
+              "nav": 1.67,
+              "shares": 29.94,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-06",
+              "amount": 50.0,
+              "nav": 1.629,
+              "shares": 30.69,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-09",
+              "amount": 50.0,
+              "nav": 1.652,
+              "shares": 30.27,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-10",
+              "amount": 50.0,
+              "nav": 1.682,
+              "shares": 29.73,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-13",
+              "amount": 50.0,
+              "nav": 1.658,
+              "shares": 30.16,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-16",
+              "amount": 20.0,
+              "nav": 1.689,
+              "shares": 11.84,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-17",
+              "amount": 20.0,
+              "nav": 1.703,
+              "shares": 11.74,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-18",
+              "amount": 20.0,
+              "nav": 1.72,
+              "shares": 11.63,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-19",
+              "amount": 20.0,
+              "nav": 1.722,
+              "shares": 11.61,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-20",
+              "amount": 20.0,
+              "nav": 1.678,
+              "shares": 11.92,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-23",
+              "amount": 20.0,
+              "nav": 1.675,
+              "shares": 11.94,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-24",
+              "amount": 20.0,
+              "nav": 1.695,
+              "shares": 11.8,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-25",
+              "amount": 20.0,
+              "nav": 1.695,
+              "shares": 11.8,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-26",
+              "amount": 20.0,
+              "nav": 1.626,
+              "shares": 12.3,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-27",
+              "amount": 20.0,
+              "nav": 1.619,
+              "shares": 12.35,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-30",
+              "amount": 20.0,
+              "nav": 1.573,
+              "shares": 12.71,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-31",
+              "amount": 20.0,
+              "nav": 1.607,
+              "shares": 12.45,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-01",
+              "amount": 20.0,
+              "nav": 1.671,
+              "shares": 11.97,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-02",
+              "amount": 20.0,
+              "nav": 1.656,
+              "shares": 12.08,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-08",
+              "amount": 20.0,
+              "nav": 1.807,
+              "shares": 11.07,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-09",
+              "amount": 20.0,
+              "nav": 1.815,
+              "shares": 11.02,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-10",
+              "amount": 20.0,
+              "nav": 1.838,
+              "shares": 10.88,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-13",
+              "amount": 20.0,
+              "nav": 1.858,
+              "shares": 10.76,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-14",
+              "amount": 20.0,
+              "nav": 1.904,
+              "shares": 10.5,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 20.0,
+              "nav": 1.903,
+              "shares": 10.51,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-16",
+              "amount": 20.0,
+              "nav": 1.916,
+              "shares": 10.44,
               "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 1.7208
         },
         "history": [
           {
@@ -16580,192 +16594,10 @@
           "profit_loss_percent": 39.37,
           "purchases": [
             {
-              "date": "2026-04-16",
+              "date": "2026-03-04",
               "amount": 50.0,
-              "nav": 3.2904,
-              "shares": 15.2,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 50.0,
-              "nav": 3.1943,
-              "shares": 15.65,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-14",
-              "amount": 50.0,
-              "nav": 3.2418,
-              "shares": 15.42,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-13",
-              "amount": 50.0,
-              "nav": 3.2003,
-              "shares": 15.62,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-10",
-              "amount": 50.0,
-              "nav": 3.1692,
-              "shares": 15.78,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-09",
-              "amount": 50.0,
-              "nav": 3.1006,
-              "shares": 16.13,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-08",
-              "amount": 50.0,
-              "nav": 3.0515,
-              "shares": 16.39,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-02",
-              "amount": 50.0,
-              "nav": 2.8245,
-              "shares": 17.7,
-              "type": "buy"
-            },
-            {
-              "date": "2026-04-01",
-              "amount": 50.0,
-              "nav": 2.8048,
-              "shares": 17.83,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-31",
-              "amount": 50.0,
-              "nav": 2.7317,
-              "shares": 18.3,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-30",
-              "amount": 50.0,
-              "nav": 2.6851,
-              "shares": 18.62,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-27",
-              "amount": 50.0,
-              "nav": 2.7535,
-              "shares": 18.16,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-26",
-              "amount": 50.0,
-              "nav": 2.7579,
+              "nav": 2.7577,
               "shares": 18.13,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-25",
-              "amount": 50.0,
-              "nav": 2.8897,
-              "shares": 17.3,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-24",
-              "amount": 50.0,
-              "nav": 2.872,
-              "shares": 17.41,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-23",
-              "amount": 50.0,
-              "nav": 2.8038,
-              "shares": 17.83,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-20",
-              "amount": 50.0,
-              "nav": 2.8188,
-              "shares": 17.74,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-19",
-              "amount": 50.0,
-              "nav": 2.8607,
-              "shares": 17.48,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-18",
-              "amount": 50.0,
-              "nav": 2.8252,
-              "shares": 17.7,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-17",
-              "amount": 50.0,
-              "nav": 2.7518,
-              "shares": 18.17,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-16",
-              "amount": 50.0,
-              "nav": 2.7895,
-              "shares": 17.92,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-13",
-              "amount": 50.0,
-              "nav": 2.7472,
-              "shares": 18.2,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-12",
-              "amount": 50.0,
-              "nav": 2.7258,
-              "shares": 18.34,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-11",
-              "amount": 50.0,
-              "nav": 2.8027,
-              "shares": 17.84,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-10",
-              "amount": 50.0,
-              "nav": 2.7906,
-              "shares": 17.92,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-09",
-              "amount": 50.0,
-              "nav": 2.6801,
-              "shares": 18.66,
-              "type": "buy"
-            },
-            {
-              "date": "2026-03-06",
-              "amount": 50.0,
-              "nav": 2.6289,
-              "shares": 19.02,
               "type": "buy"
             },
             {
@@ -16776,13 +16608,197 @@
               "type": "buy"
             },
             {
-              "date": "2026-03-04",
+              "date": "2026-03-06",
               "amount": 50.0,
-              "nav": 2.7577,
+              "nav": 2.6289,
+              "shares": 19.02,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-09",
+              "amount": 50.0,
+              "nav": 2.6801,
+              "shares": 18.66,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-10",
+              "amount": 50.0,
+              "nav": 2.7906,
+              "shares": 17.92,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-11",
+              "amount": 50.0,
+              "nav": 2.8027,
+              "shares": 17.84,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-12",
+              "amount": 50.0,
+              "nav": 2.7258,
+              "shares": 18.34,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-13",
+              "amount": 50.0,
+              "nav": 2.7472,
+              "shares": 18.2,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-16",
+              "amount": 50.0,
+              "nav": 2.7895,
+              "shares": 17.92,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-17",
+              "amount": 50.0,
+              "nav": 2.7518,
+              "shares": 18.17,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-18",
+              "amount": 50.0,
+              "nav": 2.8252,
+              "shares": 17.7,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-19",
+              "amount": 50.0,
+              "nav": 2.8607,
+              "shares": 17.48,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-20",
+              "amount": 50.0,
+              "nav": 2.8188,
+              "shares": 17.74,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-23",
+              "amount": 50.0,
+              "nav": 2.8038,
+              "shares": 17.83,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-24",
+              "amount": 50.0,
+              "nav": 2.872,
+              "shares": 17.41,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-25",
+              "amount": 50.0,
+              "nav": 2.8897,
+              "shares": 17.3,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-26",
+              "amount": 50.0,
+              "nav": 2.7579,
               "shares": 18.13,
               "type": "buy"
+            },
+            {
+              "date": "2026-03-27",
+              "amount": 50.0,
+              "nav": 2.7535,
+              "shares": 18.16,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-30",
+              "amount": 50.0,
+              "nav": 2.6851,
+              "shares": 18.62,
+              "type": "buy"
+            },
+            {
+              "date": "2026-03-31",
+              "amount": 50.0,
+              "nav": 2.7317,
+              "shares": 18.3,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-01",
+              "amount": 50.0,
+              "nav": 2.8048,
+              "shares": 17.83,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-02",
+              "amount": 50.0,
+              "nav": 2.8245,
+              "shares": 17.7,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-08",
+              "amount": 50.0,
+              "nav": 3.0515,
+              "shares": 16.39,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-09",
+              "amount": 50.0,
+              "nav": 3.1006,
+              "shares": 16.13,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-10",
+              "amount": 50.0,
+              "nav": 3.1692,
+              "shares": 15.78,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-13",
+              "amount": 50.0,
+              "nav": 3.2003,
+              "shares": 15.62,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-14",
+              "amount": 50.0,
+              "nav": 3.2418,
+              "shares": 15.42,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 50.0,
+              "nav": 3.1943,
+              "shares": 15.65,
+              "type": "buy"
+            },
+            {
+              "date": "2026-04-16",
+              "amount": 50.0,
+              "nav": 3.2904,
+              "shares": 15.2,
+              "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.8606
         },
         "history": [
           {
@@ -19477,10 +19493,10 @@
           "profit_loss_percent": 20.15,
           "purchases": [
             {
-              "date": "2026-05-01",
-              "amount": 138.81,
-              "nav": 7.314,
-              "shares": 18.98,
+              "date": "2026-04-15",
+              "amount": 1000.0,
+              "nav": 6.439,
+              "shares": 155.3,
               "type": "buy"
             },
             {
@@ -19491,13 +19507,15 @@
               "type": "buy"
             },
             {
-              "date": "2026-04-15",
-              "amount": 1000.0,
-              "nav": 6.439,
-              "shares": 155.3,
+              "date": "2026-05-01",
+              "amount": 138.81,
+              "nav": 7.314,
+              "shares": 18.98,
               "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 6.5385
         },
         "history": [
           {
@@ -22219,7 +22237,9 @@
               "shares": 872.57,
               "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 5.7079
         },
         "history": [
           {
@@ -24757,7 +24777,9 @@
               "shares": 17910.83,
               "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.7546
         },
         "history": [
           {
@@ -27450,7 +27472,7 @@
         "nav_date": "2026-05-15 15:00",
         "daily_return": -3.49,
         "holdings": {
-          "total_invested": 20000,
+          "total_invested": 20000.0,
           "total_shares": 8078.85,
           "current_value": 23143.48,
           "profit_loss": 3143.48,
@@ -27463,7 +27485,9 @@
               "shares": 8078.85,
               "type": "buy"
             }
-          ]
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.4756
         },
         "history": [
           {
@@ -30031,9 +30055,10 @@
     ]
   },
   "summary": {
-    "total_invested": 570728.0,
+    "total_invested": 568796.0499999999,
     "total_value": 710823.6700000002,
-    "total_profit_loss": 140095.67,
-    "total_profit_loss_percent": 24.55
+    "total_profit_loss": 142027.62,
+    "total_profit_loss_percent": 24.97,
+    "total_realized_profit_loss": -1931.95
   }
 }

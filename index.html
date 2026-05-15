@@ -634,6 +634,147 @@
             font-size: 13px;
         }
 
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .skeleton-stat-card .skeleton {
+            margin-bottom: 10px;
+        }
+
+        .skeleton-platform-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .skeleton-fund-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        /* 卖出快捷按钮 */
+        .sell-quick-buttons {
+            display: none;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .sell-quick-btn {
+            padding: 6px 14px;
+            border: 1.5px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .sell-quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .sell-quick-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .sell-quick-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* 搜索筛选栏 */
+        .search-filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-filter-bar input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 1.5px solid #dcdfe6;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-filter-bar input[type="text"]:focus {
+            border-color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border: 1.5px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* 筛选隐藏 */
+        .fund-card.hidden-by-filter {
+            display: none;
+        }
+
+        .platform-section.hidden-by-filter {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -679,23 +820,102 @@
                 table-layout: auto;
             }
 
-            .fund-metrics td {
-                padding: 4px 2px;
-                white-space: normal;
-                font-size: 11px;
+            .skeleton-platform-section {
+                padding: 15px;
+            }
+
+            .skeleton-fund-card {
+                padding: 12px;
+            }
+
+            .sell-quick-buttons {
+                gap: 6px;
+            }
+
+            .sell-quick-btn {
+                padding: 5px 10px;
+                font-size: 12px;
             }
 
             .metric-labels td {
                 font-size: 10px;
             }
 
-            .metric-values td {
+        .metric-values td {
                 font-size: 12px;
             }
 
             .funds-table {
                 display: block;
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* 搜索筛选栏 移动端 */
+            .search-filter-bar {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .search-filter-bar input[type="text"] {
+                width: 100%;
+            }
+
+            .filter-buttons {
+                justify-content: flex-start;
+                gap: 6px;
+            }
+
+            .filter-btn {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+
+            /* 基金卡片 移动端优化 */
+            .fund-metrics td {
+                padding: 4px 2px;
+                white-space: normal;
+                font-size: 11px;
+            }
+
+            .fund-metrics th {
+                padding: 4px 2px;
+                font-size: 10px;
+            }
+
+        .purchase-details table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* 统计卡片 移动端：单列 */
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card .label {
+                font-size: 11px;
+            }
+
+            .stat-card .value {
+                font-size: 16px;
+            }
+
+            /* 设置按钮 移动端 */
+            .settings-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+
+            /* 图表容器 移动端 */
+            .chart-container {
+                height: 250px;
+            }
+
+            .fund-chart-wrapper {
+                height: 220px !important;
             }
         }
     </style>
@@ -719,8 +939,40 @@
             </div>
         </div>
 
+        <!-- 搜索筛选栏 -->
+        <div class="search-filter-bar">
+            <input type="text" id="fundFilterInput" placeholder="搜索基金名称或代码..." oninput="filterFunds()">
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterByPlatform('全部', this)">全部</button>
+                <button class="filter-btn" onclick="filterByPlatform('支付宝', this)">支付宝</button>
+                <button class="filter-btn" onclick="filterByPlatform('理财通', this)">理财通</button>
+                <button class="filter-btn" onclick="filterByPlatform('招商银行', this)">招商银行</button>
+            </div>
+        </div>
+
         <div id="content">
-            <div class="loading">正在加载基金数据...</div>
+            <!-- 骨架屏：数据加载时显示 -->
+            <div id="skeletonScreen">
+                <div class="stats-grid" id="skeletonStats">
+                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
+                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
+                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
+                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
+                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
+                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
+                </div>
+                <div class="skeleton-platform-section" style="margin-top:30px;">
+                    <div class="skeleton" style="width:120px;height:14px;margin-bottom:15px;"></div>
+                    <div class="skeleton-fund-card"><div class="skeleton" style="width:40%;height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;"><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div></div></div>
+                    <div class="skeleton-fund-card"><div class="skeleton" style="width:50%;height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;"><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div></div></div>
+                </div>
+                <div class="skeleton-platform-section" style="margin-top:15px;">
+                    <div class="skeleton" style="width:100px;height:14px;margin-bottom:15px;"></div>
+                    <div class="skeleton-fund-card"><div class="skeleton" style="width:35%;height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;"><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div></div></div>
+                </div>
+            </div>
+            <!-- 实际内容由 renderData() 填充 -->
+            <div id="mainContent" style="display:none;"></div>
         </div>
     </div>
 
@@ -823,6 +1075,13 @@
                         <button type="button" class="sell-mode-btn" id="btnSellByShares" onclick="setSellMode('shares')">按份额</button>
                     </div>
                 </div>
+                <div class="sell-quick-buttons" id="sellQuickButtons">
+                    <button type="button" class="sell-quick-btn" onclick="applySellPercent(0.25)">25%</button>
+                    <button type="button" class="sell-quick-btn" onclick="applySellPercent(0.5)">50%</button>
+                    <button type="button" class="sell-quick-btn" onclick="applySellPercent(0.75)">75%</button>
+                    <button type="button" class="sell-quick-btn" onclick="applySellPercent(1)">全部</button>
+                </div>
+                <div class="sell-quick-hint" id="sellQuickHint"></div>
                 <div class="form-group" id="amountGroup">
                     <label id="amountLabel">交易金额 (元)</label>
                     <input type="number" id="recordAmount" placeholder="1000.00" step="0.01" oninput="onAmountInput()">
@@ -994,7 +1253,9 @@
                 </div>
             `;
 
-            document.getElementById('content').innerHTML = html;
+            document.getElementById('skeletonScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('mainContent').innerHTML = html;
             renderCharts();
         }
 
@@ -1075,7 +1336,7 @@
                 }
 
                 html += `
-                    <div class="fund-card">
+                    <div class="fund-card" data-platform="${platformName}" data-code="${fnd.code}">
                         <div class="fund-header">
                             <span class="fund-name" onclick="toggleDetails('${fnd.code}-${platformName}')">${fnd.name} 📊</span>
                             <span class="fund-code">${fnd.code}</span>
@@ -1167,7 +1428,16 @@
 
         // 渲染图表（累计收益率走势）
         let chartAllInstance = null;  // 保存图表实例，避免重复创建
+        let renderChartsTimer = null;  // 防抖定时器
         function renderCharts() {
+            // 防抖：100ms 内多次调用只执行最后一次
+            if (renderChartsTimer) clearTimeout(renderChartsTimer);
+            renderChartsTimer = setTimeout(() => {
+                renderChartsInner();
+            }, 100);
+        }
+
+        function renderChartsInner() {
             const ctx = document.getElementById('chart-all');
             if (!ctx) return;
 
@@ -1195,33 +1465,12 @@
             ];
 
             const datasets = allFunds.map((fund, index) => {
-                const purchases = fund.holdings.purchases || [];
-                // 按日期排序交易记录
-                const sorted = [...purchases].sort((a, b) => a.date.localeCompare(b.date));
-
-                // 对每一天历史净值，计算累计收益率
+                // 直接使用预计算的 return_rate，避免前端重复计算
                 const returnRateMap = new Map();
                 (fund.history || []).forEach(h => {
-                    let totalShares = 0;
-                    let totalInvested = 0;
-
-                    for (const p of sorted) {
-                        if (p.date <= h.date) {
-                            const isSell = p.type === 'sell';
-                            totalShares += isSell ? -Math.abs(p.shares) : p.shares;;   // 卖出时 shares 为负数
-                            totalInvested += isSell ? -Math.abs(p.amount) : p.amount;; // 卖出时 amount 为负数
-                        }
-                    }
-
-                    if (totalInvested <= 0) {
-                        returnRateMap.set(h.date, null);
-                    } else {
-                        const value = h.nav * totalShares;
-                        const profit = value - totalInvested;
-                        returnRateMap.set(h.date, (profit / totalInvested * 100));
-                    }
+                    // 兼容旧数据（无 return_rate 字段）
+                    returnRateMap.set(h.date, h.return_rate !== undefined ? h.return_rate : null);
                 });
-
                 return {
                     label: `${fund.name} (${fund.code})`,
                     returnRateMap: returnRateMap,
@@ -1818,6 +2067,34 @@
             }
         }
 
+        // 卖出快捷按钮：按比例填充金额或份额
+        function applySellPercent(percent) {
+            const holdingsValue = parseFloat(document.getElementById('holdingsValue').textContent.replace('¥','')) || 0;
+            const holdingsShares = parseFloat(document.getElementById('holdingsShares').textContent.replace(' 份','')) || 0;
+
+            // 高亮当前选中按钮
+            document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
+            const btnMap = { 0.25: 0, 0.5: 1, 0.75: 2, 1: 3 };
+            const btns = document.querySelectorAll('.sell-quick-btn');
+            if (btnMap[percent] !== undefined && btns[btnMap[percent]]) {
+                btns[btnMap[percent]].classList.add('active');
+            }
+
+            if (currentSellMode === 'amount') {
+                const amount = holdingsValue * percent;
+                document.getElementById('recordAmount').value = amount.toFixed(2);
+                document.getElementById('sellQuickHint').textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ¥${amount.toFixed(2)}`;
+                document.getElementById('sellQuickHint').style.display = 'block';
+            } else {
+                const shares = holdingsShares * percent;
+                document.getElementById('recordShares').value = shares.toFixed(2);
+                const hintAmount = shares * currentSellNav;
+                document.getElementById('sharesHint').textContent = `≈ ¥${hintAmount.toFixed(2)}`;
+                document.getElementById('sellQuickHint').textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ${shares.toFixed(2)} 份`;
+                document.getElementById('sellQuickHint').style.display = 'block';
+            }
+        }
+
         // 卖出模式：'amount' 按金额 | 'shares' 按份额
         let currentSellMode = 'amount';
         let currentSellNav = 0;  // 当前基金净值（用于计算）
@@ -1829,6 +2106,8 @@
 
             document.getElementById('sellHoldingsInfo').style.display = isSell ? 'block' : 'none';
             document.getElementById('sellModeToggle').style.display = isSell ? 'block' : 'none';
+            document.getElementById('sellQuickButtons').style.display = isSell ? 'flex' : 'none';
+            document.getElementById('sellQuickHint').style.display = 'none';
 
             if (isSell) {
                 updateSellHoldingsInfo();
@@ -1839,6 +2118,7 @@
                 document.getElementById('amountGroup').style.display = 'block';
                 document.getElementById('sharesGroup').style.display = 'none';
                 document.getElementById('amountLabel').textContent = '交易金额 (元)';
+                document.getElementById('sellQuickHint').style.display = 'none';
             }
         }
 
@@ -1852,6 +2132,8 @@
                 document.getElementById('holdingsShares').textContent = '-';
                 document.getElementById('holdingsNav').textContent = '-';
                 currentSellNav = 0;
+                document.getElementById('sellQuickHint').style.display = 'none';
+                document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
                 return;
             }
 
@@ -1871,6 +2153,9 @@
                 document.getElementById('holdingsNav').textContent = '-';
                 currentSellNav = 0;
             }
+            // 切换基金时清空快捷按钮状态
+            document.getElementById('sellQuickHint').style.display = 'none';
+            document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
         }
 
         // 切换卖出模式
@@ -1878,6 +2163,8 @@
             currentSellMode = mode;
             document.getElementById('btnSellByAmount').classList.toggle('active', mode === 'amount');
             document.getElementById('btnSellByShares').classList.toggle('active', mode === 'shares');
+            document.getElementById('sellQuickHint').style.display = 'none';
+            document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
 
             if (mode === 'amount') {
                 document.getElementById('amountGroup').style.display = 'block';
@@ -1896,6 +2183,8 @@
 
         // 金额输入时自动计算份额（用于提示）
         function onAmountInput() {
+            document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('sellQuickHint').style.display = 'none';
             if (currentSellMode !== 'amount' || currentSellNav <= 0) return;
             const amount = parseFloat(document.getElementById('recordAmount').value) || 0;
             const shares = amount / currentSellNav;
@@ -1904,6 +2193,8 @@
 
         // 份额输入时自动计算金额
         function onSharesInput() {
+            document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('sellQuickHint').style.display = 'none';
             if (currentSellMode !== 'shares' || currentSellNav <= 0) return;
             const shares = parseFloat(document.getElementById('recordShares').value) || 0;
             const amount = shares * currentSellNav;
@@ -2521,6 +2812,51 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 div.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => div.remove(), 300);
             }, 3000);
+        }
+
+        // 搜索筛选：按名称/代码搜索 + 平台筛选
+        let currentPlatformFilter = '全部';
+
+        function filterFunds() {
+            const keyword = document.getElementById('fundFilterInput').value.trim().toLowerCase();
+            const cards = document.querySelectorAll('.fund-card');
+            const sections = document.querySelectorAll('.platform-section');
+
+            cards.forEach(card => {
+                const code = (card.dataset.code || '').toLowerCase();
+                const platform = card.dataset.platform || '';
+                const nameEl = card.querySelector('.fund-name');
+                const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+
+                // 平台筛选
+                const platformMatch = currentPlatformFilter === '全部' || platform === currentPlatformFilter;
+                // 关键字筛选
+                const keywordMatch = !keyword || code.includes(keyword) || name.includes(keyword);
+
+                if (platformMatch && keywordMatch) {
+                    card.classList.remove('hidden-by-filter');
+                } else {
+                    card.classList.add('hidden-by-filter');
+                }
+            });
+
+            // 隐藏没有可见基金卡片的平台区块
+            sections.forEach(section => {
+                const visibleCards = section.querySelectorAll('.fund-card:not(.hidden-by-filter)');
+                if (visibleCards.length === 0) {
+                    section.classList.add('hidden-by-filter');
+                } else {
+                    section.classList.remove('hidden-by-filter');
+                }
+            });
+        }
+
+        function filterByPlatform(platform, btn) {
+            currentPlatformFilter = platform;
+            // 更新按钮高亮
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            filterFunds();
         }
 
         // 点击Modal外部关闭

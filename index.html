@@ -1421,7 +1421,7 @@
                                 <td>累计收益率</td>
                             </tr>
                             <tr class="metric-values">
-                                <td>${fnd.current_nav.toFixed(4)} <span style="font-size:10px;color:#999">${fnd.nav_date ? fnd.nav_date.split(' ')[0] : ''}</span></td>
+                                <td>${fnd.current_nav.toFixed(4)} <span style="font-size:10px;color:#999">${fnd.nav_date ? fnd.nav_date.split(' ')[0] : ''}${fnd.nav_status === 'delayed' ? ' <span style="color:#ff9800;font-weight:bold;">(延迟)</span>' : ''}</span></td>
                                 <td class="${dailyClass}">${fnd.daily_return >= 0 ? '+' : ''}${fnd.daily_return.toFixed(2)}%</td>
                                 <td class="${dailyClass}">${fnd.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}</td>
                                 <td class="${profitClass}">${fnd.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>

@@ -2,6 +2,9 @@
 """
 根据 purchase_records.json 和 funds_data.json 生成持仓快照 holdings_snapshot.json
 用法：python generate_holdings.py
+
+逻辑：直接复用 funds_data.json 中的 holdings 计算结果（由 fetch_fund_data.py 的完整 FIFO 逻辑生成），
+避免 generate_holdings.py 自行计算导致与主数据不一致。
 """
 
 import json
@@ -32,8 +35,8 @@ def generate_holdings_snapshot():
     purchase_records = load_json(PURCHASE_FILE)
     funds_data = load_json(FUNDS_DATA_FILE)
 
-    if purchase_records is None:
-        print("[Error] 无法读取交易记录，退出")
+    if purchase_records is None or funds_data is None:
+        print("[Error] 无法读取必要数据，退出")
         return
 
     snapshot = {
@@ -59,109 +62,76 @@ def generate_holdings_snapshot():
     total_daily_profit_loss = 0.0
     funds_count = 0
 
-    # 构建 funds_data 的快速查找索引：{platform: {code: fund_obj}}
-    funds_index = {}
-    if funds_data and 'funds' in funds_data:
-        for platform, fund_list in funds_data['funds'].items():
-            funds_index[platform] = {}
-            for fund in fund_list:
-                funds_index[platform][fund['code']] = fund
+    # 遍历 funds_data 中的基金，直接复用 holdings 数据
+    for platform, fund_list in funds_data.get('funds', {}).items():
+        if not fund_list:
+            continue
 
-    # 遍历交易记录，计算每只基金的持仓
-    for platform, funds in purchase_records.items():
         if platform not in snapshot['funds']:
             snapshot['funds'][platform] = {}
 
         platforms_set.add(platform)
 
-        for fund_code, records in funds.items():
-            # 计算净份额和累计投入
-            total_shares = 0.0
-            total_invested_fund = 0.0
-            transactions_count = 0
+        for fund in fund_list:
+            fund_code = fund.get('code', '')
+            fund_name = fund.get('name', fund_code)
+            current_nav = fund.get('current_nav', 0)
+            nav_date = fund.get('nav_date', '')
+            daily_return = fund.get('daily_return', 0)
+            holdings = fund.get('holdings')
+
+            # 跳过无持仓的基金（无 holdings 或总份额为 0）
+            if not holdings:
+                continue
+            total_shares = holdings.get('total_shares', 0)
+            if total_shares <= 0.0001:
+                continue
+
+            # 从 purchase_records 获取交易统计信息（笔数、首笔日期）
+            platform_records = purchase_records.get(platform, {})
+            records = platform_records.get(fund_code, [])
+            transactions_count = len(records)
             first_date = None
+            if records:
+                sorted_records = sorted(records, key=lambda x: x.get('date', ''))
+                first_date = sorted_records[0].get('date', '')
 
-            # 按日期排序
-            sorted_records = sorted(records, key=lambda x: x.get('date', ''))
+            # 直接从 holdings 读取所有计算好的数据（由 fetch_fund_data.py 的 FIFO 逻辑生成）
+            total_invested_fund = holdings.get('total_invested', 0)
+            current_value = holdings.get('current_value', 0)
+            profit_loss = holdings.get('profit_loss', 0)
+            profit_loss_percent = holdings.get('profit_loss_percent', 0)
+            realized_profit_loss = holdings.get('realized_profit_loss', 0)
+            avg_cost_nav = holdings.get('avg_cost_nav', 0)
 
-            for record in sorted_records:
-                amount = record.get('amount', 0)
-                rtype = record.get('type', 'buy')
-                shares = record.get('shares', None)
-                transactions_count += 1
-
-                if first_date is None:
-                    first_date = record.get('date')
-
-                if rtype == 'sell':
-                    # 卖出：减少份额，减少投入成本
-                    sell_amount = abs(amount) if amount > 0 else -amount
-                    total_invested_fund -= sell_amount
-                    if shares:
-                        total_shares -= shares
-                    # 如果没有份额信息，尝试从金额和净值估算
-                    elif platform in funds_index and fund_code in funds_index[platform]:
-                        nav = funds_index[platform][fund_code].get('current_nav', 0)
-                        if nav > 0:
-                            total_shares -= sell_amount / nav
-                else:
-                    # 买入：增加份额，增加投入
-                    total_invested_fund += amount
-                    if shares:
-                        total_shares += shares
-                    # 如果没有份额信息，尝试从金额和净值估算
-                    elif platform in funds_index and fund_code in funds_index[platform]:
-                        nav = funds_index[platform][fund_code].get('current_nav', 0)
-                        if nav > 0:
-                            total_shares += amount / nav
-
-            # 从 funds_data 获取最新净值和市值
-            fund_info = funds_index.get(platform, {}).get(fund_code, {})
-            current_nav = fund_info.get('current_nav', 0)
-            nav_date = fund_info.get('nav_date', '')
-            daily_return = fund_info.get('daily_return', 0)
-            holdings = fund_info.get('holdings', {})
-
-            # 优先使用 funds_data 中的准确持仓数据
-            if holdings:
-                total_shares = holdings.get('total_shares', total_shares)
-                total_invested_fund = holdings.get('total_invested', total_invested_fund)
-                current_value = holdings.get('current_value', 0)
-                profit_loss = holdings.get('profit_loss', 0)
-                profit_loss_percent = holdings.get('profit_loss_percent', 0)
-            else:
-                # 自行计算
-                current_value = total_shares * current_nav if current_nav > 0 else 0
-                profit_loss = current_value - total_invested_fund
-                profit_loss_percent = (profit_loss / total_invested_fund * 100) if total_invested_fund > 0 else 0
-
+            # 计算今日盈亏
             daily_profit_loss = total_shares * current_nav * daily_return / 100 if current_nav > 0 else 0
 
-            # 只记录有持仓的基金（净份额 > 0）
-            if total_shares > 0.0001:
-                snapshot['funds'][platform][fund_code] = {
-                    "fund_name": fund_info.get('name', fund_code),
-                    "current_nav": round(current_nav, 4),
-                    "nav_date": nav_date,
-                    "holdings": {
-                        "total_shares": round(total_shares, 2),
-                        "total_invested": round(total_invested_fund, 2),
-                        "current_value": round(current_value, 2),
-                        "profit_loss": round(profit_loss, 2),
-                        "profit_loss_percent": round(profit_loss_percent, 2),
-                        "daily_return": round(daily_return, 2),
-                        "daily_profit_loss": round(daily_profit_loss, 2)
-                    },
-                    "transactions_count": transactions_count,
-                    "first_purchase_date": first_date or '',
-                    "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S+08:00")
-                }
+            snapshot['funds'][platform][fund_code] = {
+                "fund_name": fund_name,
+                "current_nav": round(current_nav, 4),
+                "nav_date": nav_date,
+                "holdings": {
+                    "total_shares": round(total_shares, 2),
+                    "total_invested": round(total_invested_fund, 2),
+                    "current_value": round(current_value, 2),
+                    "profit_loss": round(profit_loss, 2),
+                    "profit_loss_percent": round(profit_loss_percent, 2),
+                    "realized_profit_loss": round(realized_profit_loss, 2),
+                    "avg_cost_nav": round(avg_cost_nav, 4) if avg_cost_nav else 0,
+                    "daily_return": round(daily_return, 2),
+                    "daily_profit_loss": round(daily_profit_loss, 2)
+                },
+                "transactions_count": transactions_count,
+                "first_purchase_date": first_date or '',
+                "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S+08:00")
+            }
 
-                total_holdings_value += current_value
-                total_invested += total_invested_fund
-                total_profit_loss += profit_loss
-                total_daily_profit_loss += daily_profit_loss
-                funds_count += 1
+            total_holdings_value += current_value
+            total_invested += total_invested_fund
+            total_profit_loss += profit_loss
+            total_daily_profit_loss += daily_profit_loss
+            funds_count += 1
 
     # 计算汇总
     snapshot['summary'] = {
@@ -188,6 +158,7 @@ def generate_holdings_snapshot():
     print("      持仓基金数: " + str(funds_count))
     print("      总市值: " + format(total_holdings_value, ',.2f'))
     print("      累计盈亏: " + format(total_profit_loss, ',.2f') + " (" + str(round(snapshot['summary']['total_profit_loss_percent'], 2)) + "%)")
+    print("      已实现盈亏: " + format(sum(f.get('holdings', {}).get('realized_profit_loss', 0) for p in snapshot['funds'].values() for f in p.values()), ',.2f'))
 
 
 if __name__ == '__main__':

@@ -19,6 +19,8 @@ import time
 import subprocess
 import sys
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # 基金列表配置
 FUNDS = {
     "支付宝": ["270023", "016665", "001438", "002112", "018230"],
@@ -334,6 +336,7 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
             sell_shares = amount / nav_on_date
             remaining_sell_shares = sell_shares
             sell_realized_profit = 0  # 本笔卖出实现的盈亏
+            total_fifo_cost = 0  # 本笔卖出的FIFO总成本
 
             log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {sell_shares:.2f}")
 
@@ -348,6 +351,7 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
                 # 本次抵扣的份额
                 deduct_shares = min(remaining_sell_shares, buy["remaining_shares"])
                 deduct_amount = deduct_shares * buy["nav"]  # 成本金额
+                total_fifo_cost += deduct_amount  # 累加FIFO成本
                 sell_value = deduct_shares * nav_on_date  # 卖出金额
                 profit = sell_value - deduct_amount
 
@@ -366,7 +370,8 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
                 "nav": round(nav_on_date, 4),
                 "shares": -round(sell_shares, 2),
                 "type": "sell",
-                "realized_profit": round(sell_realized_profit, 2)  # 本笔卖出的盈亏
+                "realized_profit": round(sell_realized_profit, 2),  # 本笔卖出的盈亏
+                "fifo_cost": round(total_fifo_cost, 2)   # 本笔卖出的FIFO总成本
             })
 
         else:
@@ -435,7 +440,9 @@ def calculate_cumulative_returns(history, purchases):
             if p["date"] <= h["date"]:
                 if p.get("type") == "sell":
                     total_shares -= abs(p["shares"])
-                    total_invested -= abs(p["amount"])
+                    # 使用FIFO成本（卖出时实际抵扣的成本），而非卖出金额
+                    fifo_cost = p.get("fifo_cost", abs(p["amount"]))
+                    total_invested -= fifo_cost
                 else:
                     total_shares += p["shares"]
                     total_invested += p["amount"]
@@ -491,7 +498,8 @@ def main():
         try:
             with open(previous_file, "r", encoding="utf-8") as f:
                 previous_data = json.load(f)
-            log(f"✓ 已加载上次数据作为备份 (更新时间: {previous_data.get('update_time', '未知')})")
+            update_time_str = previous_data.get('update_time', '未知')
+            log(f"✓ 已加载上次数据作为备份（更新时间: {update_time_str}）")
         except Exception:
             pass
 
@@ -606,7 +614,7 @@ def main():
     # 生成持仓快照
     print("\n生成持仓快照...")
     try:
-        subprocess.run([sys.executable, "generate_holdings.py"], check=True)
+        subprocess.run([sys.executable, os.path.join(BASE_DIR, "generate_holdings.py")], check=True)
     except Exception as e:
         print(f"  ⚠️ 持仓快照生成失败: {e}")
 

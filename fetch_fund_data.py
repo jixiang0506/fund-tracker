@@ -28,6 +28,11 @@ FUNDS = {
     "招商银行": ["021277", "000390", "020723"]
 }
 
+# QDII基金代码集合（T+1更新，净值通常延迟一天公布）
+QDII_CODES = {
+    "270023", "016665", "018230", "018147", "012922", "021277"
+}
+
 # 天天基金API
 HISTORY_API = "http://api.fund.eastmoney.com/f10/lsjz"
 REALTIME_API = "http://fundgz.1234567.com.cn/js/{}.js"
@@ -73,6 +78,7 @@ def fetch_fund_realtime(fund_code, max_retries=3):
                 "nav": float(data.get("gsz", 0)),  # 估算净值
                 "nav_date": data.get("gztime", ""),  # 估值时间
                 "change_percent": float(data.get("gszzl", 0)),  # 估算涨跌幅
+                "nav_status": "estimated",  # 实时估算值
             }
         except json.JSONDecodeError:
             # JSON解析失败 - 回退到历史数据
@@ -88,14 +94,19 @@ def fetch_fund_realtime(fund_code, max_retries=3):
                 return _fetch_latest_from_history(fund_code)
 
 def _fetch_latest_from_history(fund_code):
-    """从历史净值API获取最新一条记录，作为实时数据的回退方案"""
+    """从历史净值API获取最新记录，作为实时数据的回退方案。
+    QDII基金（T+1更新）若当天无新净值，自动沿用上一交易日净值并标记延迟。
+    """
     try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        is_qdii = fund_code in QDII_CODES
+
         params = {
             "fundCode": fund_code,
             "pageIndex": 1,
             "pageSize": 2,  # 取最近2条以计算涨跌幅
             "startDate": "2020-01-01",
-            "endDate": datetime.now().strftime("%Y-%m-%d")
+            "endDate": today
         }
         response = requests.get(HISTORY_API, params=params, headers=HEADERS, timeout=10)
         response.raise_for_status()
@@ -111,16 +122,24 @@ def _fetch_latest_from_history(fund_code):
         nav_date = latest.get("FSRQ", "")
         change_percent = float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
 
+        # QDII延迟检测：若最新记录日期不是今天，说明净值未更新
+        nav_status = "confirmed"
+        if is_qdii and nav_date != today:
+            nav_status = "delayed"
+            log(f"  ⚠ QDII基金 {fund_code} 净值延迟：最新净值日期 {nav_date}，非今日 {today}")
+
         # 尝试获取基金名称（从历史API中无法直接获取，使用已知映射或留空）
         fund_name = _get_fund_name(fund_code)
 
-        log(f"  ✓ 基金 {fund_code} 回退成功: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
+        status_text = "延迟" if nav_status == "delayed" else "确认"
+        log(f"  ✓ 基金 {fund_code} 回退成功 [{status_text}]: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
         return {
             "code": fund_code,
             "name": fund_name,
             "nav": nav,
             "nav_date": nav_date,
             "change_percent": change_percent,
+            "nav_status": nav_status,
         }
     except Exception as e:
         log(f"  ❌ 基金 {fund_code} 历史数据回退也失败: {e}")
@@ -560,6 +579,7 @@ def main():
                 "current_nav": realtime["nav"],
                 "nav_date": realtime["nav_date"],
                 "daily_return": realtime["change_percent"],
+                "nav_status": realtime.get("nav_status", "confirmed"),
                 "holdings": holdings,
                 "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
             }

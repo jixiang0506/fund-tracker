@@ -1262,19 +1262,42 @@
                 console.error('加载数据失败:', error);
                 document.getElementById('skeletonScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+
+                // 检测是否为 CORS 错误（本地 file:// 打开时常见）
+                const isFileProtocol = window.location.protocol === 'file:';
+                const isCors = error.message.includes('Failed to fetch') || error.message.includes('CORS') || error.message.includes('NetworkError');
+
                 document.getElementById('mainContent').innerHTML = `
-                    <div class="error" style="text-align:center;padding:40px;">
-                        <h3>⚠️ 数据加载失败</h3>
-                        <p style="margin:15px 0;">${escapeHtml(error.message)}</p>
-                        <p style="color:#666;font-size:14px;">
-                            如果你是通过 <code>file://</code> 协议直接打开此文件，<br>
-                            请使用本地 HTTP 服务器运行，或访问线上版本。
-                        </p>
+                    <div style="text-align:center;padding:40px;">
+                        <h3 style="color:#e6a23c;">⚠️ 数据加载失败</h3>
+                        <p style="margin:15px 0;color:#f56c6c;font-size:14px;">${escapeHtml(error.message)}</p>
+
+                        ${(isFileProtocol || isCors) ? `
+                        <div style="background:#fff8e6;border:1px solid #e6a23c;border-radius:8px;padding:20px;margin:20px auto;max-width:600px;text-align:left;">
+                            <h4 style="margin:0 0 12px 0;color:#e6a23c;">💡 本地调试：CORS 限制解决方案</h4>
+                            <p style="margin:0 0 10px 0;color:#666;font-size:14px;">
+                                浏览器禁止 <code>file://</code> 协议下的跨域请求。<br>
+                                需要用本地 HTTP 服务器来绕过此限制。
+                            </p>
+                            <div style="background:#2d2d2d;color:#f8f8f2;border-radius:6px;padding:12px 16px;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;">
+                                <div style="color:#6699cc;"># 进入项目目录，然后执行：</div>
+                                <div style="color:#f8f8f2;margin:4px 0;">cd "D:\Program Files (x86)\WorkBuddy\111\2026-05-12-task-2"</div>
+                                <div style="color:#6699cc;"># 启动 HTTP 服务器（Python 3 自带）</div>
+                                <div style="color:#f8f8f2;margin:4px 0;">python -m http.server 8000</div>
+                                <div style="color:#6699cc;"># 然后在浏览器打开：</div>
+                                <div style="color:#a6e22e;margin:4px 0;">http://localhost:8000</div>
+                            </div>
+                            <p style="margin:12px 0 0 0;color:#999;font-size:12px;">
+                                ⚠️ 注意：直接双击打开 index.html 会因 CORS 失败，必须通过 http://localhost:8000 访问。
+                            </p>
+                        </div>
+                        ` : ''}
+
                         <div style="margin-top:20px;">
-                            <a href="./" 
+                            <a href="https://jixiang0506.github.io/fund-tracker/"
                                style="display:inline-block;padding:10px 20px;background:#667eea;color:white;text-decoration:none;border-radius:5px;"
                                target="_blank">
-                                🌐 访问线上版本
+                                🌐 访问线上版本（无需本地服务器）
                             </a>
                         </div>
                     </div>

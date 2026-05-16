@@ -9,7 +9,7 @@
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 PURCHASE_FILE = os.path.join(DATA_DIR, 'purchase_records.json')
@@ -41,7 +41,7 @@ def generate_holdings_snapshot():
 
     snapshot = {
         "format_version": "1.0",
-        "generated_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+        "generated_at": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00"),
         "funds": {},
         "summary": {
             "total_holdings_value": 0.0,
@@ -124,7 +124,7 @@ def generate_holdings_snapshot():
                 },
                 "transactions_count": transactions_count,
                 "first_purchase_date": first_date or '',
-                "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S+08:00")
+                "last_update": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
             }
 
             total_holdings_value += current_value

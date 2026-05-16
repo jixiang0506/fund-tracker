@@ -545,28 +545,6 @@
             margin-bottom: 10px;
         }
 
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-
         /* 设置下拉菜单 */
         .settings-dropdown {
             position: relative;
@@ -1964,33 +1942,46 @@
         let searchRequestId = 0;       // 竞态保护：每次搜索递增，忽略过期回调
         let pendingNewFund = null;      // 用户选了新基金但还没选平台时暂存
 
-        function jsonpRequest(url, callback) {
+        // JSONP 请求（带请求ID竞态保护）
+        function jsonpRequest(url, callback, requestId) {
             const script = document.createElement('script');
             const cbName = 'fundSearchCb' + (++jsonpCallbackId);
+            const startTime = Date.now();
+            
             window[cbName] = function(data) {
+                // 竞态保护：如果提供了requestId，检查是否过期
+                if (requestId !== undefined && requestId !== searchRequestId) {
+                    console.log('[JSONP] 忽略过期响应，requestId:', requestId, '当前:', searchRequestId);
+                    delete window[cbName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    return;
+                }
                 callback(data);
                 delete window[cbName];
-                document.head.removeChild(script);
+                if (script.parentNode) script.parentNode.removeChild(script);
             };
+            
             script.src = url + '&cb=' + cbName;
             script.onerror = function() {
                 console.warn('基金搜索请求失败，请检查网络或API参数');
                 delete window[cbName];
-                document.head.removeChild(script);
+                if (script.parentNode) script.parentNode.removeChild(script);
                 callback(null);
             };
             document.head.appendChild(script);
+            
             // 5秒超时：清理回调和script标签
             setTimeout(() => {
                 if (window[cbName]) {
+                    console.log('[JSONP] 请求超时:', cbName, '耗时:', Date.now() - startTime, 'ms');
                     delete window[cbName];
                     if (script.parentNode) script.parentNode.removeChild(script);
                 }
             }, 5000);
         }
 
-        // 从天天基金网搜索基金（JSONP）
-        function searchFundOnline(kw, onResult) {
+        // 从天天基金网搜索基金（JSONP，带请求ID竞态保护）
+        function searchFundOnline(kw, onResult, requestId) {
             const apiUrl = 'https://searchapi.eastmoney.com/api/suggest/get?input=' + encodeURIComponent(kw) + '&type=14&count=20';
             jsonpRequest(apiUrl, function(data) {
                 if (!data || !data.QuotationCodeTable || !data.QuotationCodeTable.Data) {
@@ -2004,7 +1995,7 @@
                     name: item.Name,
                     pinyin: item.PinYin || ''
                 })));
-            });
+            }, requestId);
         }
 
         // 搜索基金（本地 + 联网）
@@ -2043,12 +2034,15 @@
                 searchDebounceTimer = setTimeout(() => {
                     searchFundOnline(kw, function(onlineFunds) {
                         // 竞态保护：忽略过期请求的回调
-                        if (currentRequestId !== searchRequestId) return;
+                        if (currentRequestId !== searchRequestId) {
+                            console.log('[Search] 忽略过期响应，requestId:', currentRequestId, '当前:', searchRequestId);
+                            return;
+                        }
                         // 联网结果中排除已在本地数据中的基金
                         const localCodes = new Set(index.map(i => i.code));
                         const newFunds = onlineFunds.filter(f => !localCodes.has(f.code));
                         renderSearchResults(localMatches, newFunds, kw, false);
-                    });
+                    }, currentRequestId);
                 }, 300);
             }
         }

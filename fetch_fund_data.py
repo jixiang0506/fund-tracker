@@ -533,7 +533,7 @@ def main():
                 # API失败：尝试使用上次数据
                 if code in prev_fund_map:
                     old_fund = prev_fund_map[code]
-                    log(f"  ⚠ 使用上次缓存数据: {old_fund.get('name', code)} (净值 {old_fund.get('current_nav', '?')} @{old_fund.get('nav_date', '?')})")
+                    log(f"  ⚠ 使用上次缓存数据: {old_fund.get('name', code)}（净值 {old_fund.get('current_nav', '?')} @{old_fund.get('nav_date', '?')}）")
                     all_data["funds"][platform].append(old_fund)
                     all_data["summary"]["total_invested"] += old_fund["holdings"]["total_invested"]
                     all_data["summary"]["total_value"] += old_fund["holdings"]["current_value"]

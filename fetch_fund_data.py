@@ -250,7 +250,8 @@ def get_nav_from_history(history, target_date):
 def create_template_files():
     """创建模板文件"""
     # 创建 data 目录
-    os.makedirs("data", exist_ok=True)
+    data_dir = os.path.join(BASE_DIR, "data")
+    os.makedirs(data_dir, exist_ok=True)
 
     # 创建模板持仓记录文件
     template_records = {
@@ -276,7 +277,7 @@ def create_template_files():
         }
     }
 
-    template_path = "data/purchase_records.json"
+    template_path = os.path.join(data_dir, "purchase_records.json")
     if not os.path.exists(template_path):
         with open(template_path, "w", encoding="utf-8") as f:
             json.dump(template_records, f, ensure_ascii=False, indent=2)
@@ -290,7 +291,7 @@ def create_template_files():
 def load_purchase_records():
     """加载持仓记录"""
     try:
-        records_file = "data/purchase_records.json"
+        records_file = os.path.join(BASE_DIR, "data", "purchase_records.json")
 
         # 如果文件不存在，创建模板
         if not os.path.exists(records_file):
@@ -512,7 +513,7 @@ def main():
 
     # 加载上次数据（用于API失败时保留旧数据）
     previous_data = None
-    previous_file = "data/funds_data.json"
+    previous_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     if os.path.exists(previous_file):
         try:
             with open(previous_file, "r", encoding="utf-8") as f:
@@ -624,7 +625,7 @@ def main():
     print("="*60)
 
     # 保存数据
-    output_file = "data/funds_data.json"
+    output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
 

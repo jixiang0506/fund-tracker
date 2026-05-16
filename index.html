@@ -1142,21 +1142,21 @@
             let purchaseRecords = {};
             // 统一管理编辑状态（替代分散的全局变量）
             const appState = {
-                appState.editingPlatform: null,
-                appState.editingFundCode: null,
-                appState.editingIndex: null,
+                editingPlatform: null,
+                editingFundCode: null,
+                editingIndex: null,
                 setEditing(platform, fundCode, index) {
-                    this.appState.editingPlatform = platform;
-                    this.appState.editingFundCode = fundCode;
-                    this.appState.editingIndex = index;
+                    this.editingPlatform = platform;
+                    this.editingFundCode = fundCode;
+                    this.editingIndex = index;
                 },
                 clearEditing() {
-                    this.appState.editingPlatform = null;
-                    this.appState.editingFundCode = null;
-                    this.appState.editingIndex = null;
+                    this.editingPlatform = null;
+                    this.editingFundCode = null;
+                    this.editingIndex = null;
                 },
                 get isEditing() {
-                    return this.appState.editingPlatform !== null && this.appState.editingFundCode !== null && this.appState.editingIndex !== null;
+                    return this.editingPlatform !== null && this.editingFundCode !== null && this.editingIndex !== null;
                 }
             };
             let currentToken = localStorage.getItem('github_token') || '';

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>我的基金收益追踪</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -1641,7 +1641,7 @@
             // 以第一笔买入净值为基准，计算累计收益率
             const buyRecords = purchases.filter(p => p.type !== 'sell');
             const firstPurchase = buyRecords.sort((a, b) => a.date.localeCompare(b.date))[0];
-            const baseNav = firstPurchase ? firstPurchase.nav : fundHistory[0].nav;
+            const baseNav = firstPurchase?.nav ?? fundHistory[0]?.nav ?? 1;
 
             const labels = fundHistory.map(h => h.date);
             const dataPoints = fundHistory.map(h => ((h.nav / baseNav - 1) * 100));
@@ -1660,6 +1660,10 @@
                 // 交易日期不在history中（如周末/节假日），映射到最近的后一个交易日
                 if (idx === -1) {
                     idx = fundHistory.findIndex(h => h.date > p.date);
+                }
+                // 如果仍然找不到（交易日期在所有历史日期之后），映射到最后一个交易日
+                if (idx === -1) {
+                    idx = fundHistory.length - 1;
                 }
                 if (idx !== -1) {
                     pointColors[idx] = p.type === 'sell' ? '#67c23a' : '#f56c6c';

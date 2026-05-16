@@ -1478,7 +1478,7 @@
                                 <td>${p.date}</td>
                                 <td class="${typeClass}" style="font-weight: bold;">${typeLabel}</td>
                                 <td class="${typeClass}">¥${amountPrefix}${Math.abs(p.amount).toFixed(2)}</td>
-                                <td>${p.nav.toFixed(4)}</td>
+                                <td>${p.nav.toFixed(4)}${p.nav_source === 'next_trading_day' ? ' <span style="font-size:10px;color:#ff9800;" title="非交易日，按下一交易日净值确认">(延)</span>' : ''}</td>
                                 <td class="${typeClass}">${isSell ? '-' : '+'}${Math.abs(p.shares).toFixed(2)}</td>
                                 <td class="${isSell && p.realized_profit !== undefined ? (p.realized_profit >= 0 ? 'positive' : 'negative') : ''}">
                                     ${isSell && p.realized_profit !== undefined ? ((p.realized_profit >= 0 ? '+' : '') + '¥' + p.realized_profit.toFixed(2)) : '-'}

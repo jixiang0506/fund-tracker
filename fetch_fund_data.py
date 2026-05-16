@@ -226,24 +226,30 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
 
 def get_nav_from_history(history, target_date):
     """从历史数据中查找指定日期的净值。
-    
+
     基金交易规则：
     - 工作日15点前提交 → 按当天净值确认
     - 工作日15点后或周末提交 → 按下一个工作日净值确认
-    
+
     由于 purchase_records.json 只记录日期不含时间，无法区分15点前后。
     当日期不在history中（周末/节假日）时，映射到最近的后一个交易日。
+
+    返回值：
+        dict: {"nav": float, "nav_source": str} 或 None
+        nav_source 取值：
+        - "exact": 精确匹配到目标日期
+        - "next_trading_day": 目标日期非交易日，映射到下一交易日
     """
     # 先尝试精确匹配
     for record in reversed(history):
         if record["date"] == target_date:
-            return record["nav"]
+            return {"nav": record["nav"], "nav_source": "exact"}
 
     # 如果找不到（周末/节假日），找最近的后一个交易日
     for record in history:
         if record["date"] > target_date:
             log(f"  注意：{target_date} 非交易日，使用下一交易日 {record['date']} 的净值: {record['nav']}")
-            return record["nav"]
+            return {"nav": record["nav"], "nav_source": "next_trading_day"}
 
     return None
 
@@ -345,11 +351,14 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
         trans_type = purchase.get("type", "buy")
 
         # 从历史数据中查找交易日的净值
-        nav_on_date = get_nav_from_history(history, date)
+        nav_result = get_nav_from_history(history, date)
 
-        if not nav_on_date or nav_on_date <= 0:
+        if not nav_result or nav_result["nav"] <= 0:
             log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔记录")
             continue
+
+        nav_on_date = nav_result["nav"]
+        nav_source = nav_result.get("nav_source", "exact")
 
         if trans_type == "sell":
             # 卖出记录：按FIFO法从最早买入抵扣
@@ -358,7 +367,7 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
             sell_realized_profit = 0  # 本笔卖出实现的盈亏
             total_fifo_cost = 0  # 本笔卖出的FIFO总成本
 
-            log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {sell_shares:.2f}")
+            log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f} (来源: {nav_source}), 份额 {sell_shares:.2f}")
 
             # FIFO抵扣
             for buy in buy_queue:
@@ -391,7 +400,8 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
                 "shares": -round(sell_shares, 2),
                 "type": "sell",
                 "realized_profit": round(sell_realized_profit, 2),  # 本笔卖出的盈亏
-                "fifo_cost": round(total_fifo_cost, 2)   # 本笔卖出的FIFO总成本
+                "fifo_cost": round(total_fifo_cost, 2),  # 本笔卖出的FIFO总成本
+                "nav_source": nav_source  # 净值来源：exact / next_trading_day
             })
 
         else:
@@ -410,7 +420,8 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
                 "amount": amount,
                 "nav": round(nav_on_date, 4),
                 "shares": round(shares, 2),
-                "type": "buy"
+                "type": "buy",
+                "nav_source": nav_source  # 净值来源：exact / next_trading_day
             })
 
             log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")

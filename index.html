@@ -382,6 +382,55 @@
             margin: 20px 0;
         }
 
+        /* 动画关键帧 */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .modal.show {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal.hide .modal-content {
+            animation: slideOut 0.3s ease;
+        }
+
+        .modal.hide {
+            animation: fadeOut 0.3s ease;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -841,7 +890,7 @@
                 font-size: 10px;
             }
 
-        .metric-values td {
+            .metric-values td {
                 font-size: 12px;
             }
 
@@ -1222,13 +1271,13 @@
                 document.getElementById('mainContent').innerHTML = `
                     <div class="error" style="text-align:center;padding:40px;">
                         <h3>⚠️ 数据加载失败</h3>
-                        <p style="margin:15px 0;">${error.message}</p>
+                        <p style="margin:15px 0;">${escapeHtml(error.message)}</p>
                         <p style="color:#666;font-size:14px;">
                             如果你是通过 <code>file://</code> 协议直接打开此文件，<br>
                             请使用本地 HTTP 服务器运行，或访问线上版本。
                         </p>
                         <div style="margin-top:20px;">
-                            <a href="https://jixiang0506.github.io/fund-tracker/" 
+                            <a href="./" 
                                style="display:inline-block;padding:10px 20px;background:#667eea;color:white;text-decoration:none;border-radius:5px;"
                                target="_blank">
                                 🌐 访问线上版本
@@ -1270,6 +1319,7 @@
                 document.getElementById('skeletonScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 document.getElementById('mainContent').innerHTML = html;
+                // renderCharts() 在此调用，函数声明会被JS提升，实际无影响
                 renderCharts();
             } catch (error) {
                 console.error('渲染数据失败:', error);
@@ -1278,7 +1328,7 @@
                 document.getElementById('mainContent').innerHTML = `
                     <div class="error" style="text-align:center;padding:40px;">
                         <h3>⚠️ 渲染失败</h3>
-                        <p style="margin:15px 0;">${error.message}</p>
+                        <p style="margin:15px 0;">${escapeHtml(error.message)}</p>
                         <p style="color:#666;font-size:14px;">请检查控制台(F12)获取详细错误信息。</p>
                     </div>
                 `;
@@ -1362,28 +1412,26 @@
                 }
 
                 html += `
-                    <div class="fund-card" data-platform="${platformName}" data-code="${fnd.code}">
+                    <div class="fund-card" data-platform="${escapeHtml(platformName)}" data-code="${escapeHtml(fnd.code)}">
                         <div class="fund-header">
-                            <span class="fund-name" onclick="toggleDetails('${fnd.code}-${platformName}')">${fnd.name} 📊</span>
-                            <span class="fund-code">${fnd.code}</span>
-                            <span class="fund-platform">${platformName}</span>
+                            <span class="fund-name" onclick="toggleDetails('${escapeHtml(fnd.code)}-${escapeHtml(platformName)}')">${escapeHtml(fnd.name)} 📊</span>
+                            <span class="fund-code">${escapeHtml(fnd.code)}</span>
+                            <span class="fund-platform">${escapeHtml(platformName)}</span>
                         </div>
                         <table class="fund-metrics">
                             <tr class="metric-labels">
-                                <td>最新净值</td>
-                                <td>当前市值</td>
-                                <td>日收益率</td>
-                                <td>日盈亏</td>
+                                <td>实时净值</td>
+                                <td>估算涨幅</td>
+                                <td>昨日收益</td>
+                                <td>持仓收益</td>
                                 <td>累计收益率</td>
-                                <td>累计盈亏</td>
                             </tr>
                             <tr class="metric-values">
                                 <td>${fnd.current_nav.toFixed(4)} <span style="font-size:10px;color:#999">${fnd.nav_date ? fnd.nav_date.split(' ')[0] : ''}</span></td>
-                                <td>${fnd.holdings ? '¥' + fnd.holdings.current_value.toFixed(2) : '-'}</td>
                                 <td class="${dailyClass}">${fnd.daily_return >= 0 ? '+' : ''}${fnd.daily_return.toFixed(2)}%</td>
                                 <td class="${dailyClass}">${fnd.holdings ? ((dailyProfit >= 0 ? '+' : '') + '¥' + dailyProfit.toFixed(2)) : '-'}</td>
-                                <td class="${profitClass}">${fnd.holdings ? ((fnd.holdings.profit_loss_percent >= 0 ? '+' : '') + fnd.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>
                                 <td class="${profitClass}">${fnd.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>
+                                <td class="${profitClass}">${fnd.holdings ? ((fnd.holdings.profit_loss_percent >= 0 ? '+' : '') + fnd.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>
                             </tr>
                         </table>
                         ${fnd.holdings && fnd.holdings.realized_profit_loss !== 0 ? `
@@ -1571,13 +1619,22 @@
                         }
                     },
                     scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                maxTicksLimit: 8,
+                                font: { size: 11 }
+                            }
+                        },
                         y: {
                             beginAtZero: false,
                             ticks: {
                                 callback: function(value) {
                                     return value.toFixed(1) + '%';
-                                }
-                            }
+                                },
+                                font: { size: 11 }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
                         }
                     }
                 }
@@ -2144,7 +2201,7 @@
                 btns[btnMap[percent]].classList.add('active');
             }
 
-            if (currentSellMode === 'amount') {
+            if (sellState.mode === 'amount') {
                 const amount = holdingsValue * percent;
                 document.getElementById('recordAmount').value = amount.toFixed(2);
                 document.getElementById('sellQuickHint').textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ¥${amount.toFixed(2)}`;
@@ -2152,16 +2209,22 @@
             } else {
                 const shares = holdingsShares * percent;
                 document.getElementById('recordShares').value = shares.toFixed(2);
-                const hintAmount = shares * currentSellNav;
+                const hintAmount = shares * sellState.nav;
                 document.getElementById('sharesHint').textContent = `≈ ¥${hintAmount.toFixed(2)}`;
                 document.getElementById('sellQuickHint').textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ${shares.toFixed(2)} 份`;
                 document.getElementById('sellQuickHint').style.display = 'block';
             }
         }
 
-        // 卖出模式：'amount' 按金额 | 'shares' 按份额
-        let currentSellMode = 'amount';
-        let currentSellNav = 0;  // 当前基金净值（用于计算）
+        // 卖出模式状态管理（封装为对象，避免全局变量污染）
+        const sellState = {
+            mode: 'amount',   // 'amount' 按金额 | 'shares' 按份额
+            nav: 0,           // 当前基金净值（用于计算）
+            reset() {
+                this.mode = 'amount';
+                this.nav = 0;
+            }
+        };
 
         // 交易类型变更时更新界面
         function onRecordTypeChange() {
@@ -2178,7 +2241,7 @@
                 setSellMode('amount'); // 默认按金额
             } else {
                 // 买入模式：只显示金额输入，重置卖出模式状态
-                currentSellMode = 'amount';
+                sellState.reset();
                 document.getElementById('amountGroup').style.display = 'block';
                 document.getElementById('sharesGroup').style.display = 'none';
                 document.getElementById('amountLabel').textContent = '交易金额 (元)';
@@ -2195,7 +2258,7 @@
                 document.getElementById('holdingsValue').textContent = '-';
                 document.getElementById('holdingsShares').textContent = '-';
                 document.getElementById('holdingsNav').textContent = '-';
-                currentSellNav = 0;
+                sellState.nav = 0;
                 document.getElementById('sellQuickHint').style.display = 'none';
                 document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
                 return;
@@ -2210,12 +2273,12 @@
                 document.getElementById('holdingsValue').textContent = '¥' + value.toFixed(2);
                 document.getElementById('holdingsShares').textContent = shares.toFixed(2) + ' 份';
                 document.getElementById('holdingsNav').textContent = '¥' + nav.toFixed(4);
-                currentSellNav = nav;
+                sellState.nav = nav;
             } else {
                 document.getElementById('holdingsValue').textContent = '-';
                 document.getElementById('holdingsShares').textContent = '-';
                 document.getElementById('holdingsNav').textContent = '-';
-                currentSellNav = 0;
+                sellState.nav = 0;
             }
             // 切换基金时清空快捷按钮状态
             document.getElementById('sellQuickHint').style.display = 'none';
@@ -2224,7 +2287,7 @@
 
         // 切换卖出模式
         function setSellMode(mode) {
-            currentSellMode = mode;
+            sellState.mode = mode;
             document.getElementById('btnSellByAmount').classList.toggle('active', mode === 'amount');
             document.getElementById('btnSellByShares').classList.toggle('active', mode === 'shares');
             document.getElementById('sellQuickHint').style.display = 'none';
@@ -2249,9 +2312,9 @@
         function onAmountInput() {
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('sellQuickHint').style.display = 'none';
-            if (currentSellMode !== 'amount' || currentSellNav <= 0) return;
+            if (sellState.mode !== 'amount' || sellState.nav <= 0) return;
             const amount = parseFloat(document.getElementById('recordAmount').value) || 0;
-            const shares = amount / currentSellNav;
+            const shares = amount / sellState.nav;
             // 不自动填充份额输入框，只在需要时计算
         }
 
@@ -2259,9 +2322,9 @@
         function onSharesInput() {
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('sellQuickHint').style.display = 'none';
-            if (currentSellMode !== 'shares' || currentSellNav <= 0) return;
+            if (sellState.mode !== 'shares' || sellState.nav <= 0) return;
             const shares = parseFloat(document.getElementById('recordShares').value) || 0;
-            const amount = shares * currentSellNav;
+            const amount = shares * sellState.nav;
             document.getElementById('sharesHint').textContent = '≈ ¥' + amount.toFixed(2);
         }
 
@@ -2289,6 +2352,10 @@
             try {
                 localStorage.setItem('purchase_records', JSON.stringify(purchaseRecords));
                 showMessage('交易记录已保存到本地', 'success');
+                // ⚠️ 提醒用户同步到 GitHub（本地修改不会被 GitHub Actions 自动获取）
+                setTimeout(() => {
+                    showMessage('别忘了点击「保存到 GitHub」同步到云端', 'warning');
+                }, 1500);
             } catch (error) {
                 console.error('保存本地记录失败:', error);
                 showMessage('保存本地记录失败', 'error');
@@ -2363,15 +2430,16 @@ function addPurchaseRecord() {
     let amount;
     let shares = null;
 
-    if (type === 'sell' && currentSellMode === 'shares') {
+    const sellMode = sellState.mode || 'amount';
+    if (type === 'sell' && sellMode === 'shares') {
         const sharesVal = document.getElementById('recordShares').value;
         if (!sharesVal) {
             showMessage('请输入卖出份额', 'error');
             return;
         }
         shares = parseFloat(sharesVal);
-        if (currentSellNav > 0) {
-            amount = shares * currentSellNav;
+        if (sellState.nav > 0) {
+            amount = shares * sellState.nav;
         } else {
             const fund = fundsData?.funds?.[platform]?.find(f => f.code === fundCode);
             const nav = fund?.current_nav || 0;
@@ -2442,7 +2510,7 @@ function editPurchaseRecord(platform, fundCode, index) {
         document.getElementById('recordType').value = record.type || 'buy';
         onRecordTypeChange();
         
-        if (record.type === 'sell' && record.shares) {
+        if (record.type === 'sell' && record.shares !== undefined) {
             setSellMode('shares');
             document.getElementById('recordShares').value = record.shares;
             onSharesInput();
@@ -2476,7 +2544,8 @@ function updatePurchaseRecord() {
     };
     if (type === 'sell') {
         record.type = 'sell';
-        if (currentSellMode === 'shares') {
+        const sellMode = sellState.mode || 'amount';
+        if (sellMode === 'shares') {
             const sharesVal = document.getElementById('recordShares').value;
             if (sharesVal) {
                 record.shares = parseFloat(sharesVal);
@@ -2534,6 +2603,7 @@ function updatePurchaseRecord() {
             editingPlatform = null;
             editingFundCode = null;
             editingIndex = null;
+            sellState.reset();  // 重置卖出状态
 
             // 恢复按钮文本和显示
             document.getElementById('addOrUpdateBtn').textContent = '✅ 添加记录';
@@ -2753,8 +2823,11 @@ function deletePurchaseRecord(platform, fundCode, index) {
                     // 文件不存在，忽略
                 }
 
-                // 保存文件
-                const content = btoa(unescape(encodeURIComponent(JSON.stringify(purchaseRecords, null, 2))));
+                // 保存文件（使用 TextEncoder 正确处理 UTF-8 中文）
+                const jsonStr = JSON.stringify(purchaseRecords, null, 2);
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(jsonStr);
+                const content = btoa(String.fromCharCode(...bytes));
                 const body = {
                     message: '📝 更新交易记录',
                     content: content,

@@ -1137,15 +1137,31 @@
         </div>
     </div>
 
-    <script>
-        let fundsData = null;
-        let purchaseRecords = {};
-        let editingPlatform = null;
-        let editingFundCode = null;
-        let editingIndex = null;
-        let currentToken = localStorage.getItem('github_token') || '';
-        let currentOwner = localStorage.getItem('repo_owner') || '';
-        let currentRepo = localStorage.getItem('repo_name') || '';
+        <script>
+            let fundsData = null;
+            let purchaseRecords = {};
+            // 统一管理编辑状态（替代分散的全局变量）
+            const appState = {
+                appState.editingPlatform: null,
+                appState.editingFundCode: null,
+                appState.editingIndex: null,
+                setEditing(platform, fundCode, index) {
+                    this.appState.editingPlatform = platform;
+                    this.appState.editingFundCode = fundCode;
+                    this.appState.editingIndex = index;
+                },
+                clearEditing() {
+                    this.appState.editingPlatform = null;
+                    this.appState.editingFundCode = null;
+                    this.appState.editingIndex = null;
+                },
+                get isEditing() {
+                    return this.appState.editingPlatform !== null && this.appState.editingFundCode !== null && this.appState.editingIndex !== null;
+                }
+            };
+            let currentToken = localStorage.getItem('github_token') || '';
+            let currentOwner = localStorage.getItem('repo_owner') || '';
+            let currentRepo = localStorage.getItem('repo_name') || '';
 
         // 页面加载时恢复设置
         window.onload = function() {
@@ -2402,7 +2418,7 @@
 
         // 添加或更新买入记录
         function addOrUpdatePurchaseRecord() {
-            if (editingPlatform && editingFundCode !== null && editingIndex !== null) {
+            if (appState.editingPlatform && appState.editingFundCode !== null && appState.editingIndex !== null) {
                 updatePurchaseRecord();
             } else {
                 addPurchaseRecord();
@@ -2489,9 +2505,9 @@ function editPurchaseRecord(platform, fundCode, index) {
         return;
     }
 
-    editingPlatform = platform;
-    editingFundCode = fundCode;
-    editingIndex = index;
+    appState.editingPlatform = platform;
+    appState.editingFundCode = fundCode;
+    appState.editingIndex = index;
 
     const record = purchaseRecords[platform][fundCode][index];
 
@@ -2548,23 +2564,23 @@ function updatePurchaseRecord() {
     }
 
     // ✅ 防御性检查：编辑源对象是否存在
-    if (!purchaseRecords[editingPlatform]?.[editingFundCode]) {
+    if (!purchaseRecords[appState.editingPlatform]?.[appState.editingFundCode]) {
         showMessage('原记录不存在，请重新加载数据', 'error');
         cancelEdit();
         return;
     }
 
     // 如果平台或基金代码改变了，需要删除旧记录并添加到新位置
-    if (platform !== editingPlatform || fundCode !== editingFundCode) {
+    if (platform !== appState.editingPlatform || fundCode !== appState.editingFundCode) {
         // 删除旧记录（已检查存在性）
-        purchaseRecords[editingPlatform][editingFundCode].splice(editingIndex, 1);
+        purchaseRecords[appState.editingPlatform][appState.editingFundCode].splice(appState.editingIndex, 1);
         
         // 清理空对象
-        if (purchaseRecords[editingPlatform][editingFundCode]?.length === 0) {
-            delete purchaseRecords[editingPlatform][editingFundCode];
+        if (purchaseRecords[appState.editingPlatform][appState.editingFundCode]?.length === 0) {
+            delete purchaseRecords[appState.editingPlatform][appState.editingFundCode];
         }
-        if (Object.keys(purchaseRecords[editingPlatform] || {}).length === 0) {
-            delete purchaseRecords[editingPlatform];
+        if (Object.keys(purchaseRecords[appState.editingPlatform] || {}).length === 0) {
+            delete purchaseRecords[appState.editingPlatform];
         }
 
         // 初始化新位置（安全创建嵌套对象）
@@ -2577,8 +2593,8 @@ function updatePurchaseRecord() {
         purchaseRecords[platform][fundCode].push(record);
     } else {
         // 只更新记录（确保索引有效）
-        if (editingIndex >= 0 && editingIndex < purchaseRecords[platform][fundCode].length) {
-            purchaseRecords[platform][fundCode][editingIndex] = record;
+        if (appState.editingIndex >= 0 && appState.editingIndex < purchaseRecords[platform][fundCode].length) {
+            purchaseRecords[platform][fundCode][appState.editingIndex] = record;
         } else {
             showMessage('记录索引无效，请刷新后重试', 'error');
             cancelEdit();
@@ -2594,9 +2610,9 @@ function updatePurchaseRecord() {
 
         // 取消编辑
         function cancelEdit() {
-            editingPlatform = null;
-            editingFundCode = null;
-            editingIndex = null;
+            appState.editingPlatform = null;
+            appState.editingFundCode = null;
+            appState.editingIndex = null;
             sellState.reset();  // 重置卖出状态
 
             // 恢复按钮文本和显示

@@ -39,9 +39,21 @@ def generate_holdings_snapshot():
         print("[Error] 无法读取必要数据，退出")
         return
 
+    # 继承主数据的时间戳，避免单独运行时产生误导性时间戳
+    data_update_time = funds_data.get('update_time', '')
+    # 格式转换：funds_data.json 是 "%Y-%m-%d %H:%M:%S"，快照需要 ISO 8601 格式
+    if data_update_time:
+        try:
+            dt = datetime.strptime(data_update_time, "%Y-%m-%d %H:%M:%S")
+            snapshot_time = dt.strftime("%Y-%m-%dT%H:%M:%S+08:00")
+        except ValueError:
+            snapshot_time = data_update_time  # 如果格式不对，原样使用
+    else:
+        snapshot_time = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
+
     snapshot = {
         "format_version": "1.0",
-        "generated_at": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+        "generated_at": snapshot_time,
         "funds": {},
         "summary": {
             "total_holdings_value": 0.0,
@@ -124,7 +136,7 @@ def generate_holdings_snapshot():
                 },
                 "transactions_count": transactions_count,
                 "first_purchase_date": first_date or '',
-                "last_update": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
+                "last_update": snapshot_time  # 继承主数据时间戳，与 generated_at 保持一致
             }
 
             total_holdings_value += current_value

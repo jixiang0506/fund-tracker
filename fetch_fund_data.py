@@ -224,31 +224,34 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
         log(f"❌ 获取基金 {fund_code} 历史数据失败: {e}")
         return []
 
-def get_nav_from_history(history, target_date):
+def get_nav_from_history(history, target_date, before_15=True):
     """从历史数据中查找指定日期的净值。
 
     基金交易规则：
-    - 工作日15点前提交 → 按当天净值确认
-    - 工作日15点后或周末提交 → 按下一个工作日净值确认
+    - 工作日15点前提交 → 按当天净值确认 (before_15=True)
+    - 工作日15点后或周末提交 → 按下一个工作日净值确认 (before_15=False)
 
-    由于 purchase_records.json 只记录日期不含时间，无法区分15点前后。
-    当日期不在history中（周末/节假日）时，映射到最近的后一个交易日。
+    参数：
+        history: 历史净值列表（按日期升序）
+        target_date: 交易日期（"YYYY-MM-DD"）
+        before_15: 是否为15点前提交（默认True，即按当天净值）
 
     返回值：
         dict: {"nav": float, "nav_source": str} 或 None
         nav_source 取值：
-        - "exact": 精确匹配到目标日期
-        - "next_trading_day": 目标日期非交易日，映射到下一交易日
+        - "exact": 精确匹配到目标日期（before_15=True 且精确匹配）
+        - "next_trading_day": 使用下一交易日净值（before_15=False 或周末/节假日）
     """
-    # 先尝试精确匹配
-    for record in reversed(history):
-        if record["date"] == target_date:
-            return {"nav": record["nav"], "nav_source": "exact"}
+    if before_15:
+        # 15点前：先尝试精确匹配
+        for record in reversed(history):
+            if record["date"] == target_date:
+                return {"nav": record["nav"], "nav_source": "exact"}
 
-    # 如果找不到（周末/节假日），找最近的后一个交易日
+    # 15点后或精确匹配失败：找最近的后一个交易日
     for record in history:
         if record["date"] > target_date:
-            log(f"  注意：{target_date} 非交易日，使用下一交易日 {record['date']} 的净值: {record['nav']}")
+            log(f"  注意：{target_date} 非交易日或15点后提交，使用下一交易日 {record['date']} 的净值: {record['nav']}")
             return {"nav": record["nav"], "nav_source": "next_trading_day"}
 
     return None
@@ -351,7 +354,9 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
         trans_type = purchase.get("type", "buy")
 
         # 从历史数据中查找交易日的净值
-        nav_result = get_nav_from_history(history, date)
+        # before_15: 是否为15点前提交（默认True，即按当天净值确认）
+        before_15 = purchase.get("before_15", True)
+        nav_result = get_nav_from_history(history, date, before_15)
 
         if not nav_result or nav_result["nav"] <= 0:
             log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔记录")

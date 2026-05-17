@@ -162,14 +162,15 @@ def _get_fund_name(fund_code):
     }
     return FUND_NAMES.get(fund_code, fund_code)
 
-def _get_earliest_purchase_date(purchase_records):
+def _get_earliest_purchase_date(nested_records):
     """从持仓记录中找出最早的交易日期，往前推7天作为历史数据起始日期"""
     earliest = None
-    for fund_code, purchases in purchase_records.items():
-        for p in purchases:
-            d = p.get("date", "")
-            if d and (earliest is None or d < earliest):
-                earliest = d
+    for platform, funds in nested_records.items():
+        for fund_code, purchases in funds.items():
+            for p in purchases:
+                d = p.get("date", "")
+                if d and (earliest is None or d < earliest):
+                    earliest = d
     if earliest:
         # 往前推7天，确保能找到交易日前后的净值
         dt = datetime.strptime(earliest, "%Y-%m-%d") - timedelta(days=7)
@@ -298,7 +299,7 @@ def create_template_files():
     return True
 
 def load_purchase_records():
-    """加载持仓记录"""
+    """加载持仓记录（保留平台分层结构，不做扁平化）"""
     try:
         records_file = os.path.join(BASE_DIR, "data", "purchase_records.json")
 
@@ -311,23 +312,22 @@ def load_purchase_records():
         with open(records_file, "r", encoding="utf-8") as f:
             raw_records = json.load(f)
 
-        # 将分层结构转换为扁平结构: {fund_code: [purchases]}
-        flattened = {}
-        for platform, funds in raw_records.items():
-            for fund_code, purchases in funds.items():
-                if fund_code not in flattened:
-                    flattened[fund_code] = []
-                flattened[fund_code].extend(purchases)
-
-        log(f"✓ 成功加载持仓记录: {len(flattened)} 只基金")
-        return flattened
+        # 统计总基金数
+        fund_count = sum(len(funds) for funds in raw_records.values())
+        log(f"✓ 成功加载持仓记录: {fund_count} 只基金（保留平台信息）")
+        return raw_records
     except Exception as e:
         log(f"❌ 加载持仓记录失败: {e}")
         return None
 
-def calculate_holdings(fund_code, purchase_records, current_nav, history):
-    """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）"""
-    if not purchase_records or fund_code not in purchase_records:
+def calculate_holdings(purchases, current_nav, history):
+    """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）
+    参数：
+        purchases: 该基金的全部交易记录列表（已按平台区分，不含其他平台同名基金）
+        current_nav: 当前净值
+        history: 历史净值列表
+    """
+    if not purchases or len(purchases) == 0:
         return {
             "total_invested": 0,
             "total_shares": 0,
@@ -335,10 +335,8 @@ def calculate_holdings(fund_code, purchase_records, current_nav, history):
             "profit_loss": 0,
             "profit_loss_percent": 0,
             "purchases": [],
-            "realized_profit_loss": 0  # 已实现盈亏
+            "realized_profit_loss": 0
         }
-
-    purchases = purchase_records[fund_code]
 
     # FIFO队列：{date, amount, shares, nav, remaining_shares}
     buy_queue = []
@@ -582,8 +580,10 @@ def main():
             # 获取历史数据（从最早交易记录前7天开始获取，避免拉取大量无用数据）
             history = fetch_fund_history(code, start_date=history_start_date)
 
+            # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）
+            purchases = purchase_records.get(platform, {}).get(code, [])
             # 计算持仓和收益
-            holdings = calculate_holdings(code, purchase_records, realtime["nav"], history)
+            holdings = calculate_holdings(purchases, realtime["nav"], history)
 
             # 预计算累计收益率（避免前端重复计算）
             cumulative_returns = calculate_cumulative_returns(history, holdings["purchases"])

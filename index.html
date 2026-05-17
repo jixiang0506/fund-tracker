@@ -1646,12 +1646,38 @@
             ];
 
             const datasets = allFunds.map((fund, index) => {
-                // 直接使用预计算的 return_rate，避免前端重复计算
                 const returnRateMap = new Map();
+                let baseRate = null;
+
+                // 周期模式：找到基准收益率（cutoffDate当天或之后最近一天）
+                if (cutoffDate && fund.history && fund.history.length > 0) {
+                    const historyWithRate = fund.history.filter(h => h.return_rate !== undefined);
+                    // 找cutoffDate当天或之后最近一天的数据（周期起点）
+                    let baseEntry = null;
+                    for (let i = 0; i < historyWithRate.length; i++) {
+                        if (historyWithRate[i].date >= cutoffDate) {
+                            baseEntry = historyWithRate[i];
+                            break;
+                        }
+                    }
+                    // 如果cutoffDate比所有数据都晚，用最新的一条
+                    if (!baseEntry && historyWithRate.length > 0) {
+                        baseEntry = historyWithRate[historyWithRate.length - 1];
+                    }
+                    if (baseEntry) {
+                        baseRate = baseEntry.return_rate;
+                    }
+                }
+
+                // 构建收益率map（周期模式下为相对收益率）
                 (fund.history || []).forEach(h => {
-                    // 兼容旧数据（无 return_rate 字段）
                     if (!cutoffDate || h.date >= cutoffDate) {
-                        returnRateMap.set(h.date, h.return_rate !== undefined ? h.return_rate : null);
+                        const rate = h.return_rate !== undefined ? h.return_rate : null;
+                        if (rate !== null && baseRate !== null) {
+                            returnRateMap.set(h.date, rate - baseRate);
+                        } else {
+                            returnRateMap.set(h.date, rate);
+                        }
                     }
                 });
                 return {
@@ -1699,7 +1725,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: '累计收益率走势（%）'
+                            text: chartPeriod === 'all' ? '累计收益率走势（%）' : '周期收益率对比（%）'
                         },
                         tooltip: {
                             callbacks: {

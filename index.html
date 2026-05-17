@@ -793,6 +793,16 @@
             border-color: #667eea;
         }
 
+        /* 周期切换按钮 */
+        .period-btn {
+            transition: all 0.3s;
+        }
+        .period-btn:hover {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+
         /* 筛选隐藏 */
         .fund-card.hidden-by-filter {
             display: none;
@@ -1332,9 +1342,17 @@
                 html += `
                     <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
                         <div class="chart-wrapper">
-                            <h3 style="font-size: 18px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                            <h3 style="font-size: 18px; color: #333; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
                                 📈 累计收益率走势
                             </h3>
+                            <div style="margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="period-btn" data-period="7d" onclick="switchPeriod('7d')" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近一周</button>
+                                <button class="period-btn" data-period="1m" onclick="switchPeriod('1m')" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近一个月</button>
+                                <button class="period-btn" data-period="3m" onclick="switchPeriod('3m')" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近三个月</button>
+                                <button class="period-btn" data-period="6m" onclick="switchPeriod('6m')" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近半年</button>
+                                <button class="period-btn" data-period="1y" onclick="switchPeriod('1y')" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近一年</button>
+                                <button class="period-btn active" data-period="all" onclick="switchPeriod('all')" style="padding: 5px 14px; border: 1px solid #667eea; border-radius: 16px; background: #667eea; color: #fff; font-size: 13px; cursor: pointer;">最长期限</button>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="chart-all"></canvas>
                             </div>
@@ -1549,6 +1567,26 @@
         // 渲染图表（累计收益率走势）
         let chartAllInstance = null;  // 保存图表实例，避免重复创建
         let renderChartsTimer = null;  // 防抖定时器
+        let chartPeriod = 'all'; // 当前图表周期: 7d, 1m, 3m, 6m, 1y, all
+
+        // 切换图表周期
+        function switchPeriod(period) {
+            chartPeriod = period;
+            // 更新按钮样式
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                if (btn.dataset.period === period) {
+                    btn.style.background = '#667eea';
+                    btn.style.color = '#fff';
+                    btn.style.borderColor = '#667eea';
+                } else {
+                    btn.style.background = '#f5f5f5';
+                    btn.style.color = '#666';
+                    btn.style.borderColor = '#ddd';
+                }
+            });
+            renderCharts();
+        }
+
         function renderCharts() {
             // 防抖：100ms 内多次调用只执行最后一次
             if (renderChartsTimer) clearTimeout(renderChartsTimer);
@@ -1561,6 +1599,19 @@
             const ctx = document.getElementById('chart-all');
             if (!ctx) return;
 
+            // 同步周期按钮样式（防止DOM重建后样式丢失）
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                if (btn.dataset.period === chartPeriod) {
+                    btn.style.background = '#667eea';
+                    btn.style.color = '#fff';
+                    btn.style.borderColor = '#667eea';
+                } else {
+                    btn.style.background = '#f5f5f5';
+                    btn.style.color = '#666';
+                    btn.style.borderColor = '#ddd';
+                }
+            });
+
             // 销毁旧图表，防止重复叠加
             if (chartAllInstance) {
                 chartAllInstance.destroy();
@@ -1571,6 +1622,16 @@
             let allFunds = [];
             for (const platform in fundsData.funds) {
                 allFunds = allFunds.concat(fundsData.funds[platform]);
+            }
+
+            // 计算周期起始日期
+            let cutoffDate = null;
+            if (chartPeriod !== 'all') {
+                const now = new Date();
+                const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365 };
+                const days = daysMap[chartPeriod] || 0;
+                const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+                cutoffDate = cutoff.toISOString().split('T')[0];
             }
 
             const colors = [
@@ -1589,7 +1650,9 @@
                 const returnRateMap = new Map();
                 (fund.history || []).forEach(h => {
                     // 兼容旧数据（无 return_rate 字段）
-                    returnRateMap.set(h.date, h.return_rate !== undefined ? h.return_rate : null);
+                    if (!cutoffDate || h.date >= cutoffDate) {
+                        returnRateMap.set(h.date, h.return_rate !== undefined ? h.return_rate : null);
+                    }
                 });
                 return {
                     label: `${fund.name} (${fund.code})`,
@@ -1607,7 +1670,11 @@
             // 收集所有基金的日期，合并去重并排序
             const allDatesSet = new Set();
             allFunds.forEach(fnd => {
-                (fnd.history || []).forEach(h => allDatesSet.add(h.date));
+                (fnd.history || []).forEach(h => {
+                    if (!cutoffDate || h.date >= cutoffDate) {
+                        allDatesSet.add(h.date);
+                    }
+                });
             });
             const labels = [...allDatesSet].sort();
 

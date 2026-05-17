@@ -2733,11 +2733,11 @@ function updatePurchaseRecord() {
     // 如果平台或基金代码改变了，需要删除旧记录并添加到新位置
     if (platform !== appState.editingPlatform || fundCode !== appState.editingFundCode) {
         // 删除旧记录（已检查存在性）
-        purchaseRecords[appState.editingPlatform][appState.editingFundCode].splice(appState.editingIndex, 1);
+        purchaseRecords[appState.editingPlatform]?.[appState.editingFundCode]?.splice(appState.editingIndex, 1);
         
         // 清理空对象
-        if (purchaseRecords[appState.editingPlatform][appState.editingFundCode]?.length === 0) {
-            delete purchaseRecords[appState.editingPlatform][appState.editingFundCode];
+        if (purchaseRecords[appState.editingPlatform]?.[appState.editingFundCode]?.length === 0) {
+            delete purchaseRecords[appState.editingPlatform]?.[appState.editingFundCode];
         }
         if (Object.keys(purchaseRecords[appState.editingPlatform] || {}).length === 0) {
             delete purchaseRecords[appState.editingPlatform];

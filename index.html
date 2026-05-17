@@ -1713,6 +1713,32 @@
                 };
             });
 
+            // 自定义插件：高亮0%基准线
+            const zeroLinePlugin = {
+                id: 'zeroLine',
+                afterDraw(chart) {
+                    const yScale = chart.scales.y;
+                    const chartArea = chart.chartArea;
+                    const ctx = chart.ctx;
+
+                    // 获取y=0的像素位置
+                    const yPos = yScale.getPixelForValue(0);
+
+                    // 只在y=0在可见范围内时绘制
+                    if (yPos >= chartArea.top && yPos <= chartArea.bottom) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(chartArea.left, yPos);
+                        ctx.lineTo(chartArea.right, yPos);
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = 'rgba(255, 100, 100, 0.8)';
+                        ctx.setLineDash([6, 4]);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            };
+
             chartAllInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1756,7 +1782,8 @@
                             grid: { color: 'rgba(0,0,0,0.05)' }
                         }
                     }
-                }
+                },
+                plugins: [zeroLinePlugin]
             });
         }
 

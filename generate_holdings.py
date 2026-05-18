@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 根据 purchase_records.json 和 funds_data.json 生成持仓快照 holdings_snapshot.json
 用法：python generate_holdings.py
@@ -11,6 +12,16 @@ import json
 import os
 from datetime import datetime, timezone, timedelta
 
+# 导入日志模块
+try:
+    from logger_config import setup_logger, log
+    logger = setup_logger('generate_holdings')
+except ImportError:
+    # 如果 logger_config 不存在，使用简单的 log 函数
+    def log(message, level='info'):
+        print(message)
+    logger = None
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 PURCHASE_FILE = os.path.join(DATA_DIR, 'purchase_records.json')
 FUNDS_DATA_FILE = os.path.join(DATA_DIR, 'funds_data.json')
@@ -20,13 +31,13 @@ OUTPUT_FILE = os.path.join(DATA_DIR, 'holdings_snapshot.json')
 def load_json(filepath):
     """安全加载 JSON 文件"""
     if not os.path.exists(filepath):
-        print(" [Warning] 文件不存在: " + filepath)
+        log("[Warning] 文件不存在: " + filepath, "warning")
         return None
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print("[Error] 读取失败 " + filepath + ": " + str(e))
+        log("[Error] 读取失败 " + filepath + ": " + str(e), "error")
         return None
 
 
@@ -36,7 +47,7 @@ def generate_holdings_snapshot():
     funds_data = load_json(FUNDS_DATA_FILE)
 
     if purchase_records is None or funds_data is None:
-        print("[Error] 无法读取必要数据，退出")
+        log("[Error] 无法读取必要数据，退出", "error")
         return
 
     # 继承主数据的时间戳，避免单独运行时产生误导性时间戳
@@ -162,15 +173,19 @@ def generate_holdings_snapshot():
     for p in empty_platforms:
         del snapshot['funds'][p]
 
-    # 保存
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(snapshot, f, ensure_ascii=False, indent=2)
-
-    print("[OK] 持仓快照已生成: " + OUTPUT_FILE)
-    print("      持仓基金数: " + str(funds_count))
-    print("      总市值: " + format(total_holdings_value, ',.2f'))
-    print("      累计盈亏: " + format(total_profit_loss, ',.2f') + " (" + str(round(snapshot['summary']['total_profit_loss_percent'], 2)) + "%)")
-    print("      已实现盈亏: " + format(sum(f.get('holdings', {}).get('realized_profit_loss', 0) for p in snapshot['funds'].values() for f in p.values()), ',.2f'))
+    # 保存（添加异常处理）
+    try:
+        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(snapshot, f, ensure_ascii=False, indent=2)
+        log("[OK] 持仓快照已生成: " + OUTPUT_FILE)
+        log("      持仓基金数: " + str(funds_count))
+        log("      总市值: " + format(total_holdings_value, ',.2f'))
+        log("      累计盈亏: " + format(total_profit_loss, ',.2f') + " (" + str(round(snapshot['summary']['total_profit_loss_percent'], 2)) + "%)")
+        realized_total = sum(f.get('holdings', {}).get('realized_profit_loss', 0) for p in snapshot['funds'].values() for f in p.values())
+        log("      已实现盈亏: " + format(realized_total, ',.2f'))
+    except Exception as e:
+        log("[Error] 保存持仓快照失败: " + str(e), "error")
+        return
 
 
 if __name__ == '__main__':

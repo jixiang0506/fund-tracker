@@ -34,10 +34,10 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
     file_handler.setLevel(logging.DEBUG)
     
     # 创建 formatter
-    console_format = '[%(asctime)s] %(levelname)s - %(message)s'
+    console_format = '%(message)s'  # 控制台输出简洁格式
     file_format = '[%(asctime)s] %(levelname)s [%(filename)s:%(lineno)d] - %(message)s'
     
-    console_formatter = logging.Formatter(console_format, datefmt='%H:%M:%S')
+    console_formatter = logging.Formatter(console_format)
     file_formatter = logging.Formatter(file_format, datefmt='%Y-%m-%d %H:%M:%S')
     
     console_handler.setFormatter(console_formatter)
@@ -57,6 +57,7 @@ logger = setup_logger()
 def log(message, level='info'):
     """
     兼容旧代码的 log 函数
+    输出到控制台（print）和日志文件
     """
     if level == 'debug':
         logger.debug(message)

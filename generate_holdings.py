@@ -11,16 +11,7 @@
 import json
 import os
 from datetime import datetime, timezone, timedelta
-
-# 导入日志模块
-try:
-    from logger_config import setup_logger, log
-    logger = setup_logger('generate_holdings')
-except ImportError:
-    # 如果 logger_config 不存在，使用简单的 log 函数
-    def log(message, level='info'):
-        print(message)
-    logger = None
+from logger_config import log
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 PURCHASE_FILE = os.path.join(DATA_DIR, 'purchase_records.json')
@@ -184,20 +175,20 @@ def generate_holdings_snapshot():
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(snapshot, f, ensure_ascii=False, indent=2)
         
-        # 使用 f-string 拼接输出，提高可读性
-        log(f"[OK] 持仓快照已生成: {OUTPUT_FILE}")
-        log(f"      持仓基金数: {funds_count}")
-        log(f"      总市值: {total_holdings_value:,.2f}")
+        # 使用 log() 替代 print()，保持一致性
+        log(f"[OK] 持仓快照已生成: {OUTPUT_FILE}", "info")
+        log(f"[OK] 持仓基金数: {funds_count}", "info")
+        log(f"[OK] 总市值: {total_holdings_value:,.2f}", "info")
         
         profit_pct = snapshot['summary']['total_profit_loss_percent']
-        log(f"      累计盈亏: {total_profit_loss:,.2f} ({profit_pct:.2f}%)")
+        log(f"[OK] 累计盈亏: {total_profit_loss:,.2f} ({profit_pct:.2f}%)", "info")
         
         realized_total = sum(
             f.get('holdings', {}).get('realized_profit_loss', 0) 
             for p in snapshot['funds'].values() 
             for f in p.values()
         )
-        log(f"      已实现盈亏: {realized_total:,.2f}")
+        log(f"[OK] 已实现盈亏: {realized_total:,.2f}", "info")
     except Exception as e:
         log(f"[Error] 保存持仓快照失败: {e}", "error")
         return

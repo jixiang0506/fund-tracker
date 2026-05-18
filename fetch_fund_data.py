@@ -19,33 +19,71 @@ import time
 import subprocess
 import sys
 
+# 导入日志模块
+try:
+    from logger_config import setup_logger, log
+    logger = setup_logger('fetch_fund_data')
+except ImportError:
+    # 如果 logger_config 不存在，使用简单的 log 函数
+    def log(message, level='info'):
+        print(message)
+    logger = None
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 基金列表配置
-FUNDS = {
-    "支付宝": ["270023", "016665", "001438", "002112", "018230"],
-    "理财通": ["018147", "012922", "019018"],
-    "招商银行": ["021277", "000390", "020723"]
-}
 
-# QDII基金代码集合（T+1更新，净值通常延迟一天公布）
-QDII_CODES = {
-    "270023", "016665", "018230", "018147", "012922", "021277"
-}
+def load_fund_config():
+    """加载基金配置文件"""
+    config_file = os.path.join(BASE_DIR, "fund_config.json")
+    
+    if not os.path.exists(config_file):
+        log("⚠️ 基金配置文件不存在: " + config_file, "warning")
+        log("将使用默认基金列表", "warning")
+        # 返回默认配置
+        return {
+            "支付宝": ["270023", "016665", "001438", "002112", "018230"],
+            "理财通": ["018147", "012922", "019018"],
+            "招商银行": ["021277", "000390", "020723"]
+        }, {
+            "270023", "016665", "018230", "018147", "012922", "021277"
+        }
+    
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        # 转换为原有格式 (兼容代码)
+        funds_dict = {}
+        qdii_codes = set()
+        
+        for platform, fund_list in config.get("funds", {}).items():
+            funds_dict[platform] = [f["code"] for f in fund_list]
+            for fund in fund_list:
+                if fund.get("is_qdii", False):
+                    qdii_codes.add(fund["code"])
+        
+        log(f"✓ 成功加载基金配置: {len(qdii_codes)} 只QDII基金", "info")
+        
+        return funds_dict, qdii_codes
+        
+    except Exception as e:
+        log(f"❌ 加载基金配置失败: {e}", "error")
+        return None, None
 
-# 天天基金API
-HISTORY_API = "http://api.fund.eastmoney.com/f10/lsjz"
-REALTIME_API = "http://fundgz.1234567.com.cn/js/{}.js"
+
+# 基金列表配置 (将从配置文件加载)
+FUNDS = {}
+QDII_CODES = set()
+
+# 天天基金API (使用HTTPS)
+HISTORY_API = "https://api.fund.eastmoney.com/f10/lsjz"
+REALTIME_API = "https://fundgz.1234567.com.cn/js/{}.js"
 
 # 添加请求头，模拟浏览器访问
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "Referer": "http://fund.eastmoney.com/"
+    "Referer": "https://fund.eastmoney.com/"
 }
-
-def log(message):
-    """打印带时间戳的日志"""
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
 
 def fetch_fund_realtime(fund_code, max_retries=3):
     """获取基金实时数据（估算净值和涨跌幅），支持重试。
@@ -494,21 +532,30 @@ def calculate_cumulative_returns(history, purchases):
 
 def main():
     """主函数"""
-    print("="*60)
-    print(f"基金收益追踪系统 - 数据抓取")
-    print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("="*60)
+    log("="*60)
+    log(f"基金收益追踪系统 - 数据抓取")
+    log(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    log("="*60)
 
+    # 加载基金配置
+    log("\n[0/4] 加载基金配置...")
+    global FUNDS, QDII_CODES
+    FUNDS, QDII_CODES = load_fund_config()
+    
+    if FUNDS is None:
+        log("❌ 无法加载基金配置，退出")
+        return
+    
     # 检查/创建模板文件
-    print("\n[1/4] 检查必要文件...")
+    log("\n[1/4] 检查必要文件...")
     has_records = create_template_files()
     if not has_records:
-        print("\n⚠️  请先编辑 data/purchase_records.json 文件，填入你的实际买入记录")
-        print("   模板文件已创建，你可以参考其中的格式")
+        log("\n⚠️  请先编辑 data/purchase_records.json 文件，填入你的实际买入记录")
+        log("   模板文件已创建，你可以参考其中的格式")
         return
 
     # 加载持仓记录
-    print("\n[2/4] 加载持仓记录...")
+    log("\n[2/4] 加载持仓记录...")
     purchase_records = load_purchase_records()
     if purchase_records is None:
         return
@@ -534,8 +581,9 @@ def main():
                 previous_data = json.load(f)
             update_time_str = previous_data.get('update_time', '未知')
             log(f"✓ 已加载上次数据作为备份（更新时间: {update_time_str}）")
-        except Exception:
-            pass
+        except Exception as e:
+            log(f"⚠️ 加载上次数据失败: {e}")
+            # 继续执行，不影响主流程
 
     # 构建上次数据的快速查找表: {fund_code: fund_data}
     prev_fund_map = {}
@@ -545,7 +593,7 @@ def main():
                 prev_fund_map[fund_item["code"]] = fund_item
 
     # 处理所有基金
-    print("\n[3/4] 获取基金数据...")
+    log("\n[3/4] 获取基金数据...")
 
     # 计算历史数据起始日期（所有基金共享，只需计算一次）
     history_start_date = _get_earliest_purchase_date(purchase_records)
@@ -611,7 +659,7 @@ def main():
             time.sleep(0.5)
 
     # 计算总计收益
-    print("\n[4/4] 计算总计收益...")
+    log("\n[4/4] 计算总计收益...")
     summary = all_data["summary"]
     summary["total_profit_loss"] = round(summary["total_value"] - summary["total_invested"], 2)
     if summary["total_invested"] > 0:
@@ -627,33 +675,33 @@ def main():
     summary["total_realized_profit_loss"] = round(total_realized_profit, 2)
     
     # 打印汇总信息
-    print("\n" + "="*60)
-    print("✓ 数据抓取完成！")
-    print(f"  总投入: ¥{summary['total_invested']:.2f}")
-    print(f"  当前市值: ¥{summary['total_value']:.2f}")
+    log("\n" + "="*60)
+    log("✓ 数据抓取完成！")
+    log(f"  总投入: ¥{summary['total_invested']:.2f}")
+    log(f"  当前市值: ¥{summary['total_value']:.2f}")
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
-    print(f"  未实现盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    log(f"  未实现盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
     realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
-    print(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
-    print(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    log(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
+    log(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
     if failed_funds:
-        print(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
-    print("="*60)
+        log(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
+    log("="*60)
 
     # 保存数据
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✓ 数据已保存到 {output_file}")
-    print(f"  更新时间: {all_data['update_time']}")
+    log(f"\n✓ 数据已保存到 {output_file}")
+    log(f"  更新时间: {all_data['update_time']}")
 
     # 生成持仓快照
-    print("\n生成持仓快照...")
+    log("\n生成持仓快照...")
     try:
         subprocess.run([sys.executable, os.path.join(BASE_DIR, "generate_holdings.py")], check=True)
     except Exception as e:
-        print(f"  ⚠️ 持仓快照生成失败: {e}")
+        log(f"  ⚠️ 持仓快照生成失败: {e}")
 
 if __name__ == "__main__":
     main()

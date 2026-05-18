@@ -1,0 +1,45 @@
+# 敏感文件 - 包含 Token 或密钥
+.env
+.env.*
+github_config.json
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+py_*.txt
+env_*.txt
+push_*.txt
+check_*.py
+*_output.txt
+*_out.txt
+*_err.txt
+*_error.txt
+*_stdout.txt
+*_stderr.txt
+
+# IDE 配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# WorkBuddy 数据
+.workbuddy/
+
+# OS 文件
+Thumbs.db
+Desktop.ini
+.DS_Store

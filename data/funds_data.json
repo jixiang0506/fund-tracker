@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-18 07:19:55",
+  "update_time": "2026-05-18 07:58:12",
   "funds": {
     "支付宝": [
       {
@@ -13874,6 +13874,11 @@
             "date": "2026-05-14",
             "nav": 2.1831,
             "return_rate": 12.92
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 2.1151,
+            "return_rate": 9.4
           }
         ]
       }
@@ -27593,16 +27598,16 @@
         "code": "020723",
         "name": "国寿安保数字经济股票发起式C",
         "platform": "招商银行",
-        "current_nav": 2.8949,
+        "current_nav": 2.8981,
         "nav_date": "2026-05-18 15:00",
-        "daily_return": 1.59,
+        "daily_return": 1.7,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8078.85,
-          "current_value": 23387.46,
-          "profit_loss": 3387.46,
-          "profit_loss_percent": 16.94,
+          "current_value": 23413.31,
+          "profit_loss": 3413.31,
+          "profit_loss_percent": 17.07,
           "purchases": [
             {
               "date": "2026-04-13",
@@ -30183,9 +30188,9 @@
   },
   "summary": {
     "total_invested": 569055.5399999999,
-    "total_value": 712253.6799999999,
-    "total_profit_loss": 143198.14,
-    "total_profit_loss_percent": 25.16,
+    "total_value": 712279.53,
+    "total_profit_loss": 143223.99,
+    "total_profit_loss_percent": 25.17,
     "total_realized_profit_loss": -1672.46
   }
 }

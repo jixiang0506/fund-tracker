@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-18 04:59:20",
+  "update_time": "2026-05-18 05:10:03",
   "funds": {
     "支付宝": [
       {
@@ -5548,16 +5548,16 @@
         "code": "001438",
         "name": "易方达瑞享混合E",
         "platform": "支付宝",
-        "current_nav": 9.4619,
-        "nav_date": "2026-05-18 11:30",
-        "daily_return": 0.53,
+        "current_nav": 9.5323,
+        "nav_date": "2026-05-18 13:08",
+        "daily_return": 1.27,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 142115.83,
           "total_shares": 18749.63,
-          "current_value": 177407.15,
-          "profit_loss": 35291.32,
-          "profit_loss_percent": 24.83,
+          "current_value": 178727.12,
+          "profit_loss": 36611.29,
+          "profit_loss_percent": 25.76,
           "purchases": [
             {
               "date": "2026-03-12",
@@ -8298,16 +8298,16 @@
         "code": "002112",
         "name": "德邦鑫星价值灵活配置混合C",
         "platform": "支付宝",
-        "current_nav": 5.5866,
-        "nav_date": "2026-05-18 11:30",
-        "daily_return": -0.17,
+        "current_nav": 5.6439,
+        "nav_date": "2026-05-18 13:08",
+        "daily_return": 0.85,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 70000.0,
           "total_shares": 14849.29,
-          "current_value": 82957.06,
-          "profit_loss": 12957.06,
-          "profit_loss_percent": 18.51,
+          "current_value": 83807.92,
+          "profit_loss": 13807.92,
+          "profit_loss_percent": 19.73,
           "purchases": [
             {
               "date": "2026-04-15",
@@ -19596,16 +19596,16 @@
         "code": "019018",
         "name": "易方达信息产业混合C",
         "platform": "理财通",
-        "current_nav": 7.8438,
-        "nav_date": "2026-05-18 11:30",
-        "daily_return": 0.43,
+        "current_nav": 7.8718,
+        "nav_date": "2026-05-18 13:09",
+        "daily_return": 0.79,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 1155.3,
           "total_shares": 176.69,
-          "current_value": 1385.94,
-          "profit_loss": 230.64,
-          "profit_loss_percent": 19.96,
+          "current_value": 1390.88,
+          "profit_loss": 235.58,
+          "profit_loss_percent": 20.39,
           "purchases": [
             {
               "date": "2026-04-15",
@@ -24875,16 +24875,16 @@
         "code": "000390",
         "name": "华商优势行业混合A",
         "platform": "招商银行",
-        "current_nav": 3.0705,
-        "nav_date": "2026-05-18 13:01",
-        "daily_return": 0.57,
+        "current_nav": 3.0755,
+        "nav_date": "2026-05-18 13:10",
+        "daily_return": 0.74,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 49862.26,
           "total_shares": 18101.67,
-          "current_value": 55581.19,
-          "profit_loss": 5718.93,
-          "profit_loss_percent": 11.47,
+          "current_value": 55671.7,
+          "profit_loss": 5809.44,
+          "profit_loss_percent": 11.65,
           "purchases": [
             {
               "date": "2026-04-16",
@@ -27593,16 +27593,16 @@
         "code": "020723",
         "name": "国寿安保数字经济股票发起式C",
         "platform": "招商银行",
-        "current_nav": 2.8909,
-        "nav_date": "2026-05-18 13:01",
-        "daily_return": 1.45,
+        "current_nav": 2.8944,
+        "nav_date": "2026-05-18 13:11",
+        "daily_return": 1.57,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8078.85,
-          "current_value": 23355.15,
-          "profit_loss": 3355.15,
-          "profit_loss_percent": 16.78,
+          "current_value": 23383.42,
+          "profit_loss": 3383.42,
+          "profit_loss_percent": 16.92,
           "purchases": [
             {
               "date": "2026-04-13",
@@ -30183,9 +30183,9 @@
   },
   "summary": {
     "total_invested": 569055.5399999999,
-    "total_value": 711593.7599999999,
-    "total_profit_loss": 142538.22,
-    "total_profit_loss_percent": 25.05,
+    "total_value": 713888.3099999998,
+    "total_profit_loss": 144832.77,
+    "total_profit_loss_percent": 25.45,
     "total_realized_profit_loss": -1672.46
   }
 }

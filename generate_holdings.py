@@ -31,13 +31,13 @@ OUTPUT_FILE = os.path.join(DATA_DIR, 'holdings_snapshot.json')
 def load_json(filepath):
     """安全加载 JSON 文件"""
     if not os.path.exists(filepath):
-        log("[Warning] 文件不存在: " + filepath, "warning")
+        log(f"[Warning] 文件不存在: {filepath}", "warning")
         return None
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        log("[Error] 读取失败 " + filepath + ": " + str(e), "error")
+        log(f"[Error] 读取失败 {filepath}: {e}", "error")
         return None
 
 
@@ -53,13 +53,19 @@ def generate_holdings_snapshot():
     # 继承主数据的时间戳，避免单独运行时产生误导性时间戳
     data_update_time = funds_data.get('update_time', '')
     # 格式转换：funds_data.json 是 "%Y-%m-%d %H:%M:%S"，快照需要 ISO 8601 格式
+    # 支持多种常见格式，任一失败则回退到当前时间
+    snapshot_time = None
     if data_update_time:
-        try:
-            dt = datetime.strptime(data_update_time, "%Y-%m-%d %H:%M:%S")
-            snapshot_time = dt.strftime("%Y-%m-%dT%H:%M:%S+08:00")
-        except ValueError:
-            snapshot_time = data_update_time  # 如果格式不对，原样使用
-    else:
+        for fmt in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y/%m/%d %H:%M:%S"]:
+            try:
+                dt = datetime.strptime(data_update_time, fmt)
+                snapshot_time = dt.strftime("%Y-%m-%dT%H:%M:%S+08:00")
+                break
+            except ValueError:
+                continue
+        if not snapshot_time:
+            log(f"[Warning] 无法解析时间戳格式: {data_update_time}，使用当前时间", "warning")
+    if not snapshot_time:
         snapshot_time = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
     snapshot = {
@@ -177,14 +183,23 @@ def generate_holdings_snapshot():
     try:
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump(snapshot, f, ensure_ascii=False, indent=2)
-        log("[OK] 持仓快照已生成: " + OUTPUT_FILE)
-        log("      持仓基金数: " + str(funds_count))
-        log("      总市值: " + format(total_holdings_value, ',.2f'))
-        log("      累计盈亏: " + format(total_profit_loss, ',.2f') + " (" + str(round(snapshot['summary']['total_profit_loss_percent'], 2)) + "%)")
-        realized_total = sum(f.get('holdings', {}).get('realized_profit_loss', 0) for p in snapshot['funds'].values() for f in p.values())
-        log("      已实现盈亏: " + format(realized_total, ',.2f'))
+        
+        # 使用 f-string 拼接输出，提高可读性
+        log(f"[OK] 持仓快照已生成: {OUTPUT_FILE}")
+        log(f"      持仓基金数: {funds_count}")
+        log(f"      总市值: {total_holdings_value:,.2f}")
+        
+        profit_pct = snapshot['summary']['total_profit_loss_percent']
+        log(f"      累计盈亏: {total_profit_loss:,.2f} ({profit_pct:.2f}%)")
+        
+        realized_total = sum(
+            f.get('holdings', {}).get('realized_profit_loss', 0) 
+            for p in snapshot['funds'].values() 
+            for f in p.values()
+        )
+        log(f"      已实现盈亏: {realized_total:,.2f}")
     except Exception as e:
-        log("[Error] 保存持仓快照失败: " + str(e), "error")
+        log(f"[Error] 保存持仓快照失败: {e}", "error")
         return
 
 

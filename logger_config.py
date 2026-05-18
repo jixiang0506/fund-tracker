@@ -12,6 +12,7 @@ from datetime import datetime
 def setup_logger(name='fund_tracker', log_level=logging.INFO):
     """
     配置并返回 logger 实例
+    只配置文件日志，控制台输出用 print()
     """
     # 创建 logger
     logger = logging.getLogger(name)
@@ -21,11 +22,7 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
     if logger.handlers:
         return logger
     
-    # 创建控制台 handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(log_level)
-    
-    # 创建文件 handler (按日期命名)
+    # 只创建文件 handler (按日期命名)
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
     os.makedirs(log_dir, exist_ok=True)
     
@@ -33,18 +30,12 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     
-    # 创建 formatter
-    console_format = '%(message)s'  # 控制台输出简洁格式
+    # 创建 formatter（详细格式）
     file_format = '[%(asctime)s] %(levelname)s [%(filename)s:%(lineno)d] - %(message)s'
-    
-    console_formatter = logging.Formatter(console_format)
     file_formatter = logging.Formatter(file_format, datefmt='%Y-%m-%d %H:%M:%S')
-    
-    console_handler.setFormatter(console_formatter)
     file_handler.setFormatter(file_formatter)
     
-    # 添加 handler
-    logger.addHandler(console_handler)
+    # 只添加文件 handler
     logger.addHandler(file_handler)
     
     return logger
@@ -59,6 +50,9 @@ def log(message, level='info'):
     兼容旧代码的 log 函数
     输出到控制台（print）和日志文件
     """
+    # 同时输出到控制台（确保可见）
+    print(message)
+    
     if level == 'debug':
         logger.debug(message)
     elif level == 'warning':

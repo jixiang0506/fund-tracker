@@ -29,28 +29,22 @@ except ImportError:
         print(message)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+HISTORY_CACHE_FILE = os.path.join(BASE_DIR, "data", "history_cache.json")
 
 
 def load_fund_config():
-    """加载基金配置文件"""
+    """加载基金配置文件（唯一数据源：fund_config.json）"""
     config_file = os.path.join(BASE_DIR, "fund_config.json")
-    
+
     if not os.path.exists(config_file):
-        log("⚠️ 基金配置文件不存在: " + config_file, "warning")
-        log("将使用默认基金列表", "warning")
-        # 返回默认配置
-        return {
-            "支付宝": ["270023", "016665", "001438", "002112", "018230"],
-            "理财通": ["018147", "012922", "019018"],
-            "招商银行": ["021277", "000390", "020723"]
-        }, {
-            "270023", "016665", "018230", "018147", "012922", "021277"
-        }, {}
-    
+        log("❌ 基金配置文件不存在: " + config_file, "error")
+        log("请创建 fund_config.json，格式参考项目文档", "error")
+        return {}, set(), {}
+
     try:
         with open(config_file, 'r', encoding='utf-8') as f:
             config = json.load(f)
-        
+
         # 转换为原有格式 (兼容代码)
         funds_dict = {}
         qdii_codes = set()
@@ -67,10 +61,10 @@ def load_fund_config():
         log(f"✓ 成功加载基金配置: {len(qdii_codes)} 只QDII基金, {len(fund_names)} 只基金名称", "info")
 
         return funds_dict, qdii_codes, fund_names
-        
+
     except Exception as e:
         log(f"❌ 加载基金配置失败: {e}", "error")
-        return None, None, None
+        return {}, set(), {}
 
 
 # (基金列表和QDII代码现在通过函数参数传递，不再使用全局变量)
@@ -78,6 +72,53 @@ def load_fund_config():
 # 天天基金API (使用HTTPS)
 HISTORY_API = "https://api.fund.eastmoney.com/f10/lsjz"
 REALTIME_API = "https://fundgz.1234567.com.cn/js/{}.js"
+
+
+def load_history_cache():
+    """加载历史数据缓存。返回 {fund_code: [entries]} 或 {} if not found."""
+    if not os.path.exists(HISTORY_CACHE_FILE):
+        return {}
+    try:
+        with open(HISTORY_CACHE_FILE, "r", encoding="utf-8") as f:
+            cache = json.load(f)
+        # 去掉 _meta 等元数据键
+        return {k: v for k, v in cache.items() if not k.startswith("_")}
+    except Exception as e:
+        log(f"⚠️ 加载历史缓存失败，将全量获取: {e}", "warning")
+        return {}
+
+
+def save_history_cache(cache_data):
+    """保存历史数据缓存到磁盘。"""
+    os.makedirs(os.path.dirname(HISTORY_CACHE_FILE), exist_ok=True)
+    output = {"_meta": {"version": 1}, **cache_data}
+    with open(HISTORY_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+    total_entries = sum(len(v) for v in cache_data.values())
+    log(f"✓ 历史缓存已保存: {len(cache_data)} 只基金, {total_entries} 条记录")
+
+
+def merge_history(existing, new_entries):
+    """合并历史数据：新条目覆盖同日期旧条目，按日期升序排序。
+
+    Args:
+        existing: 缓存中的历史数据 list[dict]，按日期升序
+        new_entries: API 新获取的数据 list[dict]，可能存在日期重叠
+
+    Returns:
+        合并后的 list[dict]，按日期升序
+    """
+    if not existing:
+        return sorted(new_entries, key=lambda x: x["date"])
+    if not new_entries:
+        return existing
+
+    # 新条目优先（处理 NAV 纠正场景）
+    merged = {e["date"]: e for e in existing}
+    for entry in new_entries:
+        merged[entry["date"]] = entry
+
+    return sorted(merged.values(), key=lambda x: x["date"])
 
 # 添加请求头，模拟浏览器访问
 HEADERS = {
@@ -224,12 +265,27 @@ def _get_earliest_purchase_date(nested_records):
         return dt.strftime("%Y-%m-%d")
     return "2020-01-01"  # 兜底默认值
 
-def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, session=None):
-    """获取基金历史净值数据（从start_date开始获取）"""
+def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, session=None, incremental_from=None):
+    """获取基金历史净值数据。
+
+    Args:
+        fund_code: 基金代码
+        start_date: 历史数据起始日期
+        max_pages: 最大翻页数
+        session: HTTP Session（统一重试策略）
+        incremental_from: 增量获取模式，只获取此日期之后的数据（YYYY-MM-DD）
+    """
     if session is None:
         session = _create_session()
     try:
-        log(f"  获取基金 {fund_code} 的历史净值数据...")
+        # 增量模式：从缓存最新日期的下一天开始获取
+        effective_start = start_date
+        if incremental_from:
+            next_day = (datetime.strptime(incremental_from, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+            effective_start = next_day
+            log(f"  增量获取基金 {fund_code}，从 {effective_start} 开始...")
+        else:
+            log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
         page_index = 1
         page_size = 20  # API每页最大返回20条
@@ -239,7 +295,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
                 "fundCode": fund_code,
                 "pageIndex": page_index,
                 "pageSize": page_size,
-                "startDate": start_date,
+                "startDate": effective_start,
                 "endDate": datetime.now().strftime("%Y-%m-%d")
             }
 
@@ -306,35 +362,34 @@ def get_nav_from_history(history, target_date, before_15=True):
 
     return None
 
-def create_template_files():
-    """创建模板文件"""
+def create_template_files(funds=None):
+    """创建模板文件（从配置动态生成示例数据）"""
     # 创建 data 目录
     data_dir = os.path.join(BASE_DIR, "data")
     os.makedirs(data_dir, exist_ok=True)
 
-    # 创建模板持仓记录文件
-    template_records = {
-        "支付宝": {
-            "270023": [
-                {"date": "2024-01-15", "amount": 1000.00},
-                {"date": "2024-02-15", "amount": 1000.00},
-                {"date": "2024-06-15", "amount": 500.00, "type": "sell"}
-            ],
-            "016665": [
-                {"date": "2024-01-20", "amount": 2000.00}
-            ]
-        },
-        "理财通": {
-            "018147": [
-                {"date": "2024-03-01", "amount": 1500.00}
-            ]
-        },
-        "招商银行": {
-            "021277": [
-                {"date": "2024-02-10", "amount": 3000.00}
-            ]
+    # 从配置动态生成模板持仓记录（每个平台取第一只基金作为示例）
+    template_records = {}
+    if funds:
+        for platform, codes in funds.items():
+            if codes:
+                first_code = codes[0]
+                template_records[platform] = {
+                    first_code: [
+                        {"date": "2024-01-15", "amount": 1000.00},
+                        {"date": "2024-02-15", "amount": 1000.00},
+                        {"date": "2024-06-15", "amount": 500.00, "type": "sell"}
+                    ]
+                }
+    else:
+        # 无配置时创建空模板
+        template_records = {
+            "示例平台": {
+                "000000": [
+                    {"date": "2024-01-15", "amount": 1000.00}
+                ]
+            }
         }
-    }
 
     template_path = os.path.join(data_dir, "purchase_records.json")
     if not os.path.exists(template_path):
@@ -354,8 +409,8 @@ def load_purchase_records():
 
         # 如果文件不存在，创建模板
         if not os.path.exists(records_file):
-            log("未找到持仓记录文件，正在创建模板...")
-            create_template_files()
+            log("未找到持仓记录文件，正在创建空模板...")
+            create_template_files(None)
             return None
 
         with open(records_file, "r", encoding="utf-8") as f:
@@ -615,13 +670,13 @@ def main():
     log("\n[0/4] 加载基金配置...")
     funds, qdii_codes, fund_names = load_fund_config()
 
-    if funds is None:
+    if not funds:
         log("❌ 无法加载基金配置，退出")
         return
     
     # 检查/创建模板文件
     log("\n[1/4] 检查必要文件...")
-    has_records = create_template_files()
+    has_records = create_template_files(funds)
     if not has_records:
         log("\n⚠️  请先编辑 data/purchase_records.json 文件，填入你的实际买入记录")
         log("   模板文件已创建，你可以参考其中的格式")
@@ -676,6 +731,19 @@ def main():
     history_start_date = _get_earliest_purchase_date(purchase_records)
     log(f"历史数据起始日期: {history_start_date}")
 
+    # 加载历史数据缓存（增量拉取）
+    force_refresh = "--force-refresh" in sys.argv or os.environ.get("FORCE_REFRESH", "").lower() == "true"
+    if force_refresh:
+        log("⚡ 强制刷新模式: 忽略历史缓存，全量获取")
+        history_cache = {}
+    else:
+        history_cache = load_history_cache()
+        if history_cache:
+            total_cached = sum(len(v) for v in history_cache.values())
+            log(f"✓ 已加载历史缓存: {len(history_cache)} 只基金, {total_cached} 条记录")
+        else:
+            log("ℹ️ 无历史缓存，将全量获取")
+
     failed_funds = []
     for platform, codes in funds.items():
         log(f"处理 {platform} 的基金...")
@@ -702,8 +770,33 @@ def main():
                     failed_funds.append(code)
                 continue
 
-            # 获取历史数据（从最早交易记录前7天开始获取，避免拉取大量无用数据）
-            history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+            # 获取历史数据（支持增量缓存）
+            cached_history = history_cache.get(code, [])
+            original_cache_count = len(cached_history)
+            if cached_history:
+                last_cached_date = cached_history[-1]["date"]
+                # 检查是否有早期交易日期超出缓存范围（新增早期交易记录场景）
+                if cached_history[0]["date"] > history_start_date:
+                    # 需要先补拉早期缺口
+                    gap_history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+                    # 只取缓存开始日期之前的条目
+                    gap_entries = [h for h in gap_history if h["date"] < cached_history[0]["date"]]
+                    if gap_entries:
+                        cached_history = gap_entries + cached_history
+                        log(f"  ✓ 补拉早期数据: {len(gap_entries)} 条")
+                # 增量获取最新数据
+                new_history = fetch_fund_history(code, start_date=history_start_date,
+                                                  session=http_session, incremental_from=last_cached_date)
+                # 合并缓存 + 新数据
+                history = merge_history(cached_history, new_history)
+                new_count = len(history) - original_cache_count
+                log(f"  ✓ 增量获取: 缓存 {original_cache_count} 条 + 新增 {max(0, new_count)} 条")
+            else:
+                # 无缓存，全量获取
+                history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+
+            # 更新缓存
+            history_cache[code] = history
 
             # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）
             purchases = purchase_records.get(platform, {}).get(code, [])
@@ -775,6 +868,9 @@ def main():
 
     log(f"\n✓ 数据已保存到 {output_file}")
     log(f"  更新时间: {all_data['update_time']}")
+
+    # 保存历史数据缓存（增量拉取用）
+    save_history_cache(history_cache)
 
     # 生成持仓快照
     log("\n生成持仓快照...")

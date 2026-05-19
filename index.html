@@ -829,8 +829,16 @@
         /* 周期切换按钮 */
         .period-btn {
             transition: all 0.3s;
+            background: #f5f5f5;
+            color: var(--color-text-secondary);
+            border: 1px solid #ddd;
         }
         .period-btn:hover {
+            background: var(--color-primary);
+            color: #fff;
+            border-color: var(--color-primary);
+        }
+        .period-btn.active {
             background: var(--color-primary);
             color: #fff;
             border-color: var(--color-primary);
@@ -1006,26 +1014,8 @@
         </div>
 
         <div id="content">
-            <!-- 骨架屏：数据加载时显示 -->
-            <div id="skeletonScreen">
-                <div class="stats-grid" id="skeletonStats">
-                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
-                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
-                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
-                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
-                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
-                    <div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>
-                </div>
-                <div class="skeleton-platform-section" style="margin-top:30px;">
-                    <div class="skeleton" style="width:120px;height:14px;margin-bottom:15px;"></div>
-                    <div class="skeleton-fund-card"><div class="skeleton" style="width:40%;height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;"><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div></div></div>
-                    <div class="skeleton-fund-card"><div class="skeleton" style="width:50%;height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;"><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div></div></div>
-                </div>
-                <div class="skeleton-platform-section" style="margin-top:15px;">
-                    <div class="skeleton" style="width:100px;height:14px;margin-bottom:15px;"></div>
-                    <div class="skeleton-fund-card"><div class="skeleton" style="width:35%;height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;"><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div><div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div></div></div>
-                </div>
-            </div>
+            <!-- 骨架屏：由 JS 动态生成（renderSkeletonScreen），布局与实际卡片保持一致 -->
+            <div id="skeletonScreen"></div>
             <!-- 实际内容由 renderData() 填充 -->
             <div id="mainContent" style="display:none;"></div>
         </div>
@@ -1229,6 +1219,9 @@
             if (state.github.owner) document.getElementById('repoOwner').value = state.github.owner;
             if (state.github.repo) document.getElementById('repoName').value = state.github.repo;
 
+            // 生成骨架屏
+            renderSkeletonScreen();
+
             // 自动从 data/purchase_records.json 加载买入记录
             loadPurchaseRecordsFromFile();
 
@@ -1305,6 +1298,41 @@
             localStorage.setItem('repo_owner', state.github.owner);
             localStorage.setItem('repo_name', state.github.repo);
             showMessage('设置已保存', 'success');
+        }
+
+        // 生成骨架屏 HTML（与实际卡片布局保持一致，修改时只需改此函数）
+        function renderSkeletonScreen() {
+            const container = document.getElementById('skeletonScreen');
+            if (!container) return;
+
+            // 骨架统计卡片（与 renderSummary 的 6 个 stat-card 一致）
+            const STAT_COUNT = 6;
+            let statsHtml = '<div class="stats-grid" id="skeletonStats">';
+            for (let i = 0; i < STAT_COUNT; i++) {
+                statsHtml += '<div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>';
+            }
+            statsHtml += '</div>';
+
+            // 骨架平台区域（模拟 2 个平台、3-4 个基金卡片的占位）
+            const platforms = [
+                { labelWidth: 120, funds: [{ nameWidth: '40%', cols: 3 }, { nameWidth: '50%', cols: 2 }] },
+                { labelWidth: 100, funds: [{ nameWidth: '35%', cols: 4 }] }
+            ];
+            let platformHtml = '';
+            platforms.forEach((p, pi) => {
+                platformHtml += `<div class="skeleton-platform-section" style="margin-top:${pi === 0 ? 30 : 15}px;">`;
+                platformHtml += `<div class="skeleton" style="width:${p.labelWidth}px;height:14px;margin-bottom:15px;"></div>`;
+                p.funds.forEach(f => {
+                    platformHtml += '<div class="skeleton-fund-card"><div class="skeleton" style="width:' + f.nameWidth + ';height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;">';
+                    for (let c = 0; c < f.cols; c++) {
+                        platformHtml += '<div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div>';
+                    }
+                    platformHtml += '</div></div>';
+                });
+                platformHtml += '</div>';
+            });
+
+            container.innerHTML = statsHtml + platformHtml;
         }
 
         // 加载数据（强制UTF-8解码，避免中文乱码）
@@ -1416,12 +1444,12 @@
                                 📈 累计收益率走势
                             </h3>
                             <div style="margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="period-btn" data-period="7d" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近一周</button>
-                                <button class="period-btn" data-period="1m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近一个月</button>
-                                <button class="period-btn" data-period="3m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近三个月</button>
-                                <button class="period-btn" data-period="6m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近半年</button>
-                                <button class="period-btn" data-period="1y" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近一年</button>
-                                <button class="period-btn active" data-period="all" style="padding: 5px 14px; border: 1px solid var(--color-primary); border-radius: 16px; background: var(--color-primary); color: #fff; font-size: 13px; cursor: pointer;">最长期限</button>
+                                <button class="period-btn" data-period="7d" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近一周</button>
+                                <button class="period-btn" data-period="1m" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近一个月</button>
+                                <button class="period-btn" data-period="3m" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近三个月</button>
+                                <button class="period-btn" data-period="6m" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近半年</button>
+                                <button class="period-btn" data-period="1y" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近一年</button>
+                                <button class="period-btn active" data-period="all" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">最长期限</button>
                             </div>
                             <div class="chart-container">
                                 <canvas id="chart-all"></canvas>
@@ -1515,6 +1543,7 @@
             `;
 
             funds.forEach(fnd => {
+                try {
                 const dailyClass = fnd.daily_return >= 0 ? 'positive' : 'negative';
                 const profit = fnd.holdings ? fnd.holdings.profit_loss : 0;
                 const profitClass = profit >= 0 ? 'positive' : 'negative';
@@ -1627,6 +1656,14 @@
                 }
 
                 html += `</div>`;
+                } catch (err) {
+                    // 错误边界：单个基金渲染失败不影响其他卡片
+                    console.error('渲染基金卡片失败:', fnd.code, err);
+                    html += `<div class="fund-card" style="border-left: 3px solid var(--color-profit); padding: 15px;">
+                        <div style="color: var(--color-profit); font-weight: bold;">⚠️ 基金 ${escapeHtml(fnd.code || '未知')} 数据渲染失败</div>
+                        <div style="color: var(--color-text-muted); font-size: 12px; margin-top: 5px;">${escapeHtml(err.message)}</div>
+                    </div>`;
+                }
             });
 
             html += `</div>`;
@@ -1639,17 +1676,9 @@
         // 切换图表周期
         function switchPeriod(period) {
             state.charts.period = period;
-            // 更新按钮样式
+            // 更新按钮样式（使用 CSS class 切换）
             document.querySelectorAll('.period-btn').forEach(btn => {
-                if (btn.dataset.period === period) {
-                    btn.style.background = 'var(--color-primary)';
-                    btn.style.color = '#fff';
-                    btn.style.borderColor = 'var(--color-primary)';
-                } else {
-                    btn.style.background = '#f5f5f5';
-                    btn.style.color = '#666';
-                    btn.style.borderColor = '#ddd';
-                }
+                btn.classList.toggle('active', btn.dataset.period === period);
             });
             renderCharts();
         }
@@ -1668,15 +1697,7 @@
 
             // 同步周期按钮样式（防止DOM重建后样式丢失）
             document.querySelectorAll('.period-btn').forEach(btn => {
-                if (btn.dataset.period === state.charts.period) {
-                    btn.style.background = 'var(--color-primary)';
-                    btn.style.color = '#fff';
-                    btn.style.borderColor = 'var(--color-primary)';
-                } else {
-                    btn.style.background = '#f5f5f5';
-                    btn.style.color = '#666';
-                    btn.style.borderColor = '#ddd';
-                }
+                btn.classList.toggle('active', btn.dataset.period === state.charts.period);
             });
 
             // 销毁旧图表，防止重复叠加
@@ -2185,40 +2206,44 @@
 
         // ========== 基金联网搜索（JSONP方式绕过CORS） ==========
 
-        // JSONP 请求（带请求ID竞态保护）
+        // JSONP 请求（带请求ID竞态保护 + completed标志位防重复执行）
         function jsonpRequest(url, callback, requestId) {
             const script = document.createElement('script');
             const cbName = 'fundSearchCb' + (++state.search.jsonpCallbackId);
             const startTime = Date.now();
+            let completed = false; // 标志位：确保回调只执行一次
+
+            function cleanup() {
+                if (completed) return;
+                completed = true;
+                delete window[cbName];
+                if (script.parentNode) script.parentNode.removeChild(script);
+            }
             
             window[cbName] = function(data) {
                 // 竞态保护：如果提供了requestId，检查是否过期
                 if (requestId !== undefined && requestId !== state.search.requestId) {
                     console.log('[JSONP] 忽略过期响应，requestId:', requestId, '当前:', state.search.requestId);
-                    delete window[cbName];
-                    if (script.parentNode) script.parentNode.removeChild(script);
+                    cleanup();
                     return;
                 }
                 callback(data);
-                delete window[cbName];
-                if (script.parentNode) script.parentNode.removeChild(script);
+                cleanup();
             };
             
             script.src = url + '&cb=' + cbName;
             script.onerror = function() {
                 console.warn('基金搜索请求失败，请检查网络或API参数');
-                delete window[cbName];
-                if (script.parentNode) script.parentNode.removeChild(script);
+                cleanup();
                 callback(null);
             };
             document.head.appendChild(script);
             
             // 5秒超时：清理回调和script标签
             setTimeout(() => {
-                if (window[cbName]) {
+                if (!completed) {
                     console.log('[JSONP] 请求超时:', cbName, '耗时:', Date.now() - startTime, 'ms');
-                    delete window[cbName];
-                    if (script.parentNode) script.parentNode.removeChild(script);
+                    cleanup();
                 }
             }, 5000);
         }

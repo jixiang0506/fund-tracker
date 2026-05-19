@@ -16,6 +16,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import json
 import os
+import tempfile
 from datetime import datetime, timedelta
 import time
 import sys
@@ -89,11 +90,20 @@ def load_history_cache():
 
 
 def save_history_cache(cache_data):
-    """保存历史数据缓存到磁盘。"""
+    """保存历史数据缓存到磁盘（原子写入，防止中断导致文件损坏）。"""
     os.makedirs(os.path.dirname(HISTORY_CACHE_FILE), exist_ok=True)
     output = {"_meta": {"version": 1}, **cache_data}
-    with open(HISTORY_CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=os.path.dirname(HISTORY_CACHE_FILE), suffix=".tmp"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
+        os.replace(tmp_path, HISTORY_CACHE_FILE)  # 原子替换
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
     total_entries = sum(len(v) for v in cache_data.values())
     log(f"✓ 历史缓存已保存: {len(cache_data)} 只基金, {total_entries} 条记录")
 
@@ -109,14 +119,15 @@ def merge_history(existing, new_entries):
         合并后的 list[dict]，按日期升序
     """
     if not existing:
-        return sorted(new_entries, key=lambda x: x["date"])
+        return sorted([e for e in new_entries if e.get("date")], key=lambda x: x["date"])
     if not new_entries:
         return existing
 
-    # 新条目优先（处理 NAV 纠正场景）
-    merged = {e["date"]: e for e in existing}
+    # 新条目优先（处理 NAV 纠正场景）；过滤空日期防止字典键冲突
+    merged = {e["date"]: e for e in existing if e.get("date")}
     for entry in new_entries:
-        merged[entry["date"]] = entry
+        if entry.get("date"):
+            merged[entry["date"]] = entry
 
     return sorted(merged.values(), key=lambda x: x["date"])
 
@@ -273,17 +284,18 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
         start_date: 历史数据起始日期
         max_pages: 最大翻页数
         session: HTTP Session（统一重试策略）
-        incremental_from: 增量获取模式，只获取此日期之后的数据（YYYY-MM-DD）
+        incremental_from: 增量获取模式，获取此日期附近的数据（含7天重叠以捕获NAV纠正）
     """
     if session is None:
         session = _create_session()
     try:
-        # 增量模式：从缓存最新日期的下一天开始获取
+        # 增量模式：从缓存最新日期往前7天开始获取（重叠窗口捕获NAV纠正）
         effective_start = start_date
         if incremental_from:
-            next_day = (datetime.strptime(incremental_from, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
-            effective_start = next_day
-            log(f"  增量获取基金 {fund_code}，从 {effective_start} 开始...")
+            # 往前7天重叠，确保近期的NAV纠正能被捕获（约5个交易日，1个API页）
+            overlap_start = (datetime.strptime(incremental_from, "%Y-%m-%d") - timedelta(days=7)).strftime("%Y-%m-%d")
+            effective_start = overlap_start
+            log(f"  增量获取基金 {fund_code}，从 {effective_start} 开始（含7天重叠窗口）...")
         else:
             log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
@@ -754,10 +766,39 @@ def main():
         for code in codes:
             log(f"  正在处理基金 {code}...")
 
-            # 获取实时数据
+            # --- 第1步：获取历史数据（与实时数据解耦，无论实时API是否成功都更新缓存） ---
+            cached_history = history_cache.get(code, [])
+            original_cache_count = len(cached_history)
+            if cached_history:
+                last_cached_date = cached_history[-1]["date"]
+                # 检查是否有早期交易日期超出缓存范围（新增早期交易记录场景）
+                if cached_history[0]["date"] > history_start_date:
+                    # 早期缺口：一次全量拉取并合并，避免双重拉取
+                    full_history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+                    history = merge_history(cached_history, full_history)
+                    log(f"  ✓ 缺口补全: 缓存 {original_cache_count} 条 + 全量合并 {len(full_history)} 条 → 总计 {len(history)} 条")
+                else:
+                    # 增量获取（含7天重叠窗口以捕获NAV纠正）
+                    new_history = fetch_fund_history(code, start_date=history_start_date,
+                                                      session=http_session, incremental_from=last_cached_date)
+                    history = merge_history(cached_history, new_history)
+                    new_count = len(history) - original_cache_count
+                    log(f"  ✓ 增量获取: 缓存 {original_cache_count} 条 + 新增/更新 {max(0, new_count)} 条")
+            else:
+                # 无缓存，全量获取
+                history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+
+            # 更新缓存并立即保存（防止中途崩溃丢失已获取的数据）
+            history_cache[code] = history
+            try:
+                save_history_cache(history_cache)
+            except Exception as cache_err:
+                log(f"⚠️ 保存历史缓存失败: {cache_err}", "warning")
+
+            # --- 第2步：获取实时数据 ---
             realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
             if not realtime:
-                # API失败：尝试使用上次数据
+                # API失败：尝试使用上次数据（历史缓存已更新，不影响下次增量获取）
                 if code in prev_fund_map:
                     old_fund = prev_fund_map[code]
                     log(f"  ⚠ 使用上次缓存数据: {old_fund.get('name', code)}（净值 {old_fund.get('current_nav', '?')} @{old_fund.get('nav_date', '?')}）")
@@ -770,37 +811,9 @@ def main():
                     failed_funds.append(code)
                 continue
 
-            # 获取历史数据（支持增量缓存）
-            cached_history = history_cache.get(code, [])
-            original_cache_count = len(cached_history)
-            if cached_history:
-                last_cached_date = cached_history[-1]["date"]
-                # 检查是否有早期交易日期超出缓存范围（新增早期交易记录场景）
-                if cached_history[0]["date"] > history_start_date:
-                    # 需要先补拉早期缺口
-                    gap_history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
-                    # 只取缓存开始日期之前的条目
-                    gap_entries = [h for h in gap_history if h["date"] < cached_history[0]["date"]]
-                    if gap_entries:
-                        cached_history = gap_entries + cached_history
-                        log(f"  ✓ 补拉早期数据: {len(gap_entries)} 条")
-                # 增量获取最新数据
-                new_history = fetch_fund_history(code, start_date=history_start_date,
-                                                  session=http_session, incremental_from=last_cached_date)
-                # 合并缓存 + 新数据
-                history = merge_history(cached_history, new_history)
-                new_count = len(history) - original_cache_count
-                log(f"  ✓ 增量获取: 缓存 {original_cache_count} 条 + 新增 {max(0, new_count)} 条")
-            else:
-                # 无缓存，全量获取
-                history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
-
-            # 更新缓存
-            history_cache[code] = history
-
+            # --- 第3步：计算持仓和收益 ---
             # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）
             purchases = purchase_records.get(platform, {}).get(code, [])
-            # 计算持仓和收益
             holdings = calculate_holdings(purchases, realtime["nav"], history)
 
             # 预计算累计收益率（使用 FIFO 一致逻辑，避免前端重复计算）
@@ -869,8 +882,7 @@ def main():
     log(f"\n✓ 数据已保存到 {output_file}")
     log(f"  更新时间: {all_data['update_time']}")
 
-    # 保存历史数据缓存（增量拉取用）
-    save_history_cache(history_cache)
+    # 历史缓存已在处理每只基金时逐个保存，此处无需重复保存
 
     # 生成持仓快照
     log("\n生成持仓快照...")

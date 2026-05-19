@@ -6,6 +6,39 @@
     <title>我的基金收益追踪</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        :root {
+            /* 主色调 */
+            --color-primary: #667eea;
+            --color-primary-hover: #5568d3;
+            --color-primary-light: rgba(102, 126, 234, 0.1);
+            --color-gradient-start: #667eea;
+            --color-gradient-end: #764ba2;
+
+            /* 涨跌色 */
+            --color-profit: #f56c6c;
+            --color-profit-hover: #e04d4d;
+            --color-loss: #67c23a;
+            --color-loss-hover: #5daf34;
+
+            /* 功能色 */
+            --color-warning: #e6a23c;
+            --color-warning-hover: #cf8e2a;
+
+            /* 通用 */
+            --color-text: #333;
+            --color-text-secondary: #666;
+            --color-text-muted: #999;
+            --color-bg: #fff;
+            --color-bg-light: #f5f5f5;
+            --color-border: #ddd;
+            --color-border-light: #eee;
+
+            /* 圆角和阴影 */
+            --radius-card: 15px;
+            --radius-sm: 8px;
+            --shadow-card: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +47,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -27,19 +60,19 @@
         .header {
             background: white;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
             margin-bottom: 30px;
         }
 
         .header h1 {
-            color: #333;
+            color: var(--color-text);
             font-size: 32px;
             margin-bottom: 10px;
         }
 
         .header .update-time {
-            color: #666;
+            color: var(--color-text-secondary);
             font-size: 14px;
         }
 
@@ -53,39 +86,39 @@
         }
 
         .btn-primary {
-            background: #667eea;
+            background: var(--color-primary);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #5568d3;
+            background: var(--color-primary-hover);
         }
 
         .btn-success {
-            background: #67c23a;
+            background: var(--color-loss);
             color: white;
         }
 
         .btn-success:hover {
-            background: #5daf34;
+            background: var(--color-loss-hover);
         }
 
         .btn-danger {
-            background: #f56c6c;
+            background: var(--color-profit);
             color: white;
         }
 
         .btn-danger:hover {
-            background: #e04d4d;
+            background: var(--color-profit-hover);
         }
 
         .btn-warning {
-            background: #e6a23c;
+            background: var(--color-warning);
             color: white;
         }
 
         .btn-warning:hover {
-            background: #cf8e2a;
+            background: var(--color-warning-hover);
         }
 
         /* 卖出持仓信息展示 */
@@ -105,12 +138,12 @@
         }
 
         .holdings-label {
-            color: #666;
+            color: var(--color-text-secondary);
         }
 
         .holdings-value {
             font-weight: 600;
-            color: #333;
+            color: var(--color-text);
         }
 
         /* 卖出模式切换 */
@@ -121,7 +154,7 @@
         .sell-mode-label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--color-text);
             font-weight: 600;
             font-size: 14px;
         }
@@ -140,25 +173,25 @@
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s;
-            color: #666;
+            color: var(--color-text-secondary);
         }
 
         .sell-mode-btn.active {
-            border-color: #667eea;
+            border-color: var(--color-primary);
             background: #f5f7ff;
-            color: #667eea;
+            color: var(--color-primary);
             font-weight: 600;
         }
 
         .sell-mode-btn:hover:not(.active) {
-            border-color: #667eea;
-            color: #667eea;
+            border-color: var(--color-primary);
+            color: var(--color-primary);
         }
 
         .input-hint {
             margin-top: 6px;
             font-size: 12px;
-            color: #999;
+            color: var(--color-text-muted);
         }
 
         .stats-grid {
@@ -177,8 +210,8 @@
         .stat-card {
             background: white;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
             transition: transform 0.3s;
         }
 
@@ -187,7 +220,7 @@
         }
 
         .stat-card .label {
-            color: #666;
+            color: var(--color-text-secondary);
             font-size: 14px;
             margin-bottom: 10px;
         }
@@ -199,24 +232,24 @@
         }
 
         .positive {
-            color: #f56c6c;
+            color: var(--color-profit);
         }
 
         .negative {
-            color: #67c23a;
+            color: var(--color-loss);
         }
 
         .platform-section {
             background: white;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
             margin-bottom: 30px;
         }
 
         .platform-title {
             font-size: 14px;
-            color: #999;
+            color: var(--color-text-muted);
             margin-bottom: 15px;
             padding-left: 5px;
         }
@@ -240,25 +273,25 @@
         .fund-name {
             font-size: 16px;
             font-weight: bold;
-            color: #333;
+            color: var(--color-text);
             cursor: pointer;
             transition: color 0.3s;
         }
 
         .fund-name:hover {
-            color: #667eea;
+            color: var(--color-primary);
             text-decoration: underline;
         }
 
         .fund-code {
-            color: #999;
+            color: var(--color-text-muted);
             font-size: 13px;
         }
 
         .fund-platform {
             display: inline-block;
             background: #e9ecef;
-            color: #666;
+            color: var(--color-text-secondary);
             font-size: 11px;
             padding: 2px 8px;
             border-radius: 4px;
@@ -280,7 +313,7 @@
         }
 
         .metric-labels td {
-            color: #999;
+            color: var(--color-text-muted);
             font-size: 12px;
             padding-bottom: 4px;
         }
@@ -309,7 +342,7 @@
             background: #f8f9fa;
             padding: 15px;
             text-align: left;
-            color: #666;
+            color: var(--color-text-secondary);
             font-weight: 600;
             font-size: 14px;
         }
@@ -334,7 +367,7 @@
 
         .purchase-details h4 {
             margin-bottom: 10px;
-            color: #333;
+            color: var(--color-text);
         }
 
         .purchase-details table {
@@ -357,7 +390,7 @@
 
         .chart-wrapper {
             background: white;
-            border-radius: 15px;
+            border-radius: var(--radius-card);
             padding: 20px;
             margin-top: 30px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -371,12 +404,12 @@
         .loading {
             text-align: center;
             padding: 50px;
-            color: #666;
+            color: var(--color-text-secondary);
         }
 
         .error {
             background: #fef0f0;
-            color: #f56c6c;
+            color: var(--color-profit);
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
@@ -449,7 +482,7 @@
             padding: 0;
             width: 90%;
             max-width: 800px;
-            border-radius: 15px;
+            border-radius: var(--radius-card);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             max-height: 90vh;
             overflow-y: auto;
@@ -457,9 +490,9 @@
 
         .modal-header {
             padding: 20px 30px;
-            background: #667eea;
+            background: var(--color-primary);
             color: white;
-            border-radius: 15px 15px 0 0;
+            border-radius: var(--radius-card) 15px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -492,7 +525,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--color-text);
             font-weight: 600;
         }
 
@@ -506,7 +539,7 @@
 
         .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--color-primary);
         }
 
         .records-list {
@@ -584,7 +617,7 @@
         .settings-menu a {
             display: block;
             padding: 12px 16px;
-            color: #333;
+            color: var(--color-text);
             text-decoration: none;
             font-size: 14px;
             cursor: pointer;
@@ -638,25 +671,25 @@
 
         .search-result-code {
             font-weight: bold;
-            color: #667eea;
+            color: var(--color-primary);
             font-size: 14px;
         }
 
         .search-result-name {
-            color: #666;
+            color: var(--color-text-secondary);
             font-size: 12px;
             margin-top: 2px;
         }
 
         .search-result-platform {
-            color: #999;
+            color: var(--color-text-muted);
             font-size: 11px;
             margin-top: 2px;
         }
 
         .search-no-result {
             padding: 12px;
-            color: #999;
+            color: var(--color-text-muted);
             text-align: center;
             font-size: 13px;
         }
@@ -676,8 +709,8 @@
         .skeleton-stat-card {
             background: white;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
         }
 
         .skeleton-stat-card .skeleton {
@@ -687,8 +720,8 @@
         .skeleton-platform-section {
             background: white;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
             margin-bottom: 30px;
         }
 
@@ -710,9 +743,9 @@
 
         .sell-quick-btn {
             padding: 6px 14px;
-            border: 1.5px solid #667eea;
+            border: 1.5px solid var(--color-primary);
             background: white;
-            color: #667eea;
+            color: var(--color-primary);
             border-radius: 20px;
             cursor: pointer;
             font-size: 13px;
@@ -721,18 +754,18 @@
         }
 
         .sell-quick-btn:hover {
-            background: #667eea;
+            background: var(--color-primary);
             color: white;
         }
 
         .sell-quick-btn.active {
-            background: #667eea;
+            background: var(--color-primary);
             color: white;
         }
 
         .sell-quick-hint {
             font-size: 12px;
-            color: #999;
+            color: var(--color-text-muted);
             margin-top: 6px;
             display: none;
         }
@@ -741,8 +774,8 @@
         .search-filter-bar {
             background: white;
             padding: 15px 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
             margin-bottom: 20px;
             display: flex;
             gap: 15px;
@@ -762,7 +795,7 @@
         }
 
         .search-filter-bar input[type="text"]:focus {
-            border-color: #667eea;
+            border-color: var(--color-primary);
         }
 
         .filter-buttons {
@@ -783,14 +816,14 @@
         }
 
         .filter-btn:hover {
-            border-color: #667eea;
-            color: #667eea;
+            border-color: var(--color-primary);
+            color: var(--color-primary);
         }
 
         .filter-btn.active {
-            background: #667eea;
+            background: var(--color-primary);
             color: white;
-            border-color: #667eea;
+            border-color: var(--color-primary);
         }
 
         /* 周期切换按钮 */
@@ -798,9 +831,9 @@
             transition: all 0.3s;
         }
         .period-btn:hover {
-            background: #667eea;
+            background: var(--color-primary);
             color: #fff;
-            border-color: #667eea;
+            border-color: var(--color-primary);
         }
 
         /* 筛选隐藏 */
@@ -826,7 +859,7 @@
             }
 
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: 1fr;
                 gap: 8px;
                 margin-bottom: 15px;
             }
@@ -837,12 +870,12 @@
             }
 
             .stat-card .label {
-                font-size: 10px;
+                font-size: 11px;
                 margin-bottom: 4px;
             }
 
             .stat-card .value {
-                font-size: 14px;
+                font-size: 16px;
             }
 
             .fund-card {
@@ -920,23 +953,10 @@
                 font-size: 10px;
             }
 
-        .purchase-details table {
+            .purchase-details table {
                 display: block;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-            }
-
-            /* 统计卡片 移动端：单列 */
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stat-card .label {
-                font-size: 11px;
-            }
-
-            .stat-card .value {
-                font-size: 16px;
             }
 
             /* 设置按钮 移动端 */
@@ -1036,7 +1056,7 @@
                     <div class="form-group">
                         <label>GitHub Token (需要 repo 权限)</label>
                         <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
-                        <small style="color: #666; margin-top: 5px; display: block;">
+                        <small style="color: var(--color-text-secondary); margin-top: 5px; display: block;">
                             获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (需要 repo 权限)
                         </small>
                     </div>
@@ -1057,7 +1077,7 @@
                 <div style="margin-bottom: 20px;">
                     <input type="file" id="importFileInput" accept=".json" style="display: none;">
                     <button class="btn btn-warning" id="btnImportFile">📂 从文件导入记录</button>
-                    <span style="margin-left: 10px; color: #666; font-size: 12px;">选择 purchase_records.json 文件（支持买入和卖出记录）</span>
+                    <span style="margin-left: 10px; color: var(--color-text-secondary); font-size: 12px;">选择 purchase_records.json 文件（支持买入和卖出记录）</span>
                 </div>
 
                 <h3 style="margin-bottom: 20px;">添加交易记录</h3>
@@ -1129,11 +1149,11 @@
                     <div class="input-hint" id="sharesHint">≈ ¥0.00</div>
                 </div>
                 <div class="form-group" style="margin-top: 10px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #333;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--color-text);">
                         <input type="checkbox" id="recordBefore15" checked style="width: 16px; height: 16px;">
                         <span>15点前提交（按当天净值确认）</span>
                     </label>
-                    <div style="font-size: 12px; color: #999; margin-top: 4px; padding-left: 24px;">
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; padding-left: 24px;">
                         未勾选：15点后或周末提交，按下一交易日净值确认
                     </div>
                 </div>
@@ -1144,7 +1164,7 @@
 
                 <h3 style="margin-bottom: 20px;">当前交易记录</h3>
                 <div id="recordsList" class="records-list">
-                    <p style="color: #999; text-align: center;">请先加载买入记录</p>
+                    <p style="color: var(--color-text-muted); text-align: center;">请先加载买入记录</p>
                 </div>
 
                 <div style="margin-top: 30px; text-align: center;">
@@ -1160,8 +1180,10 @@
             // 统一状态管理（替代散落的全局变量）
             const state = {
                 // 核心数据
-                state.fundsData: null,
-                state.purchaseRecords: {},
+                fundsData: null,
+                purchaseRecords: {},
+                fundConfig: null,   // 从 fund_config.json 动态加载
+                fundPlatforms: null, // 动态加载的平台列表
 
                 // 编辑状态
                 editing: {
@@ -1190,10 +1212,10 @@
 
                 // 搜索状态
                 search: {
-                    state.search.jsonpCallbackId: 0,
+                    jsonpCallbackId: 0,
                     debounceTimer: null,
                     requestId: 0,
-                    state.search.pendingNewFund: null,
+                    pendingNewFund: null,
                     hideTimer: null
                 },
 
@@ -1289,6 +1311,23 @@
 
         // 加载数据（强制UTF-8解码，避免中文乱码）
         async function loadData() {
+            // 同时加载基金配置文件（用于交易记录管理的基金列表）
+            try {
+                const configResp = await fetch('fund_config.json?t=' + new Date().getTime());
+                if (configResp.ok) {
+                    const config = await configResp.json();
+                    // 转换为 DEFAULT_FUNDS 兼容格式
+                    const dynamicFunds = {};
+                    for (const [platform, fundList] of Object.entries(config.funds || {})) {
+                        dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name}));
+                    }
+                    state.fundConfig = dynamicFunds;
+                    state.fundPlatforms = Object.keys(dynamicFunds);
+                }
+            } catch(e) {
+                console.warn('加载基金配置文件失败，使用内置默认值:', e);
+            }
+
             try {
                 const response = await fetch('data/funds_data.json?t=' + new Date().getTime());
                 if (!response.ok) {
@@ -1309,12 +1348,12 @@
 
                 document.getElementById('mainContent').innerHTML = `
                     <div style="text-align:center;padding:40px;">
-                        <h3 style="color:#e6a23c;">⚠️ 数据加载失败</h3>
-                        <p style="margin:15px 0;color:#f56c6c;font-size:14px;">${escapeHtml(error.message)}</p>
+                        <h3 style="color:var(--color-warning);">⚠️ 数据加载失败</h3>
+                        <p style="margin:15px 0;color:var(--color-profit);font-size:14px;">${escapeHtml(error.message)}</p>
 
                         ${(isFileProtocol || isCors) ? `
-                        <div style="background:#fff8e6;border:1px solid #e6a23c;border-radius:8px;padding:20px;margin:20px auto;max-width:600px;text-align:left;">
-                            <h4 style="margin:0 0 12px 0;color:#e6a23c;">💡 本地调试：CORS 限制解决方案</h4>
+                        <div style="background:#fff8e6;border:1px solid var(--color-warning);border-radius:8px;padding:20px;margin:20px auto;max-width:600px;text-align:left;">
+                            <h4 style="margin:0 0 12px 0;color:var(--color-warning);">💡 本地调试：CORS 限制解决方案</h4>
                             <p style="margin:0 0 10px 0;color:#666;font-size:14px;">
                                 浏览器禁止 <code>file://</code> 协议下的跨域请求。<br>
                                 需要用本地 HTTP 服务器来绕过此限制。
@@ -1335,7 +1374,7 @@
 
                         <div style="margin-top:20px;">
                             <a href="https://jixiang0506.github.io/fund-tracker/"
-                               style="display:inline-block;padding:10px 20px;background:#667eea;color:white;text-decoration:none;border-radius:5px;"
+                               style="display:inline-block;padding:10px 20px;background:var(--color-primary);color:white;text-decoration:none;border-radius:5px;"
                                target="_blank">
                                 🌐 访问线上版本（无需本地服务器）
                             </a>
@@ -1348,6 +1387,16 @@
         // 渲染数据
         function renderData() {
             if (!state.fundsData) return;
+
+            // 销毁所有 Chart 实例，防止内存泄漏
+            Object.values(state.charts.fundInstances).forEach(c => {
+                try { c.destroy(); } catch(e) {}
+            });
+            state.charts.fundInstances = {};
+            if (state.charts.mainInstance) {
+                try { state.charts.mainInstance.destroy(); } catch(e) {}
+                state.charts.mainInstance = null;
+            }
 
             try {
                 document.getElementById('updateTime').textContent = `最后更新: ${state.fundsData.update_time}`;
@@ -1363,16 +1412,16 @@
                 html += `
                     <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
                         <div class="chart-wrapper">
-                            <h3 style="font-size: 18px; color: #333; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                            <h3 style="font-size: 18px; color: var(--color-text); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
                                 📈 累计收益率走势
                             </h3>
                             <div style="margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="period-btn" data-period="7d" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近一周</button>
-                                <button class="period-btn" data-period="1m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近一个月</button>
-                                <button class="period-btn" data-period="3m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近三个月</button>
-                                <button class="period-btn" data-period="6m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近半年</button>
-                                <button class="period-btn" data-period="1y" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; cursor: pointer;">近一年</button>
-                                <button class="period-btn active" data-period="all" style="padding: 5px 14px; border: 1px solid #667eea; border-radius: 16px; background: #667eea; color: #fff; font-size: 13px; cursor: pointer;">最长期限</button>
+                                <button class="period-btn" data-period="7d" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近一周</button>
+                                <button class="period-btn" data-period="1m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近一个月</button>
+                                <button class="period-btn" data-period="3m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近三个月</button>
+                                <button class="period-btn" data-period="6m" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近半年</button>
+                                <button class="period-btn" data-period="1y" style="padding: 5px 14px; border: 1px solid #ddd; border-radius: 16px; background: #f5f5f5; color: var(--color-text-secondary); font-size: 13px; cursor: pointer;">近一年</button>
+                                <button class="period-btn active" data-period="all" style="padding: 5px 14px; border: 1px solid var(--color-primary); border-radius: 16px; background: var(--color-primary); color: #fff; font-size: 13px; cursor: pointer;">最长期限</button>
                             </div>
                             <div class="chart-container">
                                 <canvas id="chart-all"></canvas>
@@ -1501,16 +1550,16 @@
                         </table>
                         ${fnd.holdings && fnd.holdings.realized_profit_loss !== 0 ? `
                         <div class="realized-profit" style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">
-                            <span style="color: #666;">已实现盈亏：</span>
-                            <span style="font-weight: bold; color: ${fnd.holdings.realized_profit_loss >= 0 ? '#f56c6c' : '#67c23a'};">
+                            <span style="color: var(--color-text-secondary);">已实现盈亏：</span>
+                            <span style="font-weight: bold; color: ${fnd.holdings.realized_profit_loss >= 0 ? 'var(--color-profit)' : 'var(--color-loss)'};">
                                 ${fnd.holdings.realized_profit_loss >= 0 ? '+' : ''}¥${fnd.holdings.realized_profit_loss.toFixed(2)}
                             </span>
                         </div>
                         ` : ''}
                         ${fnd.holdings && fnd.holdings.avg_cost_nav > 0 ? `
                         <div class="avg-cost" style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">
-                            <span style="color: #666;">持仓成本：</span>
-                            <span style="font-weight: bold; color: #333;">
+                            <span style="color: var(--color-text-secondary);">持仓成本：</span>
+                            <span style="font-weight: bold; color: var(--color-text);">
                                 ${fnd.holdings.avg_cost_nav.toFixed(4)}
                             </span>
                         </div>
@@ -1563,10 +1612,10 @@
                     const totalShares = fnd.holdings.total_shares || 0;
                     html += `
                             <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td colspan="2" style="text-align: right; color: #666;">投入总金额：</td>
-                                <td style="color: #333;">¥${totalInvested.toFixed(2)}</td>
-                                <td style="text-align: right; color: #666;">持有总份额：</td>
-                                <td style="color: #333;">${totalShares.toFixed(2)}</td>
+                                <td colspan="2" style="text-align: right; color: var(--color-text-secondary);">投入总金额：</td>
+                                <td style="color: var(--color-text);">¥${totalInvested.toFixed(2)}</td>
+                                <td style="text-align: right; color: var(--color-text-secondary);">持有总份额：</td>
+                                <td style="color: var(--color-text);">${totalShares.toFixed(2)}</td>
                             </tr>
                     `;
 
@@ -1593,9 +1642,9 @@
             // 更新按钮样式
             document.querySelectorAll('.period-btn').forEach(btn => {
                 if (btn.dataset.period === period) {
-                    btn.style.background = '#667eea';
+                    btn.style.background = 'var(--color-primary)';
                     btn.style.color = '#fff';
-                    btn.style.borderColor = '#667eea';
+                    btn.style.borderColor = 'var(--color-primary)';
                 } else {
                     btn.style.background = '#f5f5f5';
                     btn.style.color = '#666';
@@ -1620,9 +1669,9 @@
             // 同步周期按钮样式（防止DOM重建后样式丢失）
             document.querySelectorAll('.period-btn').forEach(btn => {
                 if (btn.dataset.period === state.charts.period) {
-                    btn.style.background = '#667eea';
+                    btn.style.background = 'var(--color-primary)';
                     btn.style.color = '#fff';
-                    btn.style.borderColor = '#667eea';
+                    btn.style.borderColor = 'var(--color-primary)';
                 } else {
                     btn.style.background = '#f5f5f5';
                     btn.style.color = '#666';
@@ -1853,9 +1902,9 @@
             if (!canvas) return;
 
             // 销毁旧图表，防止内存泄漏
-            if (state.charts.fundInstances[id]) {
-                state.charts.fundInstances[id].destroy();
-                delete state.charts.fundInstances[id];
+            if (state.charts.fundInstances[canvasId]) {
+                state.charts.fundInstances[canvasId].destroy();
+                delete state.charts.fundInstances[canvasId];
             }
 
             // 查找基金数据
@@ -2011,7 +2060,7 @@
             document.getElementById('manageModal').style.display = 'none';
         }
 
-        // 预定义平台列表（备用）
+        // 预定义平台列表（回退，fund_config.json 加载失败时使用）
         const DEFAULT_PLATFORMS = ['支付宝', '理财通', '招商银行'];
         const DEFAULT_FUNDS = {
             '支付宝': [
@@ -2033,15 +2082,23 @@
             ]
         };
 
+        // 获取当前基金配置（优先动态加载，回退到默认值）
+        function getFundConfig() {
+            return state.fundConfig || DEFAULT_FUNDS;
+        }
+        function getPlatformList() {
+            return state.fundPlatforms || DEFAULT_PLATFORMS;
+        }
+
         // 填充平台选择框
         function populatePlatformSelect() {
             const select = document.getElementById('recordPlatform');
             select.innerHTML = '<option value="">-- 选择平台 --</option>';
 
-            // 优先使用已加载的数据，否则使用默认值
+            // 优先使用动态加载的配置，否则使用默认值
             const platforms = (state.fundsData && state.fundsData.funds) 
                 ? Object.keys(state.fundsData.funds) 
-                : DEFAULT_PLATFORMS;
+                : getPlatformList();
 
             platforms.forEach(platform => {
                 const option = document.createElement('option');
@@ -2060,19 +2117,20 @@
             if (!platform) return;
 
             // 如果有暂存的新基金，添加到当前平台
+            const fundConfig = getFundConfig();
             if (state.search.pendingNewFund) {
-                if (DEFAULT_FUNDS[platform] && !DEFAULT_FUNDS[platform].some(f => f.code === state.search.pendingNewFund.code)) {
-                    DEFAULT_FUNDS[platform].push({ code: state.search.pendingNewFund.code, name: state.search.pendingNewFund.name });
+                if (fundConfig[platform] && !fundConfig[platform].some(f => f.code === state.search.pendingNewFund.code)) {
+                    fundConfig[platform].push({ code: state.search.pendingNewFund.code, name: state.search.pendingNewFund.name });
                 }
                 state.search.pendingNewFund = null;
             }
 
-            // 优先使用已加载的数据，否则使用默认值
+            // 优先使用已加载的数据，否则使用动态/默认配置
             let funds = [];
             if (state.fundsData && state.fundsData.funds && state.fundsData.funds[platform]) {
                 funds = state.fundsData.funds[platform];
-            } else if (DEFAULT_FUNDS[platform]) {
-                funds = DEFAULT_FUNDS[platform];
+            } else if (fundConfig[platform]) {
+                funds = fundConfig[platform];
             }
 
             funds.forEach(fnd => {
@@ -2088,7 +2146,7 @@
             }
         }
 
-        // 构建基金搜索索引（从已加载数据和默认数据合并）
+        // 构建基金搜索索引（从已加载数据和配置合并）
         function buildFundSearchIndex() {
             const index = [];
             const seen = new Set();
@@ -2110,8 +2168,8 @@
                 });
             }
 
-            // 从默认数据补充（避免重复）
-            Object.entries(DEFAULT_FUNDS).forEach(([platform, funds]) => {
+            // 从配置文件/默认数据补充（避免重复）
+            Object.entries(getFundConfig()).forEach(([platform, funds]) => {
                 funds.forEach(fnd => {
                     const key = `${platform}-${fnd.code}`;
                     if (!seen.has(key)) {
@@ -2243,7 +2301,7 @@
             // 本地已有基金
             if (localMatches.length > 0) {
                 const header = document.createElement('div');
-                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: #999; background: #f8f9fa;';
+                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
                 header.textContent = '已有基金';
                 resultsDiv.appendChild(header);
 
@@ -2263,7 +2321,7 @@
             // 联网搜索到的新基金
             if (newFunds.length > 0) {
                 const header = document.createElement('div');
-                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: #999; background: #f8f9fa;';
+                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
                 header.textContent = '新基金（未持有）';
                 resultsDiv.appendChild(header);
 
@@ -2274,7 +2332,7 @@
                     div.innerHTML = `
                         <div class="search-result-code">${escapeHtml(item.code)}</div>
                         <div class="search-result-name">${escapeHtml(item.name)}</div>
-                        <div class="search-result-platform" style="color: #e6a23c;">新基金 - 点击选择购买平台</div>
+                        <div class="search-result-platform" style="color: var(--color-warning);">新基金 - 点击选择购买平台</div>
                     `;
                     resultsDiv.appendChild(div);
                 });
@@ -2867,35 +2925,35 @@ function getFundName(platform, fundCode) {
             const totalProfitPercent = summary.total_profit_loss_percent || 0;
             const totalRealizedProfit = summary.total_realized_profit_loss || 0;
 
-            const profitClass = totalProfit >= 0 ? 'color: #f56c6c;' : 'color: #67c23a;';
+            const profitClass = totalProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
             const profitSign = totalProfit >= 0 ? '+' : '';
-            const realizedClass = totalRealizedProfit >= 0 ? 'color: #f56c6c;' : 'color: #67c23a;';
+            const realizedClass = totalRealizedProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
             const realizedSign = totalRealizedProfit >= 0 ? '+' : '';
 
             contentDiv.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
                     <div>
-                        <div style="color: #666; font-size: 12px;">总投入</div>
+                        <div style="color: var(--color-text-secondary); font-size: 12px;">总投入</div>
                         <div style="font-size: 18px; font-weight: bold;">¥${totalInvested.toFixed(2)}</div>
                     </div>
                     <div>
-                        <div style="color: #666; font-size: 12px;">当前市值</div>
+                        <div style="color: var(--color-text-secondary); font-size: 12px;">当前市值</div>
                         <div style="font-size: 18px; font-weight: bold;">¥${totalValue.toFixed(2)}</div>
                     </div>
                     <div>
-                        <div style="color: #666; font-size: 12px;">未实现盈亏</div>
+                        <div style="color: var(--color-text-secondary); font-size: 12px;">未实现盈亏</div>
                         <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}¥${totalProfit.toFixed(2)}</div>
                     </div>
                     <div>
-                        <div style="color: #666; font-size: 12px;">总收益率</div>
+                        <div style="color: var(--color-text-secondary); font-size: 12px;">总收益率</div>
                         <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}${totalProfitPercent.toFixed(2)}%</div>
                     </div>
                     <div>
-                        <div style="color: #666; font-size: 12px;">已实现盈亏</div>
+                        <div style="color: var(--color-text-secondary); font-size: 12px;">已实现盈亏</div>
                         <div style="font-size: 18px; font-weight: bold; ${realizedClass}">${realizedSign}¥${totalRealizedProfit.toFixed(2)}</div>
                     </div>
                 </div>
-                <div style="margin-top: 10px; font-size: 12px; color: #999;">最后更新: ${escapeHtml(state.fundsData.update_time)}</div>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">最后更新: ${escapeHtml(state.fundsData.update_time)}</div>
             `;
 
             summaryDiv.style.display = 'block';
@@ -2906,7 +2964,7 @@ function renderRecordsList() {
     const container = document.getElementById('recordsList');
 
     if (!state.purchaseRecords || Object.keys(state.purchaseRecords).length === 0) {
-        container.innerHTML = '<p style="color: #999; text-align: center;">暂无买入记录</p>';
+        container.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">暂无买入记录</p>';
         return;
     }
 
@@ -2928,7 +2986,7 @@ function renderRecordsList() {
                 const fundName = getFundName(platform, fundCode);
                 const isSell = record.type === 'sell';
                 const typeLabel = isSell ? '卖出' : '买入';
-                const typeColor = isSell ? '#67c23a' : '#f56c6c';
+                const typeColor = isSell ? 'var(--color-loss)' : 'var(--color-profit)';
                 const amountPrefix = isSell ? '-' : '';
                 const amountValue = typeof record.amount === 'number' ? record.amount.toFixed(2) : '0.00';
 
@@ -2937,7 +2995,7 @@ function renderRecordsList() {
                         <div class="record-info">
                             <strong>${escapeHtml(platform)}</strong> - ${escapeHtml(fundName)} (${escapeHtml(fundCode)})<br>
                             <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
-                            日期: ${escapeHtml(record.date)}${record.before_15 === false ? ' <span style="color: #e6a23c; font-size: 12px;">(15点后)</span>' : ''}, 金额: ¥${amountPrefix}${amountValue}
+                            日期: ${escapeHtml(record.date)}${record.before_15 === false ? ' <span style="color: var(--color-warning); font-size: 12px;">(15点后)</span>' : ''}, 金额: ¥${amountPrefix}${amountValue}
                         </div>
                         <div class="record-actions">
                             <button class="btn btn-primary edit-record-btn" data-platform="${encAttr(platform)}" data-code="${encAttr(fundCode)}" data-index="${index}" style="margin-right: 5px;">编辑</button>
@@ -2949,7 +3007,7 @@ function renderRecordsList() {
         }
     }
 
-    container.innerHTML = html || '<p style="color: #999; text-align: center;">暂无有效记录</p>';
+    container.innerHTML = html || '<p style="color: var(--color-text-muted); text-align: center;">暂无有效记录</p>';
 }
 
 // 删除买入记录 - 添加完整空值检查
@@ -3127,9 +3185,9 @@ function deletePurchaseRecord(platform, fundCode, index) {
             `;
 
             if (type === 'success') {
-                div.style.backgroundColor = '#67c23a';
+                div.style.backgroundColor = 'var(--color-loss)';
             } else if (type === 'error') {
-                div.style.backgroundColor = '#f56c6c';
+                div.style.backgroundColor = 'var(--color-profit)';
             } else {
                 div.style.backgroundColor = '#909399';
             }

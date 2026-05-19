@@ -1,21 +1,21 @@
 {
-  "update_time": "2026-05-19 10:04:17",
+  "update_time": "2026-05-19 14:29:47",
   "funds": {
     "支付宝": [
       {
         "code": "270023",
         "name": "广发全球精选股票(QDII)人民币A",
         "platform": "支付宝",
-        "current_nav": 6.2913,
-        "nav_date": "2026-05-19 04:00",
-        "daily_return": 0.17,
+        "current_nav": 6.2448,
+        "nav_date": "2026-05-19 22:28",
+        "daily_return": -0.12,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 93505.1,
           "total_shares": 23248.81,
-          "current_value": 146265.26,
-          "profit_loss": 52760.16,
-          "profit_loss_percent": 56.42,
+          "current_value": 145184.19,
+          "profit_loss": 51679.09,
+          "profit_loss_percent": 55.27,
           "purchases": [
             {
               "date": "2024-03-06",
@@ -2833,6 +2833,11 @@
             "date": "2026-05-15",
             "nav": 6.2804,
             "return_rate": 56.15
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 6.2525,
+            "return_rate": 55.46
           }
         ]
       },
@@ -2840,16 +2845,16 @@
         "code": "016665",
         "name": "天弘全球高端制造混合(QDII)C",
         "platform": "支付宝",
-        "current_nav": 3.091,
-        "nav_date": "2026-05-15",
-        "daily_return": -4.73,
+        "current_nav": 3.0823,
+        "nav_date": "2026-05-18",
+        "daily_return": -0.28,
         "nav_status": "delayed",
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8673.34,
-          "current_value": 26809.3,
-          "profit_loss": 6809.3,
-          "profit_loss_percent": 34.05,
+          "current_value": 26733.84,
+          "profit_loss": 6733.84,
+          "profit_loss_percent": 33.67,
           "purchases": [
             {
               "date": "2026-03-12",
@@ -5551,6 +5556,11 @@
             "date": "2026-05-15",
             "nav": 3.091,
             "return_rate": 34.05
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 3.0823,
+            "return_rate": 33.67
           }
         ]
       },
@@ -8306,6 +8316,11 @@
             "date": "2026-05-18",
             "nav": 9.5311,
             "return_rate": 25.75
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 9.4243,
+            "return_rate": 24.34
           }
         ]
       },
@@ -11037,6 +11052,11 @@
             "date": "2026-05-18",
             "nav": 5.6275,
             "return_rate": 19.38
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 5.5357,
+            "return_rate": 17.43
           }
         ]
       },
@@ -11044,16 +11064,16 @@
         "code": "018230",
         "name": "易方达全球优质企业混合(QDII)C(人民币份额)",
         "platform": "支付宝",
-        "current_nav": 2.1171,
-        "nav_date": "2026-05-19 04:00",
-        "daily_return": 0.1,
+        "current_nav": 2.1052,
+        "nav_date": "2026-05-19 22:29",
+        "daily_return": -0.06,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 78000.0,
           "total_shares": 40345.84,
-          "current_value": 85416.17,
-          "profit_loss": 7416.17,
-          "profit_loss_percent": 9.51,
+          "current_value": 84936.05,
+          "profit_loss": 6936.05,
+          "profit_loss_percent": 8.89,
           "purchases": [
             {
               "date": "2026-03-12",
@@ -13913,16 +13933,16 @@
         "code": "018147",
         "name": "建信新兴市场混合(QDII)C",
         "platform": "理财通",
-        "current_nav": 2.356,
-        "nav_date": "2026-05-19 04:00",
-        "daily_return": 0.17,
+        "current_nav": 2.2994,
+        "nav_date": "2026-05-19 22:29",
+        "daily_return": -0.11,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 1770.0,
           "total_shares": 1028.6,
-          "current_value": 2423.38,
-          "profit_loss": 653.38,
-          "profit_loss_percent": 36.91,
+          "current_value": 2365.16,
+          "profit_loss": 595.16,
+          "profit_loss_percent": 33.62,
           "purchases": [
             {
               "date": "2026-03-01",
@@ -16695,6 +16715,11 @@
             "date": "2026-05-15",
             "nav": 2.352,
             "return_rate": 36.68
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 2.302,
+            "return_rate": 33.78
           }
         ]
       },
@@ -16702,16 +16727,16 @@
         "code": "012922",
         "name": "易方达全球成长精选混合(QDII)人民币C",
         "platform": "理财通",
-        "current_nav": 3.8789,
-        "nav_date": "2026-05-19 04:00",
-        "daily_return": 0.14,
+        "current_nav": 3.8358,
+        "nav_date": "2026-05-19 22:29",
+        "daily_return": -0.09,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 1450.0,
           "total_shares": 506.89,
-          "current_value": 1966.17,
-          "profit_loss": 516.17,
-          "profit_loss_percent": 35.6,
+          "current_value": 1944.33,
+          "profit_loss": 494.33,
+          "profit_loss_percent": 34.09,
           "purchases": [
             {
               "date": "2026-03-04",
@@ -22365,6 +22390,11 @@
             "date": "2026-05-18",
             "nav": 7.884,
             "return_rate": 20.58
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 7.974,
+            "return_rate": 21.95
           }
         ]
       }
@@ -22374,16 +22404,16 @@
         "code": "021277",
         "name": "广发全球精选股票(QDII)人民币C",
         "platform": "招商银行",
-        "current_nav": 6.214,
-        "nav_date": "2026-05-19 04:00",
-        "daily_return": 0.17,
+        "current_nav": 6.1678,
+        "nav_date": "2026-05-19 22:28",
+        "daily_return": -0.12,
         "nav_status": "estimated",
         "holdings": {
           "total_invested": 91197.05,
           "total_shares": 15977.23,
-          "current_value": 99282.53,
-          "profit_loss": 8085.48,
-          "profit_loss_percent": 8.87,
+          "current_value": 98544.38,
+          "profit_loss": 7347.33,
+          "profit_loss_percent": 8.06,
           "purchases": [
             {
               "date": "2026-04-17",
@@ -24923,6 +24953,11 @@
             "date": "2026-05-15",
             "nav": 6.2032,
             "return_rate": 8.68
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 6.1754,
+            "return_rate": 8.19
           }
         ]
       },
@@ -27646,6 +27681,11 @@
             "date": "2026-05-18",
             "nav": 3.078,
             "return_rate": 11.74
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 3.083,
+            "return_rate": 11.92
           }
         ]
       },
@@ -30241,6 +30281,11 @@
             "date": "2026-05-18",
             "nav": 2.8933,
             "return_rate": 16.87
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 2.8887,
+            "return_rate": 16.69
           }
         ]
       }
@@ -30248,9 +30293,9 @@
   },
   "summary": {
     "total_invested": 569055.5399999999,
-    "total_value": 701938.6699999998,
-    "total_profit_loss": 132883.13,
-    "total_profit_loss_percent": 23.35,
+    "total_value": 699483.8099999999,
+    "total_profit_loss": 130428.27,
+    "total_profit_loss_percent": 22.92,
     "total_realized_profit_loss": -1672.46
   }
 }

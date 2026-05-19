@@ -999,11 +999,9 @@
         <!-- 搜索筛选栏 -->
         <div class="search-filter-bar">
             <input type="text" id="fundFilterInput" placeholder="搜索基金名称或代码...">
-            <div class="filter-buttons">
+            <div class="filter-buttons" id="filterButtons">
                 <button class="filter-btn active" data-platform="全部">全部</button>
-                <button class="filter-btn" data-platform="支付宝">支付宝</button>
-                <button class="filter-btn" data-platform="理财通">理财通</button>
-                <button class="filter-btn" data-platform="招商银行">招商银行</button>
+                <!-- 平台筛选按钮由 JS 动态生成 -->
             </div>
         </div>
 
@@ -1311,21 +1309,23 @@
 
         // 加载数据（强制UTF-8解码，避免中文乱码）
         async function loadData() {
-            // 同时加载基金配置文件（用于交易记录管理的基金列表）
+            // 同时加载基金配置文件（唯一数据源，用于交易记录管理的基金列表和筛选按钮）
             try {
                 const configResp = await fetch('fund_config.json?t=' + new Date().getTime());
                 if (configResp.ok) {
                     const config = await configResp.json();
-                    // 转换为 DEFAULT_FUNDS 兼容格式
+                    // 转换为兼容格式
                     const dynamicFunds = {};
                     for (const [platform, fundList] of Object.entries(config.funds || {})) {
                         dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name}));
                     }
                     state.fundConfig = dynamicFunds;
                     state.fundPlatforms = Object.keys(dynamicFunds);
+                    // 动态生成平台筛选按钮
+                    renderFilterButtons();
                 }
             } catch(e) {
-                console.warn('加载基金配置文件失败，使用内置默认值:', e);
+                console.error('加载基金配置文件失败，交易记录管理功能不可用:', e);
             }
 
             try {
@@ -2060,34 +2060,31 @@
             document.getElementById('manageModal').style.display = 'none';
         }
 
-        // 预定义平台列表（回退，fund_config.json 加载失败时使用）
-        const DEFAULT_PLATFORMS = ['支付宝', '理财通', '招商银行'];
-        const DEFAULT_FUNDS = {
-            '支付宝': [
-                {code: '270023', name: '广发全球精选股票(QDII)人民币A'},
-                {code: '016665', name: '天弘全球高端制造混合(QDII)C'},
-                {code: '001438', name: '易方达瑞享混合E'},
-                {code: '002112', name: '德邦鑫星价值灵活配置混合C'},
-                {code: '018230', name: '易方达全球优质企业混合(QDII)C(人民币份额)'}
-            ],
-            '理财通': [
-                {code: '018147', name: '建信新兴市场混合(QDII)C'},
-                {code: '012922', name: '易方达全球成长精选混合(QDII)人民币C'},
-                {code: '019018', name: '易方达信息产业混合C'}
-            ],
-            '招商银行': [
-                {code: '021277', name: '广发全球精选股票(QDII)人民币C'},
-                {code: '000390', name: '华商优势行业混合A'},
-                {code: '020723', name: '国寿安保数字经济股票发起式C'}
-            ]
-        };
-
-        // 获取当前基金配置（优先动态加载，回退到默认值）
+        // 获取当前基金配置（唯一数据源：fund_config.json）
         function getFundConfig() {
-            return state.fundConfig || DEFAULT_FUNDS;
+            return state.fundConfig || {};
         }
         function getPlatformList() {
-            return state.fundPlatforms || DEFAULT_PLATFORMS;
+            return state.fundPlatforms || [];
+        }
+
+        // 动态生成平台筛选按钮（基于 fund_config.json）
+        function renderFilterButtons() {
+            const container = document.getElementById('filterButtons');
+            if (!container) return;
+            // 保留"全部"按钮，移除其余
+            const allBtn = container.querySelector('[data-platform="全部"]');
+            container.innerHTML = '';
+            if (allBtn) container.appendChild(allBtn);
+            // 从配置动态添加平台按钮
+            const platforms = getPlatformList();
+            platforms.forEach(platform => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.setAttribute('data-platform', platform);
+                btn.textContent = platform;
+                container.appendChild(btn);
+            });
         }
 
         // 填充平台选择框
@@ -2095,9 +2092,9 @@
             const select = document.getElementById('recordPlatform');
             select.innerHTML = '<option value="">-- 选择平台 --</option>';
 
-            // 优先使用动态加载的配置，否则使用默认值
-            const platforms = (state.fundsData && state.fundsData.funds) 
-                ? Object.keys(state.fundsData.funds) 
+            // 优先使用已加载的数据，否则使用配置文件中的平台列表
+            const platforms = (state.fundsData && state.fundsData.funds)
+                ? Object.keys(state.fundsData.funds)
                 : getPlatformList();
 
             platforms.forEach(platform => {
@@ -2125,7 +2122,7 @@
                 state.search.pendingNewFund = null;
             }
 
-            // 优先使用已加载的数据，否则使用动态/默认配置
+            // 优先使用已加载的数据，否则使用配置文件中的基金列表
             let funds = [];
             if (state.fundsData && state.fundsData.funds && state.fundsData.funds[platform]) {
                 funds = state.fundsData.funds[platform];
@@ -2396,12 +2393,13 @@
             }
         }
 
-        // 将新基金添加到默认数据中
+        // 将新基金添加到配置中
         function addNewFundToDefault(code, fundName, targetPlatform) {
-            const targets = targetPlatform ? [targetPlatform] : Object.keys(DEFAULT_FUNDS);
+            const fundConfig = getFundConfig();
+            const targets = targetPlatform ? [targetPlatform] : Object.keys(fundConfig);
             targets.forEach(plat => {
-                if (DEFAULT_FUNDS[plat] && !DEFAULT_FUNDS[plat].some(f => f.code === code)) {
-                    DEFAULT_FUNDS[plat].push({ code, name: fundName });
+                if (fundConfig[plat] && !fundConfig[plat].some(f => f.code === code)) {
+                    fundConfig[plat].push({ code, name: fundName });
                 }
             });
             console.log('已将新基金', code, fundName, '添加到', targetPlatform || '所有平台');
@@ -2899,9 +2897,10 @@ function getFundName(platform, fundCode) {
         if (fund?.name) return fund.name;
     }
     
-    // 从 DEFAULT_FUNDS 查找
-    if (DEFAULT_FUNDS[platform]) {
-        const fund = DEFAULT_FUNDS[platform].find(f => f?.code === fundCode);
+    // 从 fundConfig 查找
+    const fundConfig = getFundConfig();
+    if (fundConfig[platform]) {
+        const fund = fundConfig[platform].find(f => f?.code === fundCode);
         if (fund?.name) return fund.name;
     }
     
@@ -3273,12 +3272,13 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 location.reload();
             });
 
-            // 3. 平台筛选按钮
-            document.querySelectorAll('.filter-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const platform = this.dataset.platform;
-                    filterByPlatform(platform, this);
-                });
+            // 3. 平台筛选按钮（事件委托，支持动态生成的按钮）
+            document.getElementById('filterButtons')?.addEventListener('click', function(e) {
+                const btn = e.target.closest('.filter-btn');
+                if (btn) {
+                    const platform = btn.dataset.platform;
+                    filterByPlatform(platform, btn);
+                }
             });
 
             // 4. 关闭Modal按钮

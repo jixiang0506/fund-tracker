@@ -12,22 +12,21 @@
 """
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import json
 import os
 from datetime import datetime, timedelta
 import time
-import subprocess
 import sys
 
 # 导入日志模块
 try:
-    from logger_config import setup_logger, log
-    logger = setup_logger('fetch_fund_data')
+    from logger_config import log
 except ImportError:
     # 如果 logger_config 不存在，使用简单的 log 函数
     def log(message, level='info'):
         print(message)
-    logger = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -86,13 +85,31 @@ HEADERS = {
     "Referer": "https://fund.eastmoney.com/"
 }
 
-def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries=3):
+# 创建带统一重试策略的 HTTP Session
+def _create_session():
+    """创建带自动重试的 requests.Session"""
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[500, 502, 503, 504],
+        allowed_methods=["GET"]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    session.headers.update(HEADERS)
+    return session
+
+def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries=3, session=None):
     """获取基金实时数据（估算净值和涨跌幅），支持重试。
     如果实时估值API返回空（非交易时段），则回退到历史数据API获取最新净值。"""
+    if session is None:
+        session = _create_session()
     for attempt in range(1, max_retries + 1):
         try:
             url = REALTIME_API.format(fund_code)
-            response = requests.get(url, headers=HEADERS, timeout=10)
+            response = session.get(url, timeout=10)
             response.raise_for_status()
 
             # 解析JSONP响应
@@ -102,14 +119,14 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
                 log(f"  ⚠ 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
 
             data = json.loads(json_str)
 
             # 检查返回数据是否有效（有些基金不在交易时段会返回空内容）
             if not data.get("name") and not data.get("gsz"):
                 log(f"  ⚠ 基金 {fund_code} 实时估值无数据，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
 
             return {
                 "code": fund_code,
@@ -122,7 +139,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
         except json.JSONDecodeError:
             # JSON解析失败 - 回退到历史数据
             log(f"  ⚠ 基金 {fund_code} 实时估值JSON解析失败，尝试回退到历史数据API...")
-            return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
+            return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
         except Exception as e:
             if attempt < max_retries:
                 log(f"  ⚠ 获取基金 {fund_code} 实时数据失败 (第{attempt}次), {max_retries - attempt}次重试机会剩余: {e}")
@@ -130,12 +147,14 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             else:
                 log(f"❌ 获取基金 {fund_code} 实时数据失败 (已重试{max_retries}次): {e}")
                 # 最后一次也尝试回退
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
 
-def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None):
+def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, session=None):
     """从历史净值API获取最新记录，作为实时数据的回退方案。
     QDII基金（T+1更新）若当天无新净值，自动沿用上一交易日净值并标记延迟。
     """
+    if session is None:
+        session = _create_session()
     try:
         today = datetime.now().strftime("%Y-%m-%d")
         is_qdii = qdii_codes and fund_code in qdii_codes
@@ -147,7 +166,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None):
             "startDate": "2020-01-01",
             "endDate": today
         }
-        response = requests.get(HISTORY_API, params=params, headers=HEADERS, timeout=10)
+        response = session.get(HISTORY_API, params=params, timeout=10)
         response.raise_for_status()
         result = response.json()
 
@@ -205,8 +224,10 @@ def _get_earliest_purchase_date(nested_records):
         return dt.strftime("%Y-%m-%d")
     return "2020-01-01"  # 兜底默认值
 
-def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
+def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, session=None):
     """获取基金历史净值数据（从start_date开始获取）"""
+    if session is None:
+        session = _create_session()
     try:
         log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
@@ -222,7 +243,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100):
                 "endDate": datetime.now().strftime("%Y-%m-%d")
             }
 
-            response = requests.get(HISTORY_API, params=params, headers=HEADERS, timeout=10)
+            response = session.get(HISTORY_API, params=params, timeout=10)
             response.raise_for_status()
 
             result = response.json()
@@ -486,36 +507,99 @@ def calculate_holdings(purchases, current_nav, history):
         "avg_cost_nav": round(avg_cost_nav, 4)  # 新增：平均持仓成本
     }
 
-def calculate_cumulative_returns(history, purchases):
-    """为历史数据中每一天预计算累计收益率，避免前端重复计算。"""
+def calculate_cumulative_returns(history, purchases, original_purchases=None, history_for_nav=None):
+    """为历史数据中每一天预计算累计收益率，使用与 calculate_holdings() 一致的 FIFO 逻辑。
+
+    参数：
+        history: 历史净值列表（按日期升序）
+        purchases: calculate_holdings() 返回的 purchase_details（含 fifo_cost）
+        original_purchases: 原始交易记录（含 before_15 字段），用于精确 FIFO 模拟
+        history_for_nav: 与 original_purchases 配合的历史数据，用于查净值
+    """
     if not history:
         return []
 
-    sorted_purchases = sorted(purchases, key=lambda p: p["date"])
     return_rates = []
 
-    for h in history:
-        total_shares = 0
-        total_invested = 0
+    # 使用原始交易记录进行精确 FIFO 模拟（如果提供的话）
+    if original_purchases and history_for_nav:
+        sorted_purchases = sorted(original_purchases, key=lambda p: p["date"])
 
-        for p in sorted_purchases:
-            if p["date"] <= h["date"]:
-                if p.get("type") == "sell":
-                    total_shares -= abs(p["shares"])
-                    # 使用FIFO成本（卖出时实际抵扣的成本），而非卖出金额
-                    fifo_cost = p.get("fifo_cost", abs(p["amount"]))
-                    total_invested -= fifo_cost
+        for h in history:
+            # 对每个历史时点，模拟 FIFO 队列到该日期为止的状态
+            buy_queue = []  # [{date, nav, remaining_shares}]
+
+            for p in sorted_purchases:
+                if p["date"] > h["date"]:
+                    break  # 后续交易不参与
+
+                trans_type = p.get("type", "buy")
+                before_15 = p.get("before_15", True)
+
+                # 查找交易日净值
+                nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
+                if not nav_result or nav_result["nav"] <= 0:
+                    continue
+                nav_on_date = nav_result["nav"]
+
+                if trans_type == "sell":
+                    # FIFO 抵扣
+                    sell_shares = p["amount"] / nav_on_date
+                    remaining_sell = sell_shares
+
+                    for buy in buy_queue:
+                        if remaining_sell <= 0:
+                            break
+                        if buy["remaining_shares"] <= 0:
+                            continue
+                        deduct = min(remaining_sell, buy["remaining_shares"])
+                        buy["remaining_shares"] -= deduct
+                        remaining_sell -= deduct
                 else:
-                    total_shares += p["shares"]
-                    total_invested += p["amount"]
+                    # 买入：加入 FIFO 队列
+                    shares = p["amount"] / nav_on_date
+                    buy_queue.append({
+                        "date": p["date"],
+                        "nav": nav_on_date,
+                        "remaining_shares": shares
+                    })
 
-        if total_invested > 0:
-            value = h["nav"] * total_shares
-            profit = value - total_invested
-            return_rate = (profit / total_invested) * 100
-            return_rates.append(round(return_rate, 2))
-        else:
-            return_rates.append(None)
+            # 计算该时点的持仓
+            total_shares = sum(b["remaining_shares"] for b in buy_queue)
+            total_cost = sum(b["remaining_shares"] * b["nav"] for b in buy_queue)
+
+            if total_cost > 0 and total_shares > 0:
+                value = h["nav"] * total_shares
+                profit = value - total_cost
+                return_rate = (profit / total_cost) * 100
+                return_rates.append(round(return_rate, 2))
+            else:
+                return_rates.append(None)
+    else:
+        # 回退：使用 purchase_details 中的 fifo_cost 进行简化计算
+        sorted_purchases = sorted(purchases, key=lambda p: p["date"])
+
+        for h in history:
+            total_shares = 0
+            total_invested = 0
+
+            for p in sorted_purchases:
+                if p["date"] <= h["date"]:
+                    if p.get("type") == "sell":
+                        total_shares -= abs(p["shares"])
+                        fifo_cost = p.get("fifo_cost", abs(p["amount"]))
+                        total_invested -= fifo_cost
+                    else:
+                        total_shares += p["shares"]
+                        total_invested += p["amount"]
+
+            if total_invested > 0:
+                value = h["nav"] * total_shares
+                profit = value - total_invested
+                return_rate = (profit / total_invested) * 100
+                return_rates.append(round(return_rate, 2))
+            else:
+                return_rates.append(None)
 
     return return_rates
 
@@ -584,6 +668,10 @@ def main():
     # 处理所有基金
     log("\n[3/4] 获取基金数据...")
 
+    # 创建共享 HTTP Session（统一重试策略）
+    http_session = _create_session()
+    log("✓ HTTP Session 已创建（自动重试: 3次, 退避: 1s）")
+
     # 计算历史数据起始日期（所有基金共享，只需计算一次）
     history_start_date = _get_earliest_purchase_date(purchase_records)
     log(f"历史数据起始日期: {history_start_date}")
@@ -599,7 +687,7 @@ def main():
             log(f"  正在处理基金 {code}...")
 
             # 获取实时数据
-            realtime = fetch_fund_realtime(code, qdii_codes, fund_names)
+            realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
             if not realtime:
                 # API失败：尝试使用上次数据
                 if code in prev_fund_map:
@@ -615,15 +703,18 @@ def main():
                 continue
 
             # 获取历史数据（从最早交易记录前7天开始获取，避免拉取大量无用数据）
-            history = fetch_fund_history(code, start_date=history_start_date)
+            history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
 
             # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）
             purchases = purchase_records.get(platform, {}).get(code, [])
             # 计算持仓和收益
             holdings = calculate_holdings(purchases, realtime["nav"], history)
 
-            # 预计算累计收益率（避免前端重复计算）
-            cumulative_returns = calculate_cumulative_returns(history, holdings["purchases"])
+            # 预计算累计收益率（使用 FIFO 一致逻辑，避免前端重复计算）
+            cumulative_returns = calculate_cumulative_returns(
+                history, holdings["purchases"],
+                original_purchases=purchases, history_for_nav=history
+            )
 
             # 组织数据
             fund_data = {
@@ -688,7 +779,8 @@ def main():
     # 生成持仓快照
     log("\n生成持仓快照...")
     try:
-        subprocess.run([sys.executable, os.path.join(BASE_DIR, "generate_holdings.py")], check=True)
+        from generate_holdings import generate_holdings_snapshot
+        generate_holdings_snapshot()
     except Exception as e:
         log(f"  ⚠️ 持仓快照生成失败: {e}")
 

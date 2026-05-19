@@ -1172,6 +1172,7 @@
                 purchaseRecords: {},
                 fundConfig: null,   // 从 fund_config.json 动态加载
                 fundPlatforms: null, // 动态加载的平台列表
+                benchmarkIndexData: {}, // 基准指数数据（默认空对象）
 
                 // 编辑状态
                 editing: {
@@ -1195,6 +1196,7 @@
                     mainInstance: null,
                     period: 'all',
                     fundInstances: {},
+                    fundPeriods: {}, // 每只基金的周期选择 {canvasId: 'all'|'7d'|'1m'|...}
                     renderTimer: null
                 },
 
@@ -1345,15 +1347,32 @@
                     // 转换为兼容格式
                     const dynamicFunds = {};
                     for (const [platform, fundList] of Object.entries(config.funds || {})) {
-                        dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name}));
+                        dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name, benchmark: f.benchmark || ''}));
                     }
                     state.fundConfig = dynamicFunds;
                     state.fundPlatforms = Object.keys(dynamicFunds);
                     // 动态生成平台筛选按钮
                     renderFilterButtons();
+                } else {
+                    console.error('加载基金配置文件失败，HTTP状态:', configResp.status);
                 }
             } catch(e) {
                 console.error('加载基金配置文件失败，交易记录管理功能不可用:', e);
+            }
+
+            // 加载基准指数数据
+            try {
+                const benchmarkResp = await fetch('data/benchmark_index_data.json?t=' + new Date().getTime());
+                if (benchmarkResp.ok) {
+                    state.benchmarkIndexData = await benchmarkResp.json();
+                    console.log('基准指数数据加载成功:', Object.keys(state.benchmarkIndexData));
+                } else {
+                    console.error('基准指数数据加载失败，HTTP状态:', benchmarkResp.status);
+                    state.benchmarkIndexData = {};
+                }
+            } catch(e) {
+                console.error('加载基准指数数据失败:', e);
+                state.benchmarkIndexData = {};
             }
 
             try {
@@ -1561,6 +1580,11 @@
                             <span class="fund-code">${escapeHtml(fnd.code)}</span>
                             <span class="fund-platform">${escapeHtml(platformName)}</span>
                         </div>
+                        ${getFundBenchmark(fnd.code, platformName) ? `
+                        <div class="fund-benchmark" style="font-size: 12px; color: var(--color-text-secondary); margin: 5px 0 10px 0; padding: 0 15px;">
+                            <span style="color: var(--color-text-muted);">业绩基准：</span>${escapeHtml(getFundBenchmark(fnd.code, platformName))}
+                        </div>
+                        ` : ''}
                         <table class="fund-metrics">
                             <tr class="metric-labels">
                                 <td>实时净值</td>
@@ -1598,6 +1622,14 @@
                 if (fnd.holdings && fnd.holdings.purchases && fnd.holdings.purchases.length > 0) {
                     html += `
                         <div class="purchase-details" id="details-${encAttr(fnd.code)}::${encAttr(platformName)}" style="margin-top: 15px; display: none;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="7d" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一周</button>
+                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一月</button>
+                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="3m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近三月</button>
+                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="6m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近半年</button>
+                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1y" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一年</button>
+                                <button class="period-btn fund-period-btn active" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="all" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">全部</button>
+                            </div>
                             <div class="fund-chart-wrapper" style="position: relative; height: 280px; margin-bottom: 20px;">
                                 <canvas id="chart-${encAttr(fnd.code)}::${encAttr(platformName)}"></canvas>
                             </div>
@@ -1913,14 +1945,29 @@
         function encAttr(str) { return encodeURIComponent(String(str)); }
         function decAttr(str) { return decodeURIComponent(String(str)); }
 
+        // 指数名称到代码的映射
+        const BENCHMARK_INDEX_MAP = {
+            '纳斯达克100': 'usNDX',
+            '科创50': 'sh000688'
+        };
+
         // 渲染单个基金走势图
-        function renderFundChart(id) {
+        function renderFundChart(id, forcedPeriod) {
             const sepIdx = id.indexOf('::');
             const fundCode = decAttr(id.substring(0, sepIdx));
             const platformName = decAttr(id.substring(sepIdx + 2));
             const canvasId = `chart-${id}`;
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
+
+            // 获取周期：优先使用传入的周期，其次从缓存取，默认'all'
+            const period = forcedPeriod || state.charts.fundPeriods[canvasId] || 'all';
+            state.charts.fundPeriods[canvasId] = period;
+
+            // 同步周期按钮样式
+            document.querySelectorAll(`.fund-period-btn[data-fund-id="${id}"]`).forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === period);
+            });
 
             // 销毁旧图表，防止内存泄漏
             if (state.charts.fundInstances[canvasId]) {
@@ -1932,16 +1979,81 @@
             const fund = state.fundsData.funds[platformName]?.find(f => f.code === fundCode);
             if (!fund || !fund.history || fund.history.length === 0) return;
 
-            const fundHistory = fund.history;
+            // 根据周期过滤历史数据
+            let fundHistory = fund.history;
+            if (period !== 'all') {
+                const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365 };
+                const days = daysMap[period] || 365;
+                const now = new Date();
+                const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+                const cutoffDate = cutoff.toISOString().split('T')[0];
+                fundHistory = fund.history.filter(h => h.date >= cutoffDate);
+                // 如果没有数据，使用全部
+                if (fundHistory.length < 2) fundHistory = fund.history;
+            }
+
             const purchases = fund.holdings?.purchases || [];
 
             // 以第一笔买入净值为基准，计算累计收益率
+            // 周期模式下：以周期起始日净值为基准，实现起点归零
             const buyRecords = purchases.filter(p => p.type !== 'sell');
             const firstPurchase = buyRecords.sort((a, b) => a.date.localeCompare(b.date))[0];
-            const baseNav = firstPurchase?.nav ?? fundHistory[0]?.nav ?? 1;
+            const baseNav = (period !== 'all') 
+                ? (fundHistory[0]?.nav ?? 1) 
+                : (firstPurchase?.nav ?? fundHistory[0]?.nav ?? 1);
 
             const labels = fundHistory.map(h => h.date);
             const dataPoints = fundHistory.map(h => ((h.nav / baseNav - 1) * 100));
+
+            // 基准收益率线：根据基准字符串匹配合适的指数
+            let benchmarkDataPoints = null;
+            const benchmark = getFundBenchmark(fundCode, platformName);
+            
+            if (benchmark && state.benchmarkIndexData) {
+                // 根据基准字符串找到对应的指数代码
+                let indexCode = null;
+                for (const [key, code] of Object.entries(BENCHMARK_INDEX_MAP)) {
+                    if (benchmark.includes(key)) {
+                        indexCode = code;
+                        break;
+                    }
+                }
+                
+                if (indexCode && state.benchmarkIndexData[indexCode]) {
+                    const indexData = state.benchmarkIndexData[indexCode].data;
+                    const indexDates = Object.keys(indexData).sort();
+                    
+                    // 找到基准日期对应的指数价格
+                    // 周期模式下：使用周期起始日；全部模式：使用第一笔买入日
+                    let baseIndexPrice = null;
+                    const refDate = (period !== 'all') ? labels[0] : (firstPurchase?.date || labels[0]);
+                    
+                    if (indexData[refDate]) {
+                        baseIndexPrice = indexData[refDate];
+                    } else {
+                        // 找到refDate之前或等于的最近一个交易日
+                        for (let i = indexDates.length - 1; i >= 0; i--) {
+                            if (indexDates[i] <= refDate) {
+                                baseIndexPrice = indexData[indexDates[i]];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 如果还是找不到，使用第一个可用的指数日期
+                    if (!baseIndexPrice) {
+                        baseIndexPrice = indexData[indexDates[0]] || 1;
+                    }
+
+                    // 创建与labels相同长度的数组
+                    benchmarkDataPoints = labels.map(date => {
+                        if (indexData[date] !== undefined) {
+                            return (indexData[date] / baseIndexPrice - 1) * 100;
+                        }
+                        return null;
+                    });
+                }
+            }
 
             // 持仓成本线：计算成本对应的收益率
             const avgCostNav = fund.holdings?.avg_cost_nav || 0;
@@ -1972,12 +2084,6 @@
 
             const ctx = canvas.getContext('2d');
 
-            // 如果已有图表，先销毁
-            if (state.charts.fundInstances[canvasId]) {
-                state.charts.fundInstances[canvasId].destroy();
-                delete state.charts.fundInstances[canvasId];
-            }
-
             state.charts.fundInstances[canvasId] = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2005,6 +2111,18 @@
                         borderDash: [5, 5],
                         fill: false,
                         pointRadius: 0
+                    }] : []),
+                    // 基准收益率线
+                    ...(benchmarkDataPoints && benchmarkDataPoints.some(v => v !== null) ? [{
+                        label: '业绩基准',
+                        data: benchmarkDataPoints,
+                        borderColor: '#ff9900',
+                        borderWidth: 2,
+                        borderDash: [2, 2],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.3,
+                        spanGaps: true // 跳过null值
                     }] : [])]
                 },
                 options: {
@@ -2015,7 +2133,15 @@
                         intersect: false
                     },
                     plugins: {
-                        legend: { display: false },
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { size: 11 },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 title: function(items) {
@@ -2023,25 +2149,47 @@
                                 },
                                 label: function(context) {
                                     const idx = context.dataIndex;
-                                    const nav = fundHistory[idx].nav;
-                                    const returnRate = dataPoints[idx];
-                                    const sign = returnRate >= 0 ? '+' : '';
-                                    const lines = [`收益率: ${sign}${returnRate.toFixed(2)}%`, `净值: ${nav.toFixed(4)}`];
-                                    const trades = tradeInfo[idx];
-                                    if (trades && trades.length > 0) {
-                                        // 按买入/卖出分组汇总
-                                        const buys = trades.filter(t => t.type !== 'sell');
-                                        const sells = trades.filter(t => t.type === 'sell');
-                                        if (buys.length > 0) {
-                                            const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount),0);
-                                            lines.push(`买入: ¥${totalBuy.toFixed(2)}（${buys.length}笔）`);
+                                    const datasetLabel = context.dataset.label;
+                                    
+                                    // 如果是基准线
+                                    if (datasetLabel === '业绩基准') {
+                                        const value = context.parsed.y;
+                                        if (value !== null) {
+                                            const sign = value >= 0 ? '+' : '';
+                                            return `业绩基准: ${sign}${value.toFixed(2)}%`;
                                         }
-                                        if (sells.length > 0) {
-                                            const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount),0);
-                                            lines.push(`卖出: ¥${totalSell.toFixed(2)}（${sells.length}笔）`);
-                                        }
+                                        return null;
                                     }
-                                    return lines;
+                                    
+                                    // 如果是累计收益率线
+                                    if (datasetLabel === '累计收益率') {
+                                        const nav = fundHistory[idx].nav;
+                                        const returnRate = dataPoints[idx];
+                                        const sign = returnRate >= 0 ? '+' : '';
+                                        const lines = [`收益率: ${sign}${returnRate.toFixed(2)}%`, `净值: ${nav.toFixed(4)}`];
+                                        const trades = tradeInfo[idx];
+                                        if (trades && trades.length > 0) {
+                                            // 按买入/卖出分组汇总
+                                            const buys = trades.filter(t => t.type !== 'sell');
+                                            const sells = trades.filter(t => t.type === 'sell');
+                                            if (buys.length > 0) {
+                                                const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount),0);
+                                                lines.push(`买入: ¥${totalBuy.toFixed(2)}（${buys.length}笔）`);
+                                            }
+                                            if (sells.length > 0) {
+                                                const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount),0);
+                                                lines.push(`卖出: ¥${totalSell.toFixed(2)}（${sells.length}笔）`);
+                                            }
+                                        }
+                                        return lines;
+                                    }
+                                    
+                                    // 如果是持仓成本线
+                                    if (datasetLabel === '持仓成本') {
+                                        return `持仓成本: ${costReturnRate.toFixed(2)}%`;
+                                    }
+                                
+                                    return null;
                                 }
                             }
                         }
@@ -2106,6 +2254,14 @@
                 btn.textContent = platform;
                 container.appendChild(btn);
             });
+        }
+
+        // 获取基金的业绩比较基准
+        function getFundBenchmark(code, platform) {
+            const config = state.fundConfig;
+            if (!config || !config[platform]) return '';
+            const fund = config[platform].find(f => f.code === code);
+            return fund && fund.benchmark ? fund.benchmark : '';
         }
 
         // 填充平台选择框
@@ -3346,7 +3502,15 @@ function deletePurchaseRecord(platform, fundCode, index) {
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('period-btn')) {
                     const period = e.target.dataset.period;
-                    if (period) switchPeriod(period);
+                    if (!period) return;
+                    // 基金详情图表周期按钮
+                    if (e.target.classList.contains('fund-period-btn')) {
+                        const fundId = e.target.dataset.fundId;
+                        if (fundId) renderFundChart(fundId, period);
+                    } else {
+                        // 主图表周期按钮
+                        switchPeriod(period);
+                    }
                 }
             });
 

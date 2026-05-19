@@ -129,17 +129,17 @@ def generate_holdings_snapshot():
 
             snapshot['funds'][platform][fund_code] = {
                 "fund_name": fund_name,
-                "current_nav": round(current_nav, 4),
+                "current_nav": current_nav,
                 "nav_date": nav_date,
                 "holdings": {
-                    "total_shares": round(total_shares, 2),
-                    "total_invested": round(total_invested_fund, 2),
-                    "current_value": round(current_value, 2),
-                    "profit_loss": round(profit_loss, 2),
-                    "profit_loss_percent": round(profit_loss_percent, 2),
-                    "realized_profit_loss": round(realized_profit_loss, 2),
-                    "avg_cost_nav": round(avg_cost_nav, 4) if avg_cost_nav else 0,
-                    "daily_return": round(daily_return, 2),
+                    "total_shares": total_shares,
+                    "total_invested": total_invested_fund,
+                    "current_value": current_value,
+                    "profit_loss": profit_loss,
+                    "profit_loss_percent": profit_loss_percent,
+                    "realized_profit_loss": realized_profit_loss,
+                    "avg_cost_nav": avg_cost_nav if avg_cost_nav else 0,
+                    "daily_return": daily_return,
                     "daily_profit_loss": round(daily_profit_loss, 2)
                 },
                 "transactions_count": transactions_count,

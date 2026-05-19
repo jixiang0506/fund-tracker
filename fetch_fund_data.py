@@ -46,7 +46,7 @@ def load_fund_config():
             "招商银行": ["021277", "000390", "020723"]
         }, {
             "270023", "016665", "018230", "018147", "012922", "021277"
-        }
+        }, {}
     
     try:
         with open(config_file, 'r', encoding='utf-8') as f:
@@ -55,25 +55,26 @@ def load_fund_config():
         # 转换为原有格式 (兼容代码)
         funds_dict = {}
         qdii_codes = set()
-        
+        fund_names = {}
+
         for platform, fund_list in config.get("funds", {}).items():
             funds_dict[platform] = [f["code"] for f in fund_list]
             for fund in fund_list:
                 if fund.get("is_qdii", False):
                     qdii_codes.add(fund["code"])
-        
-        log(f"✓ 成功加载基金配置: {len(qdii_codes)} 只QDII基金", "info")
-        
-        return funds_dict, qdii_codes
+                if fund.get("name"):
+                    fund_names[fund["code"]] = fund["name"]
+
+        log(f"✓ 成功加载基金配置: {len(qdii_codes)} 只QDII基金, {len(fund_names)} 只基金名称", "info")
+
+        return funds_dict, qdii_codes, fund_names
         
     except Exception as e:
         log(f"❌ 加载基金配置失败: {e}", "error")
-        return None, None
+        return None, None, None
 
 
-# 基金列表配置 (将从配置文件加载)
-FUNDS = {}
-QDII_CODES = set()
+# (基金列表和QDII代码现在通过函数参数传递，不再使用全局变量)
 
 # 天天基金API (使用HTTPS)
 HISTORY_API = "https://api.fund.eastmoney.com/f10/lsjz"
@@ -85,7 +86,7 @@ HEADERS = {
     "Referer": "https://fund.eastmoney.com/"
 }
 
-def fetch_fund_realtime(fund_code, max_retries=3):
+def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries=3):
     """获取基金实时数据（估算净值和涨跌幅），支持重试。
     如果实时估值API返回空（非交易时段），则回退到历史数据API获取最新净值。"""
     for attempt in range(1, max_retries + 1):
@@ -101,14 +102,14 @@ def fetch_fund_realtime(fund_code, max_retries=3):
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
                 log(f"  ⚠ 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code)
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
 
             data = json.loads(json_str)
 
             # 检查返回数据是否有效（有些基金不在交易时段会返回空内容）
             if not data.get("name") and not data.get("gsz"):
                 log(f"  ⚠ 基金 {fund_code} 实时估值无数据，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code)
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
 
             return {
                 "code": fund_code,
@@ -121,7 +122,7 @@ def fetch_fund_realtime(fund_code, max_retries=3):
         except json.JSONDecodeError:
             # JSON解析失败 - 回退到历史数据
             log(f"  ⚠ 基金 {fund_code} 实时估值JSON解析失败，尝试回退到历史数据API...")
-            return _fetch_latest_from_history(fund_code)
+            return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
         except Exception as e:
             if attempt < max_retries:
                 log(f"  ⚠ 获取基金 {fund_code} 实时数据失败 (第{attempt}次), {max_retries - attempt}次重试机会剩余: {e}")
@@ -129,15 +130,15 @@ def fetch_fund_realtime(fund_code, max_retries=3):
             else:
                 log(f"❌ 获取基金 {fund_code} 实时数据失败 (已重试{max_retries}次): {e}")
                 # 最后一次也尝试回退
-                return _fetch_latest_from_history(fund_code)
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names)
 
-def _fetch_latest_from_history(fund_code):
+def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None):
     """从历史净值API获取最新记录，作为实时数据的回退方案。
     QDII基金（T+1更新）若当天无新净值，自动沿用上一交易日净值并标记延迟。
     """
     try:
         today = datetime.now().strftime("%Y-%m-%d")
-        is_qdii = fund_code in QDII_CODES
+        is_qdii = qdii_codes and fund_code in qdii_codes
 
         params = {
             "fundCode": fund_code,
@@ -166,8 +167,8 @@ def _fetch_latest_from_history(fund_code):
             nav_status = "delayed"
             log(f"  ⚠ QDII基金 {fund_code} 净值延迟：最新净值日期 {nav_date}，非今日 {today}")
 
-        # 尝试获取基金名称（从历史API中无法直接获取，使用已知映射或留空）
-        fund_name = _get_fund_name(fund_code)
+        # 从配置文件获取基金名称（回退方案）
+        fund_name = _get_fund_name(fund_code, fund_names)
 
         status_text = "延迟" if nav_status == "delayed" else "确认"
         log(f"  ✓ 基金 {fund_code} 回退成功 [{status_text}]: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
@@ -183,22 +184,11 @@ def _fetch_latest_from_history(fund_code):
         log(f"  ❌ 基金 {fund_code} 历史数据回退也失败: {e}")
         return None
 
-def _get_fund_name(fund_code):
-    """已知基金名称映射（回退方案使用）"""
-    FUND_NAMES = {
-        "016665": "天弘全球高端制造混合(QDII)C",
-        "270023": "广发全球精选股票(QDII)人民币A",
-        "001438": "易方达瑞享混合E",
-        "002112": "德邦鑫星价值灵活配置混合C",
-        "018230": "易方达全球优质企业混合(QDII)C(人民币份额)",
-        "018147": "建信新兴市场混合(QDII)C",
-        "012922": "易方达全球成长精选混合(QDII)人民币C",
-        "019018": "易方达信息产业混合C",
-        "021277": "广发全球精选股票(QDII)人民币C",
-        "000390": "华商优势行业混合A",
-        "020723": "国寿安保数字经济股票发起式C",
-    }
-    return FUND_NAMES.get(fund_code, fund_code)
+def _get_fund_name(fund_code, fund_names=None):
+    """从配置文件获取基金名称（回退方案使用），不再硬编码"""
+    if fund_names and fund_code in fund_names:
+        return fund_names[fund_code]
+    return fund_code
 
 def _get_earliest_purchase_date(nested_records):
     """从持仓记录中找出最早的交易日期，往前推7天作为历史数据起始日期"""
@@ -539,10 +529,9 @@ def main():
 
     # 加载基金配置
     log("\n[0/4] 加载基金配置...")
-    global FUNDS, QDII_CODES
-    FUNDS, QDII_CODES = load_fund_config()
-    
-    if FUNDS is None:
+    funds, qdii_codes, fund_names = load_fund_config()
+
+    if funds is None:
         log("❌ 无法加载基金配置，退出")
         return
     
@@ -600,7 +589,7 @@ def main():
     log(f"历史数据起始日期: {history_start_date}")
 
     failed_funds = []
-    for platform, codes in FUNDS.items():
+    for platform, codes in funds.items():
         log(f"处理 {platform} 的基金...")
 
         if platform not in all_data["funds"]:
@@ -610,7 +599,7 @@ def main():
             log(f"  正在处理基金 {code}...")
 
             # 获取实时数据
-            realtime = fetch_fund_realtime(code)
+            realtime = fetch_fund_realtime(code, qdii_codes, fund_names)
             if not realtime:
                 # API失败：尝试使用上次数据
                 if code in prev_fund_map:

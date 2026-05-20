@@ -21,6 +21,23 @@ from datetime import datetime, timedelta
 import time
 import sys
 
+# 时区支持：优先使用 zoneinfo (Python 3.9+)，回退到 pytz
+try:
+    from zoneinfo import ZoneInfo
+    _BEIJING_TZ = ZoneInfo("Asia/Shanghai")
+except ImportError:
+    try:
+        import pytz
+        _BEIJING_TZ = pytz.timezone("Asia/Shanghai")
+    except ImportError:
+        # 如果都没有，使用固定偏移量（UTC+8）
+        from datetime import timezone
+        _BEIJING_TZ = timezone(timedelta(hours=8))
+
+def get_beijing_time():
+    """获取当前北京时间"""
+    return datetime.now(_BEIJING_TZ)
+
 # 导入日志模块
 try:
     from logger_config import log
@@ -756,7 +773,7 @@ def main():
             log("ℹ️ 无历史缓存，将全量获取")
 
     failed_funds = []
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = get_beijing_time().strftime("%Y-%m-%d")
     for platform, codes in funds.items():
         log(f"处理 {platform} 的基金...")
 
@@ -811,10 +828,12 @@ def main():
                     failed_funds.append(code)
                 continue
 
-            # 根据历史数据最新日期修正 nav_status
+            # 根据历史数据最新日期修正 nav_status（北京时间 15:00-23:59 时段且今日已更新才标记 confirmed_today）
+            beijing_now = get_beijing_time()
+            is_after_15 = 15 <= beijing_now.hour <= 23
             if history:
                 latest_nav_date = history[-1]["date"]
-                if latest_nav_date == today:
+                if latest_nav_date == today and is_after_15:
                     realtime["nav_status"] = "confirmed_today"
                     log(f"  ✓ 基金 {code} 今日净值已更新（历史数据最新: {latest_nav_date}）")
                 elif code in qdii_codes:
@@ -833,7 +852,29 @@ def main():
                 original_purchases=purchases, history_for_nav=history
             )
 
+            # 计算昨日净值、昨日收益率、昨日收益
+            yesterday_nav = realtime["nav"]
+            yesterday_return = 0
+            yesterday_profit = 0
+            if history and len(history) >= 2:
+                latest_entry = history[-1]
+                if latest_entry["date"] == today:
+                    # 今天已更新，昨日数据在 history[-2]
+                    yesterday_nav = history[-2]["nav"]
+                    prev_nav = history[-3]["nav"] if len(history) >= 3 else yesterday_nav
+                else:
+                    # 今天未更新，昨日数据在 history[-1]
+                    yesterday_nav = history[-1]["nav"]
+                    prev_nav = history[-2]["nav"]
+                
+                if prev_nav > 0:
+                    yesterday_return = (yesterday_nav - prev_nav) / prev_nav * 100
+                
+                if holdings["total_shares"] > 0:
+                    yesterday_profit = round(holdings["total_shares"] * (yesterday_nav - prev_nav), 2)
+
             # 组织数据
+            latest_history_date = history[-1]["date"] if history else ""
             fund_data = {
                 "code": code,
                 "name": realtime["name"],
@@ -842,6 +883,10 @@ def main():
                 "nav_date": realtime["nav_date"],
                 "daily_return": realtime["change_percent"],
                 "nav_status": realtime.get("nav_status", "confirmed"),
+                "latest_history_date": latest_history_date,
+                "yesterday_nav": round(yesterday_nav, 4),
+                "yesterday_return": round(yesterday_return, 2),
+                "yesterday_profit": yesterday_profit,
                 "holdings": holdings,
                 "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
             }
@@ -862,12 +907,11 @@ def main():
     if summary["total_invested"] > 0:
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
     
-    # 计算昨日盈亏（基于各基金 daily_return 和持有份额）
+    # 计算昨日盈亏（累加各基金已计算的昨日收益）
     yesterday_profit = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
-            if fund.get("holdings") and fund["holdings"].get("total_shares", 0) > 0:
-                yesterday_profit += fund["holdings"]["total_shares"] * fund["current_nav"] * (fund["daily_return"] / 100)
+            yesterday_profit += fund.get("yesterday_profit", 0)
     
     summary["yesterday_profit_loss"] = round(yesterday_profit, 2)
     summary["yesterday_profit_loss_percent"] = round((yesterday_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0

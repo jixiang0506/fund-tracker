@@ -186,7 +186,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
                 "nav": float(data.get("gsz", 0)),  # 估算净值
                 "nav_date": data.get("gztime", ""),  # 估值时间
                 "change_percent": float(data.get("gszzl", 0)),  # 估算涨跌幅
-                "nav_status": "estimated",  # 实时估算值
+                "nav_status": "estimated",  # 实时估算值，main()会根据历史数据最新日期修正
             }
         except json.JSONDecodeError:
             # JSON解析失败 - 回退到历史数据
@@ -232,16 +232,15 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         nav_date = latest.get("FSRQ", "")
         change_percent = float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
 
-        # QDII延迟检测：若最新记录日期不是今天，说明净值未更新
+        # 净值状态：由 main() 根据历史数据最新日期统一修正
+        # 此处先设为 confirmed，main() 会覆盖为 confirmed_today / delayed / confirmed
         nav_status = "confirmed"
-        if is_qdii and nav_date != today:
-            nav_status = "delayed"
-            log(f"  ⚠ QDII基金 {fund_code} 净值延迟：最新净值日期 {nav_date}，非今日 {today}")
 
         # 从配置文件获取基金名称（回退方案）
         fund_name = _get_fund_name(fund_code, fund_names)
 
-        status_text = "延迟" if nav_status == "delayed" else "确认"
+        status_map = {"delayed": "延迟", "confirmed_today": "今日已更新", "confirmed": "确认"}
+        status_text = status_map.get(nav_status, nav_status)
         log(f"  ✓ 基金 {fund_code} 回退成功 [{status_text}]: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
         return {
             "code": fund_code,
@@ -757,6 +756,7 @@ def main():
             log("ℹ️ 无历史缓存，将全量获取")
 
     failed_funds = []
+    today = datetime.now().strftime("%Y-%m-%d")
     for platform, codes in funds.items():
         log(f"处理 {platform} 的基金...")
 
@@ -810,6 +810,17 @@ def main():
                     log(f"  ❌ 基金 {code} 无上次缓存数据，本次跳过！")
                     failed_funds.append(code)
                 continue
+
+            # 根据历史数据最新日期修正 nav_status
+            if history:
+                latest_nav_date = history[-1]["date"]
+                if latest_nav_date == today:
+                    realtime["nav_status"] = "confirmed_today"
+                    log(f"  ✓ 基金 {code} 今日净值已更新（历史数据最新: {latest_nav_date}）")
+                elif code in qdii_codes:
+                    realtime["nav_status"] = "delayed"
+                else:
+                    realtime["nav_status"] = "confirmed"
 
             # --- 第3步：计算持仓和收益 ---
             # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）

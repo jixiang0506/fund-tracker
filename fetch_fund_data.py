@@ -862,6 +862,16 @@ def main():
     if summary["total_invested"] > 0:
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
     
+    # 计算昨日盈亏（基于各基金 daily_return 和持有份额）
+    yesterday_profit = 0
+    for platform_funds in all_data["funds"].values():
+        for fund in platform_funds:
+            if fund.get("holdings") and fund["holdings"].get("total_shares", 0) > 0:
+                yesterday_profit += fund["holdings"]["total_shares"] * fund["current_nav"] * (fund["daily_return"] / 100)
+    
+    summary["yesterday_profit_loss"] = round(yesterday_profit, 2)
+    summary["yesterday_profit_loss_percent"] = round((yesterday_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
+    
     # 累计算已实现盈亏
     total_realized_profit = 0
     for platform_funds in all_data["funds"].values():
@@ -878,6 +888,8 @@ def main():
     log(f"  当前市值: ¥{summary['total_value']:.2f}")
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
     log(f"  未实现盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    yesterday_sign = "+" if summary["yesterday_profit_loss"] >= 0 else ""
+    log(f"  昨日盈亏: {yesterday_sign}¥{summary['yesterday_profit_loss']:.2f} ({yesterday_sign}{summary['yesterday_profit_loss_percent']:.2f}%)")
     realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
     log(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
     log(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")

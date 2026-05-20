@@ -856,23 +856,52 @@ def main():
             yesterday_nav = realtime["nav"]
             yesterday_return = 0
             yesterday_profit = 0
+            yesterday_nav_date = ""
+            day_before_yesterday_return = 0
+            day_before_yesterday_profit = 0
             if history and len(history) >= 2:
                 latest_entry = history[-1]
                 if latest_entry["date"] == today:
                     # 今天已更新，昨日数据在 history[-2]
                     yesterday_nav = history[-2]["nav"]
+                    yesterday_nav_date = history[-2]["date"]
                     prev_nav = history[-3]["nav"] if len(history) >= 3 else yesterday_nav
+                    # 前日数据在 history[-3]（用于计算变化差）
+                    if len(history) >= 4:
+                        day_before_yesterday_nav = history[-3]["nav"]
+                        day_before_yesterday_prev_nav = history[-4]["nav"]
+                    elif len(history) >= 3:
+                        day_before_yesterday_nav = history[-3]["nav"]
+                        day_before_yesterday_prev_nav = yesterday_nav
+                    else:
+                        day_before_yesterday_nav = yesterday_nav
+                        day_before_yesterday_prev_nav = yesterday_nav
                 else:
                     # 今天未更新，昨日数据在 history[-1]
                     yesterday_nav = history[-1]["nav"]
+                    yesterday_nav_date = history[-1]["date"]
                     prev_nav = history[-2]["nav"]
+                    # 前日数据在 history[-2]
+                    if len(history) >= 3:
+                        day_before_yesterday_nav = history[-2]["nav"]
+                        day_before_yesterday_prev_nav = history[-3]["nav"]
+                    else:
+                        day_before_yesterday_nav = yesterday_nav
+                        day_before_yesterday_prev_nav = yesterday_nav
                 
                 if prev_nav > 0:
                     yesterday_return = (yesterday_nav - prev_nav) / prev_nav * 100
                 
+                if day_before_yesterday_prev_nav > 0:
+                    day_before_yesterday_return = (day_before_yesterday_nav - day_before_yesterday_prev_nav) / day_before_yesterday_prev_nav * 100
+                
                 if holdings["total_shares"] > 0:
                     yesterday_profit = round(holdings["total_shares"] * (yesterday_nav - prev_nav), 2)
-
+                    day_before_yesterday_profit = round(holdings["total_shares"] * (day_before_yesterday_nav - day_before_yesterday_prev_nav), 2)
+            
+            # 非交易日处理：如果 yesterday_nav_date 是非交易日，展示0
+            # （todo：需要交易日历来判断，当前先保留现有逻辑）
+            
             # 组织数据
             latest_history_date = history[-1]["date"] if history else ""
             fund_data = {
@@ -885,8 +914,11 @@ def main():
                 "nav_status": realtime.get("nav_status", "confirmed"),
                 "latest_history_date": latest_history_date,
                 "yesterday_nav": round(yesterday_nav, 4),
+                "yesterday_nav_date": yesterday_nav_date,
                 "yesterday_return": round(yesterday_return, 2),
                 "yesterday_profit": yesterday_profit,
+                "day_before_yesterday_return": round(day_before_yesterday_return, 2),
+                "day_before_yesterday_profit": day_before_yesterday_profit,
                 "holdings": holdings,
                 "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
             }
@@ -909,12 +941,37 @@ def main():
     
     # 计算昨日盈亏（累加各基金已计算的昨日收益）
     yesterday_profit = 0
+    day_before_yesterday_profit = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
             yesterday_profit += fund.get("yesterday_profit", 0)
+            day_before_yesterday_profit += fund.get("day_before_yesterday_profit", 0)
     
     summary["yesterday_profit_loss"] = round(yesterday_profit, 2)
     summary["yesterday_profit_loss_percent"] = round((yesterday_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
+    
+    # 计算昨日变化差（与前一交易日对比）
+    summary["yesterday_profit_loss_diff"] = round(yesterday_profit - day_before_yesterday_profit, 2)
+    
+    # 计算昨日收益率变化差（加权平均）
+    # 使用各基金昨日收益率和前日收益率，按市值加权计算
+    yesterday_return_weighted_sum = 0
+    day_before_yesterday_return_weighted_sum = 0
+    total_weight = 0
+    for platform_funds in all_data["funds"].values():
+        for fund in platform_funds:
+            weight = fund.get("holdings", {}).get("current_value", 0)
+            if weight > 0:
+                yesterday_return_weighted_sum += fund.get("yesterday_return", 0) * weight
+                day_before_yesterday_return_weighted_sum += fund.get("day_before_yesterday_return", 0) * weight
+                total_weight += weight
+    
+    if total_weight > 0:
+        yesterday_return_avg = yesterday_return_weighted_sum / total_weight
+        day_before_yesterday_return_avg = day_before_yesterday_return_weighted_sum / total_weight
+        summary["yesterday_profit_loss_percent_diff"] = round(yesterday_return_avg - day_before_yesterday_return_avg, 2)
+    else:
+        summary["yesterday_profit_loss_percent_diff"] = 0
     
     # 累计算已实现盈亏
     total_realized_profit = 0

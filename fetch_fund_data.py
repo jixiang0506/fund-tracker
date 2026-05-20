@@ -20,7 +20,7 @@ import tempfile
 from datetime import datetime, timedelta
 import time
 import sys
-
+import argparse
 # 时区支持：优先使用 zoneinfo (Python 3.9+)，回退到 pytz
 try:
     from zoneinfo import ZoneInfo
@@ -694,6 +694,31 @@ def main():
     log(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log("="*60)
 
+    # 解析命令行参数
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--skip-summary', action='store_true', help='跳过汇总更新（仅更新基金数据）')
+    args = parser.parse_args()
+
+    # 自动判断是否需要跳过汇总更新
+    # 北京时间 20:00-23:59 的更新不更新汇总
+    beijing_now = get_beijing_time()
+    if 20 <= beijing_now.hour <= 23:
+        if not args.skip_summary:
+            args.skip_summary = True
+            log(f"⏭ 当前为 {beijing_now.strftime('%H:%M')} 北京时间，自动跳过汇总更新")
+
+    # 备份旧汇总（用于 --skip-summary 模式）
+    old_summary = None
+    output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
+    if os.path.exists(output_file):
+        try:
+            with open(output_file, "r", encoding="utf-8") as f:
+                old_data = json.load(f)
+                old_summary = old_data.get("summary")
+            log(f"✓ 已备份旧汇总数据")
+        except Exception as e:
+            log(f"⚠️ 备份旧汇总失败: {e}", "warning")
+
     # 加载基金配置
     log("\n[0/4] 加载基金配置...")
     funds, qdii_codes, fund_names = load_fund_config()
@@ -997,6 +1022,13 @@ def main():
     if failed_funds:
         log(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
     log("="*60)
+
+    # 若指定 --skip-summary，恢复旧汇总
+    if args.skip_summary and old_summary is not None:
+        all_data["summary"] = old_summary
+        log("⏭ 跳过汇总更新（使用上次数据）")
+    elif args.skip_summary:
+        log("⏭ 无旧汇总数据，仍更新汇总")
 
     # 保存数据
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")

@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-20 17:05:46",
+  "update_time": "2026-05-20 17:36:38",
   "funds": {
     "支付宝": [
       {
@@ -12,8 +12,11 @@
         "nav_status": "delayed",
         "latest_history_date": "2026-05-19",
         "yesterday_nav": 6.1855,
+        "yesterday_nav_date": "2026-05-19",
         "yesterday_return": -1.07,
         "yesterday_profit": -1557.67,
+        "day_before_yesterday_return": -0.44,
+        "day_before_yesterday_profit": -648.64,
         "holdings": {
           "total_invested": 93505.1,
           "total_shares": 23248.81,
@@ -2860,8 +2863,11 @@
         "nav_status": "delayed",
         "latest_history_date": "2026-05-19",
         "yesterday_nav": 3.0567,
+        "yesterday_nav_date": "2026-05-19",
         "yesterday_return": -0.83,
         "yesterday_profit": -222.04,
+        "day_before_yesterday_return": -0.28,
+        "day_before_yesterday_profit": -75.46,
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8673.34,
@@ -5592,8 +5598,11 @@
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-20",
         "yesterday_nav": 9.6252,
+        "yesterday_nav_date": "2026-05-20",
         "yesterday_return": 2.13,
         "yesterday_profit": 3766.8,
+        "day_before_yesterday_return": -1.12,
+        "day_before_yesterday_profit": -2002.46,
         "holdings": {
           "total_invested": 142115.83,
           "total_shares": 18749.63,
@@ -8361,8 +8370,11 @@
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-20",
         "yesterday_nav": 5.5868,
+        "yesterday_nav_date": "2026-05-20",
         "yesterday_return": 0.92,
         "yesterday_profit": 758.8,
+        "day_before_yesterday_return": -1.63,
+        "day_before_yesterday_profit": -1363.16,
         "holdings": {
           "total_invested": 70000.0,
           "total_shares": 14849.29,
@@ -11106,8 +11118,11 @@
         "nav_status": "delayed",
         "latest_history_date": "2026-05-19",
         "yesterday_nav": 2.0984,
+        "yesterday_nav_date": "2026-05-19",
         "yesterday_return": -0.38,
         "yesterday_profit": -326.8,
+        "day_before_yesterday_return": -0.41,
+        "day_before_yesterday_profit": -346.97,
         "holdings": {
           "total_invested": 78000.0,
           "total_shares": 40345.84,
@@ -13984,8 +13999,11 @@
         "nav_status": "delayed",
         "latest_history_date": "2026-05-19",
         "yesterday_nav": 2.28,
+        "yesterday_nav_date": "2026-05-19",
         "yesterday_return": -0.96,
         "yesterday_profit": -22.63,
+        "day_before_yesterday_return": -2.13,
+        "day_before_yesterday_profit": -51.43,
         "holdings": {
           "total_invested": 1770.0,
           "total_shares": 1028.6,
@@ -16787,8 +16805,11 @@
         "nav_status": "delayed",
         "latest_history_date": "2026-05-19",
         "yesterday_nav": 3.857,
+        "yesterday_nav_date": "2026-05-19",
         "yesterday_return": 0.46,
         "yesterday_profit": 8.92,
+        "day_before_yesterday_return": -0.88,
+        "day_before_yesterday_profit": -17.18,
         "holdings": {
           "total_invested": 1450.0,
           "total_shares": 506.89,
@@ -19735,8 +19756,11 @@
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-20",
         "yesterday_nav": 8.151,
+        "yesterday_nav_date": "2026-05-20",
         "yesterday_return": 2.22,
         "yesterday_profit": 31.27,
+        "day_before_yesterday_return": 1.14,
+        "day_before_yesterday_profit": 15.9,
         "holdings": {
           "total_invested": 1155.3,
           "total_shares": 176.69,
@@ -22482,8 +22506,11 @@
         "nav_status": "delayed",
         "latest_history_date": "2026-05-19",
         "yesterday_nav": 6.1091,
+        "yesterday_nav_date": "2026-05-19",
         "yesterday_return": -1.07,
         "yesterday_profit": -1059.29,
+        "day_before_yesterday_return": -0.45,
+        "day_before_yesterday_profit": -444.17,
         "holdings": {
           "total_invested": 91197.05,
           "total_shares": 15977.23,
@@ -25052,8 +25079,11 @@
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-20",
         "yesterday_nav": 3.129,
+        "yesterday_nav_date": "2026-05-20",
         "yesterday_return": 1.49,
         "yesterday_profit": 832.68,
+        "day_before_yesterday_return": 0.16,
+        "day_before_yesterday_profit": 90.51,
         "holdings": {
           "total_invested": 49862.26,
           "total_shares": 18101.67,
@@ -27789,8 +27819,11 @@
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-20",
         "yesterday_nav": 2.8997,
+        "yesterday_nav_date": "2026-05-20",
         "yesterday_return": 0.38,
         "yesterday_profit": 88.87,
+        "day_before_yesterday_return": -0.16,
+        "day_before_yesterday_profit": -37.16,
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8078.85,
@@ -30397,6 +30430,8 @@
     "total_profit_loss_percent": 23.11,
     "yesterday_profit_loss": 2298.91,
     "yesterday_profit_loss_percent": 0.33,
+    "yesterday_profit_loss_diff": 7179.13,
+    "yesterday_profit_loss_percent_diff": 1.03,
     "total_realized_profit_loss": -1672.46
   }
 }

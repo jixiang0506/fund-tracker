@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-20 09:14:42",
+  "update_time": "2026-05-20 10:55:18",
   "funds": {
     "支付宝": [
       {
@@ -9,7 +9,7 @@
         "current_nav": 6.2302,
         "nav_date": "2026-05-20 04:00",
         "daily_return": -0.36,
-        "nav_status": "estimated",
+        "nav_status": "delayed",
         "holdings": {
           "total_invested": 93505.1,
           "total_shares": 23248.81,
@@ -5571,7 +5571,7 @@
         "current_nav": 9.5631,
         "nav_date": "2026-05-20 15:00",
         "daily_return": 1.47,
-        "nav_status": "estimated",
+        "nav_status": "confirmed_today",
         "holdings": {
           "total_invested": 142115.83,
           "total_shares": 18749.63,
@@ -8321,6 +8321,11 @@
             "date": "2026-05-19",
             "nav": 9.4243,
             "return_rate": 24.34
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 9.6252,
+            "return_rate": 26.99
           }
         ]
       },
@@ -8331,7 +8336,7 @@
         "current_nav": 5.5578,
         "nav_date": "2026-05-20 15:00",
         "daily_return": 0.4,
-        "nav_status": "estimated",
+        "nav_status": "confirmed",
         "holdings": {
           "total_invested": 70000.0,
           "total_shares": 14849.29,
@@ -11067,7 +11072,7 @@
         "current_nav": 2.1023,
         "nav_date": "2026-05-20 04:00",
         "daily_return": -0.2,
-        "nav_status": "estimated",
+        "nav_status": "delayed",
         "holdings": {
           "total_invested": 78000.0,
           "total_shares": 40345.84,
@@ -13941,7 +13946,7 @@
         "current_nav": 2.294,
         "nav_date": "2026-05-20 04:00",
         "daily_return": -0.35,
-        "nav_status": "estimated",
+        "nav_status": "delayed",
         "holdings": {
           "total_invested": 1770.0,
           "total_shares": 1028.6,
@@ -16725,6 +16730,11 @@
             "date": "2026-05-18",
             "nav": 2.302,
             "return_rate": 33.78
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 2.28,
+            "return_rate": 32.5
           }
         ]
       },
@@ -16735,7 +16745,7 @@
         "current_nav": 3.8281,
         "nav_date": "2026-05-20 04:00",
         "daily_return": -0.3,
-        "nav_status": "estimated",
+        "nav_status": "delayed",
         "holdings": {
           "total_invested": 1450.0,
           "total_shares": 506.89,
@@ -19679,7 +19689,7 @@
         "current_nav": 8.0194,
         "nav_date": "2026-05-20 15:00",
         "daily_return": 0.57,
-        "nav_status": "estimated",
+        "nav_status": "confirmed",
         "holdings": {
           "total_invested": 1155.3,
           "total_shares": 176.69,
@@ -22417,7 +22427,7 @@
         "current_nav": 6.1534,
         "nav_date": "2026-05-20 04:00",
         "daily_return": -0.36,
-        "nav_status": "estimated",
+        "nav_status": "delayed",
         "holdings": {
           "total_invested": 91197.05,
           "total_shares": 15977.23,
@@ -24978,7 +24988,7 @@
         "current_nav": 3.1034,
         "nav_date": "2026-05-20 15:00",
         "daily_return": 0.66,
-        "nav_status": "estimated",
+        "nav_status": "confirmed",
         "holdings": {
           "total_invested": 49862.26,
           "total_shares": 18101.67,
@@ -27706,7 +27716,7 @@
         "current_nav": 2.9113,
         "nav_date": "2026-05-20 15:00",
         "daily_return": 0.78,
-        "nav_status": "estimated",
+        "nav_status": "confirmed",
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8078.85,

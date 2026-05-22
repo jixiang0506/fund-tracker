@@ -1775,14 +1775,15 @@
                 allFunds = allFunds.concat(state.fundsData.funds[platform]);
             }
 
-            // 计算周期起始日期
+            // 计算周期起始日期（使用北京时间）
             let cutoffDate = null;
             if (state.charts.period !== 'all') {
-                const now = new Date();
+                const now = getBeijingNow();
                 const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365 };
                 const days = daysMap[state.charts.period] || 0;
                 const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-                cutoffDate = cutoff.toISOString().split('T')[0];
+                // 使用北京时间格式化日期，避免 toISOString() 的 UTC 转换问题
+                cutoffDate = cutoff.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
             }
 
             const colors = [
@@ -1973,6 +1974,15 @@
         // 获取北京时间昨天的日期字符串
         function getBeijingYesterday() {
             return new Date(Date.now() - 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+        }
+
+        // 获取北京时间的 Date 对象（用于日期计算）
+        function getBeijingNow() {
+            const now = new Date();
+            const beijingOffset = 8 * 60; // 北京 UTC+8（分钟）
+            const localOffset = -now.getTimezoneOffset(); // 本地 UTC 偏移（分钟）
+            const diffMinutes = beijingOffset - localOffset;
+            return new Date(now.getTime() + diffMinutes * 60 * 1000);
         }
 
         // 生成净值日期标签（根据北京时间判断显示策略）

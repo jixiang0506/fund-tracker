@@ -277,6 +277,22 @@ def _get_fund_name(fund_code, fund_names=None):
         return fund_names[fund_code]
     return fund_code
 
+def _get_fund_earliest_purchase_date(purchase_records, platform, fund_code):
+    """获取指定基金的最早交易日期，往前推7天作为历史数据起始日期"""
+    purchases = purchase_records.get(platform, {}).get(fund_code, [])
+    if not purchases:
+        return None
+    earliest = None
+    for p in purchases:
+        d = p.get("date", "")
+        if d and (earliest is None or d < earliest):
+            earliest = d
+    if earliest:
+        dt = datetime.strptime(earliest, "%Y-%m-%d") - timedelta(days=7)
+        return dt.strftime("%Y-%m-%d")
+    return None
+
+
 def _get_earliest_purchase_date(nested_records):
     """从持仓记录中找出最早的交易日期，往前推7天作为历史数据起始日期"""
     earliest = None
@@ -430,6 +446,57 @@ def create_template_files(funds=None):
 
     return True
 
+def validate_purchase_records(records):
+    """
+    校验交易记录 schema，提前拦截脏数据
+    返回: (is_valid, validated_records, errors)
+    """
+    if not isinstance(records, dict):
+        return False, None, ["顶层结构必须是对象（平台→基金列表）"]
+
+    validated = {}
+    all_errors = []
+
+    for platform, fund_list in records.items():
+        if not isinstance(fund_list, list):
+            all_errors.append(f"平台 '{platform}' 的值必须是列表")
+            continue
+
+        validated[platform] = []
+        for i, rec in enumerate(fund_list):
+            prefix = f"{platform}[{i}]"
+            if not isinstance(rec, dict):
+                all_errors.append(f"{prefix}: 必须是对象")
+                continue
+
+            # 校验 date
+            if "date" not in rec:
+                all_errors.append(f"{prefix}: 缺少 'date' 字段")
+                continue
+            date_val = rec["date"]
+            if not isinstance(date_val, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", date_val):
+                all_errors.append(f"{prefix}: 'date' 格式错误，应为 YYYY-MM-DD")
+                continue
+
+            # 校验 amount
+            if "amount" not in rec:
+                all_errors.append(f"{prefix}: 缺少 'amount' 字段")
+                continue
+            amount_val = rec["amount"]
+            if not isinstance(amount_val, (int, float)) or amount_val <= 0:
+                all_errors.append(f"{prefix}: 'amount' 必须是正数")
+                continue
+
+            # 校验 type（可选）
+            if "type" in rec and rec["type"] not in ("buy", "sell"):
+                all_errors.append(f"{prefix}: 'type' 必须是 'buy' 或 'sell'")
+                continue
+
+            validated[platform].append(rec)
+
+    return len(all_errors) == 0, validated, all_errors
+
+
 def load_purchase_records():
     """加载持仓记录（保留平台分层结构，不做扁平化）"""
     try:
@@ -444,10 +511,18 @@ def load_purchase_records():
         with open(records_file, "r", encoding="utf-8") as f:
             raw_records = json.load(f)
 
+        # 校验交易记录格式
+        is_valid, validated, errors = validate_purchase_records(raw_records)
+        if not is_valid:
+            log("❌ 交易记录格式错误:")
+            for err in errors:
+                log(f"  - {err}")
+            return None
+
         # 统计总基金数
-        fund_count = sum(len(funds) for funds in raw_records.values())
+        fund_count = sum(len(funds) for funds in validated.values())
         log(f"✓ 成功加载持仓记录: {fund_count} 只基金（保留平台信息）")
-        return raw_records
+        return validated
     except Exception as e:
         log(f"❌ 加载持仓记录失败: {e}")
         return None
@@ -789,9 +864,9 @@ def main():
     http_session = _create_session()
     log("✓ HTTP Session 已创建（自动重试: 3次, 退避: 1s）")
 
-    # 计算历史数据起始日期（所有基金共享，只需计算一次）
+    # 计算历史数据起始日期（全局兜底，按基金维度优先）
     history_start_date = _get_earliest_purchase_date(purchase_records)
-    log(f"历史数据起始日期: {history_start_date}")
+    log(f"历史数据全局起始日期（兜底）: {history_start_date}")
 
     # 加载历史数据缓存（增量拉取）
     force_refresh = "--force-refresh" in sys.argv or os.environ.get("FORCE_REFRESH", "").lower() == "true"
@@ -817,27 +892,33 @@ def main():
         for code in codes:
             log(f"  正在处理基金 {code}...")
 
+            # 按基金维度计算历史起始日（优化：避免拉取不必要的早期数据）
+            fund_start_date = _get_fund_earliest_purchase_date(purchase_records, platform, code)
+            if not fund_start_date:
+                fund_start_date = history_start_date  # 兜底使用全局起始日
+            log(f"  历史数据起始日（基金维度）: {fund_start_date}")
+
             # --- 第1步：获取历史数据（与实时数据解耦，无论实时API是否成功都更新缓存） ---
             cached_history = history_cache.get(code, [])
             original_cache_count = len(cached_history)
             if cached_history:
                 last_cached_date = cached_history[-1]["date"]
                 # 检查是否有早期交易日期超出缓存范围（新增早期交易记录场景）
-                if cached_history[0]["date"] > history_start_date:
+                if cached_history[0]["date"] > fund_start_date:
                     # 早期缺口：一次全量拉取并合并，避免双重拉取
-                    full_history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+                    full_history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
                     history = merge_history(cached_history, full_history)
                     log(f"  ✓ 缺口补全: 缓存 {original_cache_count} 条 + 全量合并 {len(full_history)} 条 → 总计 {len(history)} 条")
                 else:
                     # 增量获取（含7天重叠窗口以捕获NAV纠正）
-                    new_history = fetch_fund_history(code, start_date=history_start_date,
+                    new_history = fetch_fund_history(code, start_date=fund_start_date,
                                                       session=http_session, incremental_from=last_cached_date)
                     history = merge_history(cached_history, new_history)
                     new_count = len(history) - original_cache_count
                     log(f"  ✓ 增量获取: 缓存 {original_cache_count} 条 + 新增/更新 {max(0, new_count)} 条")
             else:
                 # 无缓存，全量获取
-                history = fetch_fund_history(code, start_date=history_start_date, session=http_session)
+                history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
 
             # 更新缓存并立即保存（防止中途崩溃丢失已获取的数据）
             history_cache[code] = history
@@ -845,6 +926,16 @@ def main():
                 save_history_cache(history_cache)
             except Exception as cache_err:
                 log(f"⚠️ 保存历史缓存失败: {cache_err}", "warning")
+
+            # 检查历史数据是否获取成功（保底回退）
+            if not history:
+                if cached_history:
+                    log(f"  ⚠️ 历史数据获取失败，使用缓存数据: {len(cached_history)} 条")
+                    history = cached_history
+                else:
+                    log(f"  ❌ 基金 {code} 历史数据获取失败，且无缓存，跳过")
+                    failed_funds.append(code)
+                    continue
 
             # --- 第2步：获取实时数据 ---
             realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)

@@ -1216,15 +1216,15 @@
 
                 <hr style="margin: 30px 0;">
 
-                <h3 style="margin-bottom: 20px;">当前交易记录</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">当前交易记录</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" id="btnSaveGithub">🚀 保存到 GitHub</button>
+                        <button class="btn btn-warning" id="btnExportJson">📥 导出 JSON 文件</button>
+                    </div>
+                </div>
                 <div id="recordsList" class="records-list">
                     <p style="color: var(--color-text-muted); text-align: center;">请先加载买入记录</p>
-                </div>
-
-                <div class="save-buttons">
-                    <button class="btn btn-success" id="btnSaveLocal">💾 保存到本地</button>
-                    <button class="btn btn-primary" id="btnSaveGithub" style="margin-left: 10px;">🚀 保存到 GitHub</button>
-                    <button class="btn btn-warning" id="btnExportJson" style="margin-left: 10px;">📥 导出 JSON 文件</button>
                 </div>
                 </div> <!-- 结束 tab-records 面板 -->
 
@@ -2935,18 +2935,10 @@
             }
         }
 
-        // 保存买入记录到本地存储
+        // 保存买入记录到本地存储（增删改操作后自动调用）
         function saveLocalRecords() {
             try {
                 localStorage.setItem('purchase_records', JSON.stringify(state.purchaseRecords));
-                showMessage('交易记录已保存到本地', 'success');
-                // ⚠️ 提醒用户同步到 GitHub（本地修改不会被 GitHub Actions 自动获取）
-                setTimeout(() => {
-                    showMessage('本地已保存 ✅ 别忘了同步到云端', 'warning', false, {
-                        text: '点击保存到 GitHub',
-                        callback: () => document.getElementById('btnSaveGithub').click()
-                    });
-                }, 1500);
             } catch (error) {
                 console.error('保存本地记录失败:', error);
                 showMessage('保存本地记录失败', 'error');
@@ -3108,7 +3100,7 @@ function addPurchaseRecord() {
     renderRecordsList();
     saveLocalRecords();
     clearRecordForm();
-    showMessage('交易记录已添加并保存到本地', 'success');
+    showMessage('交易记录已添加', 'success');
 }
 
 // 获取基金当前净值（辅助函数）
@@ -3302,7 +3294,7 @@ function updatePurchaseRecord() {
     renderRecordsList();
     saveLocalRecords();
     cancelEdit();
-    showMessage('交易记录已更新并保存到本地', 'success');
+    showMessage('交易记录已更新', 'success');
 }
 
         // 取消编辑
@@ -3346,7 +3338,7 @@ function updatePurchaseRecord() {
                     state.purchaseRecords = JSON.parse(e.target.result);
                     renderRecordsList();
                     saveLocalRecords(); // 同时保存到本地存储
-                    showMessage('已从文件导入交易记录并保存到本地', 'success');
+                    showMessage('已从文件导入交易记录', 'success');
                 } catch (error) {
                     console.error('导入失败:', error);
                     showMessage('导入失败: JSON格式错误', 'error');
@@ -3514,7 +3506,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
         renderRecordsList();
         saveLocalRecords();
-        showMessage('记录已删除并更新本地保存', 'success');
+        showMessage('记录已删除', 'success');
     }
 }
 
@@ -3828,7 +3820,6 @@ function deletePurchaseRecord(platform, fundCode, index) {
             });
 
             // 10. 保存按钮
-            document.getElementById('btnSaveLocal')?.addEventListener('click', saveLocalRecords);
             document.getElementById('btnSaveGithub')?.addEventListener('click', savePurchaseRecords);
             document.getElementById('btnExportJson')?.addEventListener('click', exportRecordsToFile);
 

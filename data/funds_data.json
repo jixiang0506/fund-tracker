@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-05-22 04:44:35",
+  "update_time": "2026-05-22 06:23:50",
   "funds": {
     "支付宝": [
       {
@@ -5602,9 +5602,9 @@
         "code": "001438",
         "name": "易方达瑞享混合E",
         "platform": "支付宝",
-        "current_nav": 9.4343,
-        "nav_date": "2026-05-22 11:30",
-        "daily_return": 2.89,
+        "current_nav": 9.57,
+        "nav_date": "2026-05-22 14:20",
+        "daily_return": 4.37,
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-21",
         "yesterday_nav": 9.1692,
@@ -5616,9 +5616,9 @@
         "holdings": {
           "total_invested": 142115.83,
           "total_shares": 18749.63,
-          "current_value": 176889.66,
-          "profit_loss": 34773.83,
-          "profit_loss_percent": 24.47,
+          "current_value": 179433.99,
+          "profit_loss": 37318.16,
+          "profit_loss_percent": 26.26,
           "purchases": [
             {
               "date": "2026-03-12",
@@ -8379,9 +8379,9 @@
         "code": "002112",
         "name": "德邦鑫星价值灵活配置混合C",
         "platform": "支付宝",
-        "current_nav": 5.6091,
-        "nav_date": "2026-05-22 11:30",
-        "daily_return": 4.85,
+        "current_nav": 5.655,
+        "nav_date": "2026-05-22 14:20",
+        "daily_return": 5.71,
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-21",
         "yesterday_nav": 5.3496,
@@ -8393,9 +8393,9 @@
         "holdings": {
           "total_invested": 70000.0,
           "total_shares": 14849.29,
-          "current_value": 83291.17,
-          "profit_loss": 13291.17,
-          "profit_loss_percent": 18.99,
+          "current_value": 83972.75,
+          "profit_loss": 13972.75,
+          "profit_loss_percent": 19.96,
           "purchases": [
             {
               "date": "2026-04-15",
@@ -19785,9 +19785,9 @@
         "code": "019018",
         "name": "易方达信息产业混合C",
         "platform": "理财通",
-        "current_nav": 8.0236,
-        "nav_date": "2026-05-22 11:30",
-        "daily_return": 2.66,
+        "current_nav": 8.1094,
+        "nav_date": "2026-05-22 14:20",
+        "daily_return": 3.75,
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-21",
         "yesterday_nav": 7.816,
@@ -19799,9 +19799,9 @@
         "holdings": {
           "total_invested": 1155.3,
           "total_shares": 176.69,
-          "current_value": 1417.71,
-          "profit_loss": 262.41,
-          "profit_loss_percent": 22.71,
+          "current_value": 1432.87,
+          "profit_loss": 277.57,
+          "profit_loss_percent": 24.03,
           "purchases": [
             {
               "date": "2026-04-15",
@@ -25118,9 +25118,9 @@
         "code": "000390",
         "name": "华商优势行业混合A",
         "platform": "招商银行",
-        "current_nav": 3.0931,
-        "nav_date": "2026-05-22 11:30",
-        "daily_return": 2.86,
+        "current_nav": 3.1303,
+        "nav_date": "2026-05-22 14:21",
+        "daily_return": 4.1,
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-21",
         "yesterday_nav": 3.007,
@@ -25132,9 +25132,9 @@
         "holdings": {
           "total_invested": 49862.26,
           "total_shares": 18101.67,
-          "current_value": 55990.29,
-          "profit_loss": 6128.03,
-          "profit_loss_percent": 12.29,
+          "current_value": 56663.67,
+          "profit_loss": 6801.41,
+          "profit_loss_percent": 13.64,
           "purchases": [
             {
               "date": "2026-04-16",
@@ -27863,9 +27863,9 @@
         "code": "020723",
         "name": "国寿安保数字经济股票发起式C",
         "platform": "招商银行",
-        "current_nav": 2.8025,
-        "nav_date": "2026-05-22 11:30",
-        "daily_return": 1.82,
+        "current_nav": 2.828,
+        "nav_date": "2026-05-22 14:21",
+        "daily_return": 2.74,
         "nav_status": "confirmed",
         "latest_history_date": "2026-05-21",
         "yesterday_nav": 2.7524,
@@ -27877,9 +27877,9 @@
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8078.85,
-          "current_value": 22640.98,
-          "profit_loss": 2640.98,
-          "profit_loss_percent": 13.2,
+          "current_value": 22846.99,
+          "profit_loss": 2846.99,
+          "profit_loss_percent": 14.23,
           "purchases": [
             {
               "date": "2026-04-13",
@@ -30480,13 +30480,13 @@
   },
   "summary": {
     "total_invested": 569055.5399999999,
-    "total_value": 705050.8200000001,
-    "total_profit_loss": 135995.28,
-    "total_profit_loss_percent": 23.9,
+    "total_value": 709171.2799999999,
+    "total_profit_loss": 140115.74,
+    "total_profit_loss_percent": 24.62,
     "yesterday_profit_loss": -8552.15,
     "yesterday_profit_loss_percent": -1.21,
     "yesterday_profit_loss_diff": -10851.06,
-    "yesterday_profit_loss_percent_diff": -1.48,
+    "yesterday_profit_loss_percent_diff": -1.51,
     "total_realized_profit_loss": -1672.46
   }
 }

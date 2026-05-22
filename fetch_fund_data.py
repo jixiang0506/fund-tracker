@@ -11,6 +11,14 @@
 4. 支持手动输入净值：如果无法获取历史净值，允许手动输入
 """
 
+import sys, io
+
+# 强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "buffer"):
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -19,7 +27,6 @@ import os
 import tempfile
 from datetime import datetime, timedelta
 import time
-import sys
 import argparse
 import re
 # 时区支持：优先使用 zoneinfo (Python 3.9+)，回退到 pytz
@@ -56,7 +63,7 @@ def load_fund_config():
     config_file = os.path.join(BASE_DIR, "fund_config.json")
 
     if not os.path.exists(config_file):
-        log("❌ 基金配置文件不存在: " + config_file, "error")
+        log("[ERROR] 基金配置文件不存在: {}".format(config_file), "error")
         log("请创建 fund_config.json，格式参考项目文档", "error")
         return {}, set(), {}
 
@@ -77,12 +84,12 @@ def load_fund_config():
                 if fund.get("name"):
                     fund_names[fund["code"]] = fund["name"]
 
-        log(f"✓ 成功加载基金配置: {len(qdii_codes)} 只QDII基金, {len(fund_names)} 只基金名称", "info")
+        log("[OK] 成功加载基金配置: {} 只QDII基金, {} 只基金名称".format(len(qdii_codes), len(fund_names)), "info")
 
         return funds_dict, qdii_codes, fund_names
 
     except Exception as e:
-        log(f"❌ 加载基金配置失败: {e}", "error")
+        log("[ERROR] 加载基金配置失败: {}".format(e), "error")
         return {}, set(), {}
 
 
@@ -522,9 +529,9 @@ def load_purchase_records():
         # 校验交易记录格式
         is_valid, validated, errors = validate_purchase_records(raw_records)
         if not is_valid:
-            log("❌ 交易记录格式错误:")
+            log("[ERROR] 交易记录格式错误:")
             for err in errors:
-                log(f"  - {err}")
+                log("  - {}".format(err))
             return None
 
         # 统计总基金数
@@ -1161,7 +1168,7 @@ def main():
         from generate_holdings import generate_holdings_snapshot
         generate_holdings_snapshot()
     except Exception as e:
-        log(f"  ⚠️ 持仓快照生成失败: {e}")
+        log("[Warning] 持仓快照生成失败: {}".format(e))
 
     # 自动更新业绩基准指数数据
     log("\n[5/5] 更新业绩基准指数数据...")
@@ -1197,9 +1204,8 @@ def _update_benchmark_data(base_dir, log):
             )
             if result.returncode == 0:
                 lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
-                log("[OK] {}更新完成{}".format(
-                    desc, ": " + lines[-1] if lines else ""
-                ))
+                tail = (": " + lines[-1]) if lines else ""
+                log("[OK] {}更新完成{}".format(desc, tail))
             else:
                 err = result.stderr.strip().splitlines()
                 log("[Warning] {}更新失败（退出码 {}）".format(desc, result.returncode))

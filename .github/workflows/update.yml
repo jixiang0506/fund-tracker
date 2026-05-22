@@ -68,6 +68,7 @@ jobs:
           # 只部署必要的数据文件（不包含原始交易记录）
           cp data/funds_data.json site/data/
           cp data/holdings_snapshot.json site/data/
+          cp data/benchmark_index_data.json site/data/
           touch site/.nojekyll
 
       - name: 上传 Pages 产物

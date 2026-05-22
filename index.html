@@ -983,6 +983,87 @@
                 height: 220px !important;
             }
         }
+
+        /* Modal Tabs */
+        .modal-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--color-border);
+            margin: 0 20px;
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .modal-tab:hover {
+            color: var(--color-primary);
+            background: rgba(0,0,0,0.02);
+        }
+
+        .modal-tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            background: rgba(0,0,0,0.02);
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* 保存按钮组优化 */
+        .save-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .save-buttons .btn {
+            flex: 1;
+            min-width: 140px;
+            max-width: 200px;
+        }
+
+        /* 提示信息优化 */
+        .tip-box {
+            background: var(--color-bg-secondary);
+            border-left: 4px solid var(--color-primary);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .tip-box.warning {
+            border-left-color: #f0ad4e;
+            background: #fcf8e3;
+        }
+
+        .tip-box.success {
+            border-left-color: #5cb85c;
+            background: #dff0d8;
+        }
     </style>
 </head>
 <body>
@@ -1028,47 +1109,26 @@
                 <h2>📝 管理交易记录</h2>
                 <span class="close" id="closeManageModalBtn">&times;</span>
             </div>
+            <!-- 标签页切换 -->
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-tab="records">📋 交易记录</button>
+                <button class="modal-tab" data-tab="github">⚙️ GitHub 配置</button>
+            </div>
             <div class="modal-body">
-                <div id="profitLossSummary" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
+                <!-- Tab: 交易记录 -->
+                <div class="tab-panel active" id="tab-records">
                     <h3 style="margin-bottom: 10px;">📊 盈亏概览（截至最新日期）</h3>
                     <div id="summaryContent"></div>
-                </div>
 
-                <div class="token-section">
-                    <h3>⚙️ GitHub 设置（可选）</h3>
-                    <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
-                        💡 提示：当前为本地模式（file://），由于浏览器CORS安全限制，无法直接访问GitHub API。<br>
-                        ✅ 交易记录会自动保存在浏览器本地存储中（关闭页面不会丢失）。<br>
-                        ✅ 如需同步到GitHub，请使用「导出JSON文件」功能手动上传。
-                    </p>
-                    <div class="form-group">
-                        <label>GitHub Token (需要 repo 权限)</label>
-                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
-                        <small style="color: var(--color-text-secondary); margin-top: 5px; display: block;">
-                            获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (需要 repo 权限)
-                        </small>
+                    <hr style="margin: 30px 0;">
+
+                    <div style="margin-bottom: 20px;">
+                        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                        <button class="btn btn-warning" id="btnImportFile">📂 从文件导入记录</button>
+                        <span style="margin-left: 10px; color: var(--color-text-secondary); font-size: 12px;">选择 purchase_records.json 文件（支持买入和卖出记录）</span>
                     </div>
-                    <div class="form-group">
-                        <label>仓库所有者</label>
-                        <input type="text" id="repoOwner" placeholder="your-username">
-                    </div>
-                    <div class="form-group">
-                        <label>仓库名称</label>
-                        <input type="text" id="repoName" placeholder="fund-tracker">
-                    </div>
-                    <button class="btn btn-warning" id="btnLoadFromGithub">🔄 从 GitHub 加载</button>
-                    <button class="btn btn-primary" id="btnLoadLocal" style="margin-left: 10px;">💾 加载本地记录</button>
-                </div>
 
-                <hr style="margin: 30px 0;">
-
-                <div style="margin-bottom: 20px;">
-                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
-                    <button class="btn btn-warning" id="btnImportFile">📂 从文件导入记录</button>
-                    <span style="margin-left: 10px; color: var(--color-text-secondary); font-size: 12px;">选择 purchase_records.json 文件（支持买入和卖出记录）</span>
-                </div>
-
-                <h3 style="margin-bottom: 20px;">添加交易记录</h3>
+                    <h3 style="margin-bottom: 20px;">添加交易记录</h3>
                 <!-- 1. 交易类型 -->
                 <div class="form-group">
                     <label>交易类型</label>
@@ -1161,14 +1221,41 @@
                     <p style="color: var(--color-text-muted); text-align: center;">请先加载买入记录</p>
                 </div>
 
-                <div style="margin-top: 30px; text-align: center;">
+                <div class="save-buttons">
                     <button class="btn btn-success" id="btnSaveLocal">💾 保存到本地</button>
                     <button class="btn btn-primary" id="btnSaveGithub" style="margin-left: 10px;">🚀 保存到 GitHub</button>
                     <button class="btn btn-warning" id="btnExportJson" style="margin-left: 10px;">📥 导出 JSON 文件</button>
                 </div>
-            </div>
-        </div>
-    </div>
+                </div> <!-- 结束 tab-records 面板 -->
+
+                <!-- Tab: GitHub 配置 -->
+                <div class="tab-panel" id="tab-github">
+                    <div class="tip-box">
+                        💡 提示：配置 GitHub Token 后，可以直接从 GitHub 加载交易记录，并保存到 GitHub 仓库。
+                    </div>
+                    <div class="form-group">
+                        <label>GitHub Token (需要 repo 权限)</label>
+                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+                        <small style="color: var(--color-text-secondary); margin-top: 5px; display: block;">
+                            获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (需要 repo 权限)
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>仓库所有者</label>
+                        <input type="text" id="repoOwner" placeholder="your-username">
+                    </div>
+                    <div class="form-group">
+                        <label>仓库名称</label>
+                        <input type="text" id="repoName" placeholder="fund-tracker">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-warning" id="btnLoadFromGithub">🔄 从 GitHub 加载</button>
+                        <button class="btn btn-primary" id="btnLoadLocal" style="margin-left: 10px;">💾 加载本地记录</button>
+                    </div>
+                </div> <!-- 结束 tab-github 面板 -->
+            </div> <!-- 结束 modal-body -->
+        </div> <!-- 结束 modal-content -->
+    </div> <!-- 结束 manageModal -->
 
         <script>
             // 统一状态管理（替代散落的全局变量）
@@ -2855,7 +2942,10 @@
                 showMessage('交易记录已保存到本地', 'success');
                 // ⚠️ 提醒用户同步到 GitHub（本地修改不会被 GitHub Actions 自动获取）
                 setTimeout(() => {
-                    showMessage('别忘了点击「保存到 GitHub」同步到云端', 'warning');
+                    showMessage('本地已保存 ✅ 别忘了同步到云端', 'warning', false, {
+                        text: '点击保存到 GitHub',
+                        callback: () => document.getElementById('btnSaveGithub').click()
+                    });
                 }, 1500);
             } catch (error) {
                 console.error('保存本地记录失败:', error);
@@ -3557,7 +3647,8 @@ function deletePurchaseRecord(platform, fundCode, index) {
         }
 
         // 显示消息（自动堆叠，防止重叠）
-        function showMessage(message, type) {
+        // action = { text: string, callback: function } 可选
+        function showMessage(message, type, useHTML = false, action = null) {
             const existing = document.querySelectorAll('.msg-toast');
             const topOffset = 20 + existing.length * 70;
 
@@ -3572,6 +3663,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 color: white;
                 z-index: 10000;
                 animation: slideIn 0.3s ease;
+                max-width: 400px;
             `;
 
             if (type === 'success') {
@@ -3582,7 +3674,25 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 div.style.backgroundColor = '#909399';
             }
 
-            div.textContent = message;
+            if (useHTML) {
+                div.innerHTML = message;
+            } else {
+                div.textContent = message;
+            }
+
+            // 如果有操作按钮，在消息内追加一个按钮
+            if (action && action.text && action.callback) {
+                const btn = document.createElement('button');
+                btn.textContent = action.text;
+                btn.style.cssText = 'margin-left:12px;background:none;border:1px solid #fff;border-radius:4px;color:#fff;padding:4px 10px;cursor:pointer;font-size:13px;';
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    action.callback();
+                    div.remove();
+                });
+                div.appendChild(btn);
+            }
+
             document.body.appendChild(div);
 
             setTimeout(() => {
@@ -3694,6 +3804,28 @@ function deletePurchaseRecord(platform, fundCode, index) {
             // 9. 添加/更新记录按钮
             document.getElementById('addOrUpdateBtn')?.addEventListener('click', addOrUpdatePurchaseRecord);
             document.getElementById('cancelEditBtn')?.addEventListener('click', cancelEdit);
+
+            // 9.5 Tab 切换逻辑
+            document.querySelectorAll('.modal-tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // 切换按钮状态
+                    document.querySelectorAll('.modal-tab').forEach(function(t) {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // 切换面板显示
+                    document.querySelectorAll('.tab-panel').forEach(function(panel) {
+                        panel.classList.remove('active');
+                    });
+                    const targetPanel = document.getElementById('tab-' + targetTab);
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                    }
+                });
+            });
 
             // 10. 保存按钮
             document.getElementById('btnSaveLocal')?.addEventListener('click', saveLocalRecords);

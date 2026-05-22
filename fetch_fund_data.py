@@ -527,6 +527,15 @@ def calculate_holdings(purchases, current_nav, history):
 
                 log(f"    FIFO抵扣: 从 {buy['date']} 买入记录抵扣 {deduct_shares:.2f} 份, 成本 ¥{deduct_amount:.2f}, 卖出 ¥{sell_value:.2f}, 盈亏 ¥{profit:.2f}")
 
+            # 检查是否超卖（剩余未抵扣份额 > 0）
+            if remaining_sell_shares > 0.0001:
+                actual_sell_shares = sell_shares - remaining_sell_shares
+                actual_amount = actual_sell_shares * nav_on_date
+                log(f"  ⚠ 警告: 基金 {code} 卖出份额超过持仓！尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sell_shares:.2f} 份")
+                # 修正为实际可卖出的份额和金额
+                sell_shares = actual_sell_shares
+                amount = actual_amount
+
             # 记录卖出详情（使用本笔卖出的已实现盈亏）
             purchase_details.append({
                 "date": date,
@@ -869,6 +878,13 @@ def main():
             # --- 第3步：计算持仓和收益 ---
             # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）
             purchases = purchase_records.get(platform, {}).get(code, [])
+
+            # 历史数据为空时跳过持仓计算，避免静默生成0持仓数据
+            if not history:
+                log(f"  ❌ 基金 {code} 历史数据为空，无法计算持仓，跳过")
+                failed_funds.append(code)
+                continue
+
             holdings = calculate_holdings(purchases, realtime["nav"], history)
 
             # 预计算累计收益率（使用 FIFO 一致逻辑，避免前端重复计算）

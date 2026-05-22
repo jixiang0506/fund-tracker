@@ -1,60 +1,70 @@
-import os, json, calendar, time as t, sys
-os.chdir(r"D:\Program Files (x86)\WorkBuddy\111\2026-05-12-task-2")
-out = open("_nasdaq_output.txt", "w", encoding="utf-8")
+"""
+获取纳斯达克100指数(^NDX)历史数据，写入 data/benchmark_index_data.json
+由 fetch_fund_data.py 自动调用，也可单独运行
 
-try:
-    import requests
-    out.write("requests OK\n")
-    out.flush()
+数据源: yfinance (替代已失效的 Yahoo Finance 直接 CSV 下载)
+"""
+import json
+import os
+import sys
+import io
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
-    # Yahoo Finance CSV download
-    from datetime import datetime, timezone, timedelta
-    # 获取北京时间（UTC+8）
-    beijing_tz = timezone(timedelta(hours=8))
-    beijing_now = datetime.now(beijing_tz)
-    
-    start = int(calendar.timegm(datetime(2022, 3, 1).timetuple()))
-    # 使用 timestamp() 正确获取 Unix 时间戳（自动处理时区）
-    end = int(beijing_now.timestamp())
-    
-    url = f"https://query1.finance.yahoo.com/v7/finance/download/%5ENDX?period1={start}&period2={end}&interval=1d&events=history"
-    out.write(f"URL: {url[:80]}...\n")
-    out.flush()
-    
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-    resp = requests.get(url, headers=headers, timeout=30)
-    out.write(f"Status: {resp.status_code}\n")
-    out.flush()
-    
-    if resp.status_code == 200:
-        lines = resp.text.strip().split("\n")
-        out.write(f"Lines: {len(lines)}\n")
-        out.write(f"Header: {lines[0]}\n")
-        
-        data = {}
-        for line in lines[1:]:
-            parts = line.split(",")
-            if len(parts) >= 5:
-                date_str = parts[0]
-                close = round(float(parts[4]), 2)
-                data[date_str] = close
-        
-        if data:
-            out.write(f"Records: {len(data)}, first={list(data.keys())[0]}, last={list(data.keys())[-1]}\n")
-            out.flush()
-            
-            with open("data/benchmark_index_data.json", "r", encoding="utf-8") as f:
-                existing = json.load(f)
-            existing["usNDX"] = {"name": "纳斯达克100", "data": data}
-            with open("data/benchmark_index_data.json", "w", encoding="utf-8") as f:
-                json.dump(existing, f, ensure_ascii=False, indent=2)
-            out.write("SAVED\n")
-        else:
-            out.write("WARNING: 获取到空数据，跳过保存以避免覆盖历史数据\n")
+# 强制 UTF-8 stdout，避免 Windows 控制台 GBK 编码报错
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
+
+def main():
+    script_dir = Path(__file__).parent
+    data_file = script_dir / "data" / "benchmark_index_data.json"
+
+    # 尝试导入 yfinance
+    try:
+        import yfinance as yf
+    except ImportError:
+        print("[ERROR] 缺少 yfinance 库，请运行: pip install yfinance")
+        sys.exit(1)
+
+    print("开始获取纳斯达克100指数(^NDX)数据...")
+
+    end = datetime.now(timezone.utc)
+    ticker = yf.Ticker("^NDX")
+    hist = ticker.history(start="2022-03-01", end=end, interval="1d")
+
+    if hist.empty:
+        print("[WARNING] 获取到空数据，跳过保存")
+        return
+
+    data = {}
+    for date, row in hist.iterrows():
+        date_str = date.strftime("%Y-%m-%d")
+        close = round(float(row["Close"]), 2)
+        data[date_str] = close
+
+    print("[OK] 获取到 {} 条数据（{} ~ {})".format(
+        len(data), min(data.keys()), max(data.keys())
+    ))
+
+    # 增量更新 benchmark_index_data.json
+    if data_file.exists():
+        with open(data_file, "r", encoding="utf-8") as f:
+            existing = json.load(f)
     else:
-        out.write(f"FAILED: {resp.status_code}\n{resp.text[:200]}\n")
+        existing = {}
 
-except Exception as e:
-    out.write(f"ERROR: {e}\n")
-finally:
-    out.close()
+    existing["usNDX"] = {
+        "name": "纳斯达克100指数",
+        "data": data
+    }
+
+    data_file.parent.mkdir(exist_ok=True)
+    with open(data_file, "w", encoding="utf-8") as f:
+        json.dump(existing, f, ensure_ascii=False, indent=2)
+
+    print("[OK] 纳斯达克100指数数据已写入 {}".format(data_file))
+
+
+if __name__ == "__main__":
+    main()

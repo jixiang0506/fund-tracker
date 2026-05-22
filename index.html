@@ -1967,20 +1967,12 @@
 
         // 获取北京时间今天的日期字符串 (YYYY-MM-DD)
         function getBeijingToday() {
-            const now = new Date();
-            const beijingOffset = 8 * 60 * 60 * 1000; // UTC+8
-            const utc = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-            const beijingTime = new Date(utc + beijingOffset);
-            return beijingTime.toISOString().split('T')[0];
+            return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
         }
 
         // 获取北京时间昨天的日期字符串
         function getBeijingYesterday() {
-            const now = new Date();
-            const beijingOffset = 8 * 60 * 60 * 1000;
-            const utc = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-            const beijingTime = new Date(utc + beijingOffset - 24 * 60 * 60 * 1000);
-            return beijingTime.toISOString().split('T')[0];
+            return new Date(Date.now() - 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
         }
 
         // 生成净值日期标签（根据北京时间判断显示策略）

@@ -16,6 +16,7 @@ INDEX_MAPPING = {
     '中证500': 'sh000905',
     '中证800': 'sh000906',
     '创业板指': 'sz399006',
+    '科创50指数': 'sh000688',
     '上证国债指数': 'sh000012',
     '中证全债指数': 'sh000013',
     '中证TMT产业主题指数': 'sz399610',
@@ -24,6 +25,8 @@ INDEX_MAPPING = {
     # 注：中证港股通综合指数(H11165)在腾讯财经接口中无数据，暂不提供映射
     # 港股指数
     '恒生指数': 'hkHSI',
+    # 美股指数（由 fetch_nasdaq.py 单独获取，此处仅作映射标识）
+    '纳斯达克100指数': 'usNDX',
 }
 
 def fetch_index_history(index_code, start_date=None, days=500):
@@ -148,15 +151,16 @@ def get_index_code(index_name):
 
 def main():
     print("开始执行 fetch_benchmark_data.py...")
-    
+
     # 读取基金配置
     config_file = Path(__file__).parent / 'fund_config.json'
     print(f"读取配置文件: {config_file}")
     with open(config_file, 'r', encoding='utf-8') as f:
         config = json.load(f)
-    
+
     # 获取所有基准指数
     benchmarks = set()
+    skipped = []
     for platform, fund_list in config['funds'].items():
         for fund in fund_list:
             benchmark = fund.get('benchmark', '')
@@ -166,33 +170,57 @@ def main():
                     code = get_index_code(index_name)
                     if code:
                         benchmarks.add((index_name, code))
-    
+                    else:
+                        skipped.append(index_name)
+
+    if skipped:
+        print(f"⚠ 以下基准指数无映射，将被跳过: {', '.join(set(skipped))}")
+
     print(f"需要获取 {len(benchmarks)} 个指数的数据:")
     for name, code in benchmarks:
         print(f"  {name} ({code})")
-    
-    # 获取指数历史数据
+
+    # 读取已有数据（增量更新，不覆盖）
+    output_file = Path(__file__).parent / 'data' / 'benchmark_index_data.json'
     all_index_data = {}
+    if output_file.exists():
+        try:
+            with open(output_file, 'r', encoding='utf-8') as f:
+                all_index_data = json.load(f)
+            print(f"✓ 已加载已有数据: {len(all_index_data)} 个指数")
+        except Exception as e:
+            print(f"⚠ 读取已有数据失败: {e}，将创建新文件")
+
+    # 获取指数历史数据（跳过 usNDX，由 fetch_nasdaq.py 维护）
     for index_name, index_code in benchmarks:
+        if index_code == 'usNDX':
+            print(f"\n跳过 {index_name} ({index_code})，由 fetch_nasdaq.py 维护")
+            continue
+
         print(f"\n正在获取 {index_name} ({index_code})...")
         index_data = fetch_index_history(index_code, days=1000)
         if index_data:
-            all_index_data[index_code] = {
-                'name': index_name,
-                'data': index_data
-            }
-            print(f"  成功获取 {len(index_data)} 条数据")
+            # 增量更新：合并新数据到已有数据
+            if index_code in all_index_data:
+                # 合并数据（新数据覆盖旧数据）
+                all_index_data[index_code]['data'].update(index_data)
+                print(f"  成功更新 {len(index_data)} 条数据（增量）")
+            else:
+                all_index_data[index_code] = {
+                    'name': index_name,
+                    'data': index_data
+                }
+                print(f"  成功获取 {len(index_data)} 条数据")
         else:
             print(f"  获取失败")
-    
-    # 保存到文件
-    output_file = Path(__file__).parent / 'data' / 'benchmark_index_data.json'
+
+    # 保存到文件（增量更新）
     output_file.parent.mkdir(exist_ok=True)
-    
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(all_index_data, f, ensure_ascii=False, indent=2)
-    
+
     print(f"\n基准指数数据已保存到: {output_file}")
+    print(f"总计: {len(all_index_data)} 个指数")
 
 if __name__ == '__main__':
     main()

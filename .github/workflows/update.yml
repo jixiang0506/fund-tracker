@@ -47,8 +47,6 @@ jobs:
       - name: 运行数据抓取脚本
         run: |
           python fetch_fund_data.py
-          python fetch_nasdaq.py
-          python fetch_benchmark_data.py
 
       - name: 提交更新数据
         run: |

@@ -8,9 +8,14 @@ try:
     out.flush()
 
     # Yahoo Finance CSV download
-    from datetime import datetime
+    from datetime import datetime, timezone, timedelta
+    # 获取北京时间（UTC+8）
+    beijing_tz = timezone(timedelta(hours=8))
+    beijing_now = datetime.now(beijing_tz)
+    
     start = int(calendar.timegm(datetime(2022, 3, 1).timetuple()))
-    end = int(calendar.timegm(datetime.now().timetuple()))
+    # 使用 timestamp() 正确获取 Unix 时间戳（自动处理时区）
+    end = int(beijing_now.timestamp())
     
     url = f"https://query1.finance.yahoo.com/v7/finance/download/%5ENDX?period1={start}&period2={end}&interval=1d&events=history"
     out.write(f"URL: {url[:80]}...\n")

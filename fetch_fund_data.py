@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 基金收益追踪系统 - 数据抓取脚本
@@ -324,7 +324,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
                 "pageIndex": page_index,
                 "pageSize": page_size,
                 "startDate": effective_start,
-                "endDate": datetime.now().strftime("%Y-%m-%d")
+                "endDate": get_beijing_time().strftime("%Y-%m-%d")
             }
 
             response = session.get(HISTORY_API, params=params, timeout=10)

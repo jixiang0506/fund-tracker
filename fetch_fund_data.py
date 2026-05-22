@@ -225,7 +225,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
     if session is None:
         session = _create_session()
     try:
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = get_beijing_time().strftime("%Y-%m-%d")
         is_qdii = qdii_codes and fund_code in qdii_codes
 
         params = {
@@ -691,7 +691,7 @@ def main():
     """主函数"""
     log("="*60)
     log(f"基金收益追踪系统 - 数据抓取")
-    log(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    log(f"开始时间: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
     log("="*60)
 
     # 解析命令行参数
@@ -743,7 +743,7 @@ def main():
 
     # 初始化输出数据
     all_data = {
-        "update_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "update_time": get_beijing_time().strftime("%Y-%m-%d %H:%M:%S"),
         "funds": {},
         "summary": {
             "total_invested": 0,

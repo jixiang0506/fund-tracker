@@ -1163,5 +1163,53 @@ def main():
     except Exception as e:
         log(f"  ⚠️ 持仓快照生成失败: {e}")
 
+    # 自动更新业绩基准指数数据
+    log("\n[5/5] 更新业绩基准指数数据...")
+    _update_benchmark_data(BASE_DIR, log)
+
+
+def _update_benchmark_data(base_dir, log):
+    """
+    基金净值更新完成后，自动更新业绩基准指数数据
+    依次调用 fetch_benchmark_data.py 和 fetch_nasdaq.py
+    """
+    import subprocess, sys
+
+    scripts = [
+        ("fetch_benchmark_data.py", "业绩基准（A股/港股指数）"),
+        ("fetch_nasdaq.py",       "纳斯达克100指数"),
+    ]
+
+    for script_name, desc in scripts:
+        script_path = os.path.join(base_dir, script_name)
+        if not os.path.exists(script_path):
+            log("[Warning] {} 不存在，跳过 {}".format(script_name, desc))
+            continue
+        try:
+            log("  正在更新{}（{}）...".format(desc, script_name))
+            result = subprocess.run(
+                [sys.executable, script_path],
+                cwd=base_dir,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=300,
+            )
+            if result.returncode == 0:
+                lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
+                log("[OK] {}更新完成{}".format(
+                    desc, ": " + lines[-1] if lines else ""
+                ))
+            else:
+                err = result.stderr.strip().splitlines()
+                log("[Warning] {}更新失败（退出码 {}）".format(desc, result.returncode))
+                if err:
+                    log("    错误: {}".format(err[-1][:200]))
+        except subprocess.TimeoutExpired:
+            log("[Warning] {}更新超时（>300s），跳过".format(desc))
+        except Exception as e:
+            log("[Warning] {}更新异常: {}".format(desc, e))
+
+
 if __name__ == "__main__":
     main()

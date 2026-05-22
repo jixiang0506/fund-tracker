@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 import time
 import sys
 import argparse
+import re
 # 时区支持：优先使用 zoneinfo (Python 3.9+)，回退到 pytz
 try:
     from zoneinfo import ZoneInfo
@@ -449,50 +450,57 @@ def create_template_files(funds=None):
 def validate_purchase_records(records):
     """
     校验交易记录 schema，提前拦截脏数据
+    结构: {平台: {基金代码: [交易记录]}}
     返回: (is_valid, validated_records, errors)
     """
     if not isinstance(records, dict):
-        return False, None, ["顶层结构必须是对象（平台→基金列表）"]
+        return False, None, ["顶层结构必须是对象（平台→基金代码→交易列表）"]
 
     validated = {}
     all_errors = []
 
-    for platform, fund_list in records.items():
-        if not isinstance(fund_list, list):
-            all_errors.append(f"平台 '{platform}' 的值必须是列表")
+    for platform, funds in records.items():
+        if not isinstance(funds, dict):
+            all_errors.append(f"平台 '{platform}' 的值必须是对象（基金代码→交易列表）")
             continue
 
-        validated[platform] = []
-        for i, rec in enumerate(fund_list):
-            prefix = f"{platform}[{i}]"
-            if not isinstance(rec, dict):
-                all_errors.append(f"{prefix}: 必须是对象")
+        validated[platform] = {}
+        for fund_code, trans_list in funds.items():
+            if not isinstance(trans_list, list):
+                all_errors.append(f"平台 '{platform}' 基金 '{fund_code}' 的交易记录必须是列表")
                 continue
 
-            # 校验 date
-            if "date" not in rec:
-                all_errors.append(f"{prefix}: 缺少 'date' 字段")
-                continue
-            date_val = rec["date"]
-            if not isinstance(date_val, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", date_val):
-                all_errors.append(f"{prefix}: 'date' 格式错误，应为 YYYY-MM-DD")
-                continue
+            validated[platform][fund_code] = []
+            for i, rec in enumerate(trans_list):
+                prefix = f"{platform}.{fund_code}[{i}]"
+                if not isinstance(rec, dict):
+                    all_errors.append(f"{prefix}: 必须是对象")
+                    continue
 
-            # 校验 amount
-            if "amount" not in rec:
-                all_errors.append(f"{prefix}: 缺少 'amount' 字段")
-                continue
-            amount_val = rec["amount"]
-            if not isinstance(amount_val, (int, float)) or amount_val <= 0:
-                all_errors.append(f"{prefix}: 'amount' 必须是正数")
-                continue
+                # 校验 date
+                if "date" not in rec:
+                    all_errors.append(f"{prefix}: 缺少 'date' 字段")
+                    continue
+                date_val = rec["date"]
+                if not isinstance(date_val, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", date_val):
+                    all_errors.append(f"{prefix}: 'date' 格式错误，应为 YYYY-MM-DD")
+                    continue
 
-            # 校验 type（可选）
-            if "type" in rec and rec["type"] not in ("buy", "sell"):
-                all_errors.append(f"{prefix}: 'type' 必须是 'buy' 或 'sell'")
-                continue
+                # 校验 amount
+                if "amount" not in rec:
+                    all_errors.append(f"{prefix}: 缺少 'amount' 字段")
+                    continue
+                amount_val = rec["amount"]
+                if not isinstance(amount_val, (int, float)) or amount_val <= 0:
+                    all_errors.append(f"{prefix}: 'amount' 必须是正数")
+                    continue
 
-            validated[platform].append(rec)
+                # 校验 type（可选）
+                if "type" in rec and rec["type"] not in ("buy", "sell"):
+                    all_errors.append(f"{prefix}: 'type' 必须是 'buy' 或 'sell'")
+                    continue
+
+                validated[platform][fund_code].append(rec)
 
     return len(all_errors) == 0, validated, all_errors
 

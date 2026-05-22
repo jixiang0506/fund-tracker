@@ -5,6 +5,13 @@
 import json
 import re
 import requests
+import sys
+import io
+
+# 强制 UTF-8 stdout，避免 Windows 控制台 GBK 编码报错
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 from datetime import datetime, timedelta
 from pathlib import Path
 

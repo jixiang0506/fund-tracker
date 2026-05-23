@@ -13,22 +13,8 @@ import base64
 import requests
 import sys
 import time
-from logger_config import log
-
-
-def load_env_file():
-    """从 .env 文件加载环境变量"""
-    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
-    if os.path.exists(env_file):
-        log("[OK] 读取 .env 文件...", "info")
-        with open(env_file, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
-                    value = value.strip().strip('"').strip("'")
-                    os.environ[key.strip()] = value
-        log("[OK] 已加载 .env 配置", "info")
+import argparse
+from logger_config import log, load_env_file
 
 
 def get_file_sha(file_path, owner, repo, token):
@@ -105,6 +91,23 @@ def push_file(file_path, message, owner, repo, token, max_retries=3):
 
 
 def main():
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(
+        description='推送文件到 GitHub 仓库',
+        epilog='示例: python push_to_github.py index.html fetch_fund_data.py'
+    )
+    parser.add_argument(
+        'files',
+        nargs='*',
+        help='要推送的文件列表（不指定则使用 github_config.json 中的 files）'
+    )
+    parser.add_argument(
+        '--config',
+        default='github_config.json',
+        help='配置文件路径（默认: github_config.json）'
+    )
+    args = parser.parse_args()
+
     # 加载 .env 环境变量
     load_env_file()
 
@@ -124,8 +127,9 @@ def main():
         log("[Warning] 不要将 Token 直接写在代码中或提交到 Git！", "warning")
         sys.exit(1)
 
-    # 读取其他配置（不含 Token）
-    config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'github_config.json')
+    # 读取配置文件（获取 owner 和 repo）
+    config_file = args.config if os.path.isabs(args.config) else \
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), args.config)
 
     if not os.path.exists(config_file):
         log("[Error] 错误: 配置文件不存在: " + config_file, "error")
@@ -137,9 +141,24 @@ def main():
 
     owner = config.get('owner', '')
     repo = config.get('repo', '')
-    files_to_push = config.get('files', [])
+
+    # 确定要推送的文件列表
+    if args.files:
+        # 命令行参数指定的文件
+        files_to_push = args.files
+        log("[OK] 使用命令行参数指定的文件", "info")
+    else:
+        # 回退到配置文件
+        files_to_push = config.get('files', [])
+        if not files_to_push:
+            log("[Error] 错误: 未指定文件，且配置文件中 files 为空", "error")
+            log("请通过命令行指定文件，或在配置文件中设置 files", "info")
+            sys.exit(1)
+        log("[OK] 使用配置文件中的文件列表", "info")
 
     log("[OK] 准备推送到 " + owner + "/" + repo, "info")
+    log("=" * 60, "info")
+    log("待推送文件: " + ", ".join(files_to_push), "info")
     log("=" * 60, "info")
 
     success_count = 0

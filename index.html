@@ -1880,6 +1880,40 @@
             }, 100);
         }
 
+        // 计算周期起始日期（使用北京时间）
+        function buildPeriodCutoff(period) {
+            if (period === 'all') return null;
+            const now = getBeijingNow();
+            const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365 };
+            const days = daysMap[period] || 0;
+            const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            return cutoff.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+        }
+
+        // 自定义 Chart.js 插件：高亮 0% 基准线
+        function createZeroLinePlugin() {
+            return {
+                id: 'zeroLine',
+                afterDraw(chart) {
+                    const yScale = chart.scales.y;
+                    const chartArea = chart.chartArea;
+                    const ctx = chart.ctx;
+                    const yPos = yScale.getPixelForValue(0);
+                    if (yPos >= chartArea.top && yPos <= chartArea.bottom) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(chartArea.left, yPos);
+                        ctx.lineTo(chartArea.right, yPos);
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = 'rgba(255, 100, 100, 0.8)';
+                        ctx.setLineDash([6, 4]);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            };
+        }
+
         function renderChartsInner() {
             const ctx = document.getElementById('chart-all');
             if (!ctx) return;
@@ -1901,27 +1935,9 @@
                 allFunds = allFunds.concat(state.fundsData.funds[platform]);
             }
 
-            // 计算周期起始日期（使用北京时间）
-            let cutoffDate = null;
-            if (state.charts.period !== 'all') {
-                const now = getBeijingNow();
-                const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365 };
-                const days = daysMap[state.charts.period] || 0;
-                const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-                // 使用北京时间格式化日期，避免 toISOString() 的 UTC 转换问题
-                cutoffDate = cutoff.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
-            }
+            const cutoffDate = buildPeriodCutoff(state.charts.period);
 
-            const colors = [
-                'rgb(255, 99, 132)',
-                'rgb(54, 162, 235)',
-                'rgb(255, 206, 86)',
-                'rgb(75, 192, 192)',
-                'rgb(153, 102, 255)',
-                'rgb(255, 159, 64)',
-                'rgb(199, 199, 199)',
-                'rgb(83, 102, 255)'
-            ];
+            const colors = allFunds.map((_, i) => `hsl(${Math.round(i * 360 / Math.max(allFunds.length, 1))}, 70%, 55%)`);
 
             const datasets = allFunds.map((fund, index) => {
                 const returnRateMap = new Map();
@@ -1996,31 +2012,7 @@
                 };
             });
 
-            // 自定义插件：高亮0%基准线
-            const zeroLinePlugin = {
-                id: 'zeroLine',
-                afterDraw(chart) {
-                    const yScale = chart.scales.y;
-                    const chartArea = chart.chartArea;
-                    const ctx = chart.ctx;
-
-                    // 获取y=0的像素位置
-                    const yPos = yScale.getPixelForValue(0);
-
-                    // 只在y=0在可见范围内时绘制
-                    if (yPos >= chartArea.top && yPos <= chartArea.bottom) {
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.moveTo(chartArea.left, yPos);
-                        ctx.lineTo(chartArea.right, yPos);
-                        ctx.lineWidth = 2;
-                        ctx.strokeStyle = 'rgba(255, 100, 100, 0.8)';
-                        ctx.setLineDash([6, 4]);
-                        ctx.stroke();
-                        ctx.restore();
-                    }
-                }
-            };
+            const zeroLinePlugin = createZeroLinePlugin();
 
             state.charts.mainInstance = new Chart(ctx, {
                 type: 'line',

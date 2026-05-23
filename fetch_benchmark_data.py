@@ -42,8 +42,8 @@ INDEX_MAPPING = {
     # 注：中证港股通综合指数(H11165)在腾讯财经接口中无数据，暂不提供映射
     # 港股指数
     '恒生指数': 'hkHSI',
-    # 美股指数（由 fetch_nasdaq.py 单独获取，此处仅作映射标识）
-    '纳斯达克100指数': 'usNDX',
+    # 美股指数（腾讯财经API支持 us.NDX 格式）
+    '纳斯达克100指数': 'us.NDX',
 }
 
 
@@ -218,12 +218,9 @@ def main():
         except Exception as e:
             log(f"⚠ 读取已有数据失败: {e}，将创建新文件", "warning")
 
-    # 获取指数历史数据（跳过 usNDX，由 fetch_nasdaq.py 维护）
+    # 获取指数历史数据
     for index_name, index_code in sorted(benchmarks):
-        if index_code == 'usNDX':
-            log(f"跳过 {index_name} ({index_code})，由 fetch_nasdaq.py 维护", "info")
-            continue
-
+        # 所有指数统一使用腾讯财经API获取
         log(f"正在获取 {index_name} ({index_code})...", "info")
         index_data = fetch_index_history(index_code, days=1000)
         if index_data:

@@ -1667,14 +1667,14 @@
                         <div class="label">昨日收益率</div>
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfitPercent >= 0 ? '+' : ''}${yesterdayProfitPercent.toFixed(2)}%
-                            ${yesterdayPercentDiff !== 0 ? `<br><span style="font-size:12px;${percentDiffClass}">（较前日 ${percentDiffSign}${Math.abs(yesterdayPercentDiff).toFixed(2)}% ${percentDiffArrow}）</span>` : ''}
+                            ${yesterdayPercentDiff !== 0 ? `<br><span class="${percentDiffClass}" style="font-size:12px;">（较前日 ${percentDiffSign}${Math.abs(yesterdayPercentDiff).toFixed(2)}% ${percentDiffArrow}）</span>` : ''}
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">昨日盈亏</div>
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}
-                            ${yesterdayProfitDiff !== 0 ? `<br><span style="font-size:12px;${diffClass}">（较前日 ${diffSign}¥${Math.abs(yesterdayProfitDiff).toFixed(2)} ${diffArrow}）</span>` : ''}
+                            ${yesterdayProfitDiff !== 0 ? `<br><span class="${diffClass}" style="font-size:12px;">（较前日 ${diffSign}¥${Math.abs(yesterdayProfitDiff).toFixed(2)} ${diffArrow}）</span>` : ''}
                         </div>
                     </div>
                     <div class="stat-card">

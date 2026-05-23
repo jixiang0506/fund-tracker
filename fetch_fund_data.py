@@ -340,7 +340,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
             log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
         page_index = 1
-        page_size = 20  # API每页最大返回20条
+        page_size = 100  # 提升分页大小，减少 API 调用次数（API 支持最大500）
 
         while page_index <= max_pages:
             params = {
@@ -542,12 +542,13 @@ def load_purchase_records():
         log(f"❌ 加载持仓记录失败: {e}")
         return None
 
-def calculate_holdings(purchases, current_nav, history):
+def calculate_holdings(purchases, current_nav, history, fund_code=""):
     """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）
     参数：
         purchases: 该基金的全部交易记录列表（已按平台区分，不含其他平台同名基金）
         current_nav: 当前净值
         history: 历史净值列表
+        fund_code: 基金代码（用于日志输出）
     """
     if not purchases or len(purchases) == 0:
         return {
@@ -621,7 +622,7 @@ def calculate_holdings(purchases, current_nav, history):
             if remaining_sell_shares > 0.0001:
                 actual_sell_shares = sell_shares - remaining_sell_shares
                 actual_amount = actual_sell_shares * nav_on_date
-                log(f"  ⚠ 警告: 基金 {code} 卖出份额超过持仓！尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sell_shares:.2f} 份")
+                log(f"  ⚠ 警告: 基金 {fund_code} 卖出份额超过持仓！尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sell_shares:.2f} 份")
                 # 修正为实际可卖出的份额和金额
                 sell_shares = actual_sell_shares
                 amount = actual_amount
@@ -692,6 +693,9 @@ def calculate_holdings(purchases, current_nav, history):
 def calculate_cumulative_returns(history, purchases, original_purchases=None, history_for_nav=None):
     """为历史数据中每一天预计算累计收益率，使用与 calculate_holdings() 一致的 FIFO 逻辑。
 
+    优化：增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)，
+    其中 H=历史天数，P=交易笔数。
+
     参数：
         history: 历史净值列表（按日期升序）
         purchases: calculate_holdings() 返回的 purchase_details（含 fifo_cost）
@@ -701,34 +705,35 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
     if not history:
         return []
 
-    return_rates = []
+    # 确保 history 按日期升序排列
+    sorted_history = sorted(history, key=lambda h: h["date"])
+    n = len(sorted_history)
+    return_rates = [None] * n
 
-    # 使用原始交易记录进行精确 FIFO 模拟（如果提供的话）
+    # ── 路径1：精确 FIFO 模拟（提供原始交易记录时）──
     if original_purchases and history_for_nav:
         sorted_purchases = sorted(original_purchases, key=lambda p: p["date"])
+        buy_queue = []          # FIFO 队列：[{date, nav, remaining_shares}]
+        purchase_idx = 0
+        num_purchases = len(sorted_purchases)
 
-        for h in history:
-            # 对每个历史时点，模拟 FIFO 队列到该日期为止的状态
-            buy_queue = []  # [{date, nav, remaining_shares}]
-
-            for p in sorted_purchases:
-                if p["date"] > h["date"]:
-                    break  # 后续交易不参与
+        for h_idx, h in enumerate(sorted_history):
+            # 增量推进：处理所有在该历史时点之前（含当日）的交易
+            while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
+                p = sorted_purchases[purchase_idx]
+                purchase_idx += 1
 
                 trans_type = p.get("type", "buy")
                 before_15 = p.get("before_15", True)
 
-                # 查找交易日净值
                 nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
                 if not nav_result or nav_result["nav"] <= 0:
                     continue
                 nav_on_date = nav_result["nav"]
 
                 if trans_type == "sell":
-                    # FIFO 抵扣
                     sell_shares = p["amount"] / nav_on_date
                     remaining_sell = sell_shares
-
                     for buy in buy_queue:
                         if remaining_sell <= 0:
                             break
@@ -738,7 +743,6 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                         buy["remaining_shares"] -= deduct
                         remaining_sell -= deduct
                 else:
-                    # 买入：加入 FIFO 队列
                     shares = p["amount"] / nav_on_date
                     buy_queue.append({
                         "date": p["date"],
@@ -746,42 +750,42 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                         "remaining_shares": shares
                     })
 
-            # 计算该时点的持仓
+            # 计算该时点的累计收益率
             total_shares = sum(b["remaining_shares"] for b in buy_queue)
             total_cost = sum(b["remaining_shares"] * b["nav"] for b in buy_queue)
 
             if total_cost > 0 and total_shares > 0:
                 value = h["nav"] * total_shares
                 profit = value - total_cost
-                return_rate = (profit / total_cost) * 100
-                return_rates.append(round(return_rate, 2))
+                return_rates[h_idx] = round((profit / total_cost) * 100, 2)
+
+        return return_rates
+
+    # ── 路径2：回退（使用 purchase_details 中的 fifo_cost）──
+    # 同样改为增量计算，从 O(H×P) 降至 O(H+P)
+    sorted_purchases = sorted(purchases, key=lambda p: p["date"])
+    purchase_idx = 0
+    num_purchases = len(sorted_purchases)
+    total_shares = 0
+    total_invested = 0
+
+    for h_idx, h in enumerate(sorted_history):
+        while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
+            p = sorted_purchases[purchase_idx]
+            purchase_idx += 1
+
+            if p.get("type") == "sell":
+                total_shares -= abs(p["shares"])
+                fifo_cost = p.get("fifo_cost", abs(p["amount"]))
+                total_invested -= fifo_cost
             else:
-                return_rates.append(None)
-    else:
-        # 回退：使用 purchase_details 中的 fifo_cost 进行简化计算
-        sorted_purchases = sorted(purchases, key=lambda p: p["date"])
+                total_shares += p["shares"]
+                total_invested += p["amount"]
 
-        for h in history:
-            total_shares = 0
-            total_invested = 0
-
-            for p in sorted_purchases:
-                if p["date"] <= h["date"]:
-                    if p.get("type") == "sell":
-                        total_shares -= abs(p["shares"])
-                        fifo_cost = p.get("fifo_cost", abs(p["amount"]))
-                        total_invested -= fifo_cost
-                    else:
-                        total_shares += p["shares"]
-                        total_invested += p["amount"]
-
-            if total_invested > 0:
-                value = h["nav"] * total_shares
-                profit = value - total_invested
-                return_rate = (profit / total_invested) * 100
-                return_rates.append(round(return_rate, 2))
-            else:
-                return_rates.append(None)
+        if total_invested > 0:
+            value = h["nav"] * total_shares
+            profit = value - total_invested
+            return_rates[h_idx] = round((profit / total_invested) * 100, 2)
 
     return return_rates
 
@@ -994,7 +998,7 @@ def main():
                 failed_funds.append(code)
                 continue
 
-            holdings = calculate_holdings(purchases, realtime["nav"], history)
+            holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
 
             # 预计算累计收益率（使用 FIFO 一致逻辑，避免前端重复计算）
             cumulative_returns = calculate_cumulative_returns(

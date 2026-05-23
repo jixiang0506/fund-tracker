@@ -30,6 +30,12 @@
         "name": "易方达全球优质企业混合(QDII)C",
         "is_qdii": true,
         "benchmark": "纳斯达克100指数"
+      },
+      {
+        "code": "017811",
+        "name": "东方人工智能主题混合C",
+        "is_qdii": false,
+        "benchmark": "科创50指数"
       }
     ],
     "理财通": [

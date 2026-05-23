@@ -1,0 +1,8 @@
+{
+    "owner": "jixiang0506",
+    "repo": "fund-tracker",
+    "files": [
+        "index.html"
+    ],
+    "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件：python push_to_github.py index.html fetch_fund_data.py"
+}

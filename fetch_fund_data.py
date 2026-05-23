@@ -1227,7 +1227,7 @@ def fetch_fund_info_from_web(code, session=None):
     """
     import re
 
-    url = f"http://fundgz.1234567.com.cn/js/{code}.js"
+    url = "http://fundgz.1234567.com.cn/js/{}.js".format(code)
 
     try:
         if session is None:
@@ -1247,7 +1247,7 @@ def fetch_fund_info_from_web(code, session=None):
 
                 benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"
 
-                log(f"  ✓ 基金 {code}: {name} ({'QDII' if is_qdii else '国内'}, 基准: {benchmark})")
+                log("  ✓ 基金 {}: {} ({}，基准: {})".format(code, name, "QDII" if is_qdii else "国内", benchmark))
 
                 return {
                     "name": name,
@@ -1255,7 +1255,7 @@ def fetch_fund_info_from_web(code, session=None):
                     "benchmark": benchmark
                 }
     except Exception as e:
-        log(f"⚠️ 获取基金 {code} 信息失败: {e}", "warning")
+        log("⚠️ 获取基金 {} 信息失败: {}".format(code, e), "warning")
 
     return None
 
@@ -1275,7 +1275,7 @@ def auto_detect_new_funds():
         with open(records_file, "r", encoding="utf-8") as f:
             purchase_records = json.load(f)
     except Exception as e:
-        log(f"⚠️ 加载交易记录失败: {e}", "warning")
+        log("⚠️ 加载交易记录失败: {}".format(e), "warning")
         return
 
     all_fund_codes = set()
@@ -1305,15 +1305,15 @@ def auto_detect_new_funds():
         log("✓ 无新基金需要添加")
         return
 
-    log(f"🔍 发现 {len(new_codes)} 只新基金: {', '.join(sorted(new_codes))}")
+    log("🔍 发现 {} 只新基金: {}".format(len(new_codes), ", ".join(sorted(new_codes))))
 
     session = _create_session()
     for code in sorted(new_codes):
-        log(f"  正在获取基金 {code} 的信息...")
+        log("  正在获取基金 {} 的信息...".format(code))
         fund_info = fetch_fund_info_from_web(code, session)
 
         if fund_info is None:
-            log(f"  ⚠️ 无法获取基金 {code} 的信息，跳过", "warning")
+            log("  ⚠️ 无法获取基金 {} 的信息，跳过".format(code), "warning")
             continue
 
         platform = None
@@ -1323,7 +1323,7 @@ def auto_detect_new_funds():
                 break
 
         if platform is None:
-            log(f"  ⚠️ 无法确定基金 {code} 的平台，跳过", "warning")
+            log("  ⚠️ 无法确定基金 {} 的平台，跳过".format(code), "warning")
             continue
 
         if platform not in config["funds"]:
@@ -1336,14 +1336,14 @@ def auto_detect_new_funds():
             "benchmark": fund_info["benchmark"]
         })
 
-        log(f"  ✓ 已添加基金 {code} ({fund_info['name']}) 到 {platform}")
+        log("  ✓ 已添加基金 {} ({}) 到 {}".format(code, fund_info["name"], platform))
 
     try:
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
-        log(f"✓ 已更新 fund_config.json")
+        log("✓ 已更新 fund_config.json")
     except Exception as e:
-        log(f"❌ 保存 fund_config.json 失败: {e}", "error")
+        log("❌ 保存 fund_config.json 失败: {}".format(e), "error")
 
 
 if __name__ == "__main__":

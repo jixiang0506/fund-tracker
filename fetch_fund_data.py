@@ -1263,7 +1263,7 @@ def fetch_fund_info_from_web(code, session=None):
                 name = data.get("name", "")
 
                 # 启发式判断是否为 QDII
-                qdii_keywords = ["全球", "纳斯达克", "美股", "海外", "国际"]
+                qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"]
                 is_qdii = any(kw in name for kw in qdii_keywords)
 
                 benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"

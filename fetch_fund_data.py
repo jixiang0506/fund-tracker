@@ -13,13 +13,6 @@
 
 import sys
 import io
-
-# 强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错
-if hasattr(sys.stdout, "buffer"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-if hasattr(sys.stderr, "buffer"):
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
-
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -53,11 +46,18 @@ def get_beijing_time():
 
 # 导入日志模块
 try:
-    from logger_config import log
+    from logger_config import log, setup_encoding
+    setup_encoding()
 except ImportError:
-    # 如果 logger_config 不存在，使用简单的 log 函数
+    # 如果 logger_config 不存在，使用简单的 log 函数和编码设置
     def log(message, level='info'):
         print(message)
+    def setup_encoding():
+        if hasattr(sys.stdout, "buffer"):
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "buffer"):
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    setup_encoding()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HISTORY_CACHE_FILE = os.path.join(BASE_DIR, "data", "history_cache.json")
@@ -188,6 +188,11 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
     如果实时估值API返回空（非交易时段），则回退到历史数据API获取最新净值。"""
     if session is None:
         session = _create_session()
+
+    # 统一回退函数，避免重复参数传递
+    def _fallback():
+        return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+
     for attempt in range(1, max_retries + 1):
         try:
             url = REALTIME_API.format(fund_code)
@@ -200,20 +205,20 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             json_end = text.rfind(')')
             if json_start <= 0 or json_end <= json_start:
                 log(f"  ⚠ 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+                return _fallback()
             json_str = text[json_start:json_end].strip()
 
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
                 log(f"  ⚠ 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+                return _fallback()
 
             data = json.loads(json_str)
 
             # 检查返回数据是否有效（有些基金不在交易时段会返回空内容）
             if not data.get("name") and not data.get("gsz"):
                 log(f"  ⚠ 基金 {fund_code} 实时估值无数据，尝试回退到历史数据API...")
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+                return _fallback()
 
             return {
                 "code": fund_code,
@@ -226,7 +231,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
         except json.JSONDecodeError:
             # JSON解析失败 - 回退到历史数据
             log(f"  ⚠ 基金 {fund_code} 实时估值JSON解析失败，尝试回退到历史数据API...")
-            return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+            return _fallback()
         except Exception as e:
             if attempt < max_retries:
                 log(f"  ⚠ 获取基金 {fund_code} 实时数据失败 (第{attempt}次), {max_retries - attempt}次重试机会剩余: {e}")
@@ -234,7 +239,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             else:
                 log(f"❌ 获取基金 {fund_code} 实时数据失败 (已重试{max_retries}次): {e}")
                 # 最后一次也尝试回退
-                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+                return _fallback()
 
 def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, session=None):
     """从历史净值API获取最新记录，作为实时数据的回退方案。
@@ -1205,7 +1210,7 @@ def _update_benchmark_data(base_dir, log):
     基金净值更新完成后，自动更新业绩基准指数数据
     调用 fetch_benchmark_data.py（已合并纳斯达克100指数获取功能）
     """
-    import subprocess, sys
+    import subprocess
 
     scripts = [
         ("fetch_benchmark_data.py", "业绩基准（A股/港股/美股指数）"),
@@ -1246,7 +1251,6 @@ def fetch_fund_info_from_web(code, session=None):
     从天天基金网获取基金基本信息（基金名称、类型）
     返回: {"name": "基金名称", "is_qdii": True/False, "benchmark": "..."} 或 None
     """
-    import re
 
     url = "https://fundgz.1234567.com.cn/js/{}.js".format(code)
 

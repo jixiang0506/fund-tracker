@@ -1778,7 +1778,7 @@
 
                 if (fnd.holdings && fnd.holdings.purchases && fnd.holdings.purchases.length > 0) {
                     html += `
-                        <div class="purchase-details" id="details-${encAttr(fnd.code)}::${encAttr(platformName)}" style="margin-top: 15px; display: none;">
+                        <div class="purchase-details" id="${getFundDetailsId(fnd.code, platformName)}" style="margin-top: 15px; display: none;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
                                 <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="7d" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一周</button>
                                 <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一月</button>
@@ -1788,7 +1788,7 @@
                                 <button class="period-btn fund-period-btn active" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="all" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">全部</button>
                             </div>
                             <div class="fund-chart-wrapper" style="position: relative; height: 280px; margin-bottom: 20px;">
-                                <canvas id="chart-${encAttr(fnd.code)}::${encAttr(platformName)}"></canvas>
+                                <canvas id="${getFundChartCanvasId(fnd.code, platformName)}"></canvas>
                             </div>
                             <h4>交易记录（点击基金名称可收起）</h4>
                             <table>
@@ -2074,7 +2074,11 @@
 
         // 切换交易记录显示/隐藏
         function toggleDetails(id) {
-            const details = document.getElementById(`details-${id}`);
+            const sepIdx = id.indexOf('::');
+            const fundCode = decAttr(id.substring(0, sepIdx));
+            const platformName = decAttr(id.substring(sepIdx + 2));
+            const detailsId = getFundDetailsId(fundCode, platformName);
+            const details = document.getElementById(detailsId);
             if (!details) return;
 
             if (details.style.display === 'none') {
@@ -2084,7 +2088,7 @@
             } else {
                 details.style.display = 'none';
                 // 收起时销毁图表释放资源
-                const chartId = `chart-${id}`;
+                const chartId = getFundChartCanvasId(fundCode, platformName);
                 if (state.charts.fundInstances[chartId]) {
                     state.charts.fundInstances[chartId].destroy();
                     delete state.charts.fundInstances[chartId];
@@ -2141,6 +2145,14 @@
         // 属性值编码/解码（防XSS属性注入）
         function encAttr(str) { return encodeURIComponent(String(str)); }
         function decAttr(str) { return decodeURIComponent(String(str)); }
+        
+        // 统一 ID 生成函数（消除硬编码的隐式约定）
+        function getFundDetailsId(fundCode, platformName) {
+            return `details-${encAttr(fundCode)}::${encAttr(platformName)}`;
+        }
+        function getFundChartCanvasId(fundCode, platformName) {
+            return `chart-${encAttr(fundCode)}::${encAttr(platformName)}`;
+        }
 
         // 指数名称到代码的映射
         const BENCHMARK_INDEX_MAP = {
@@ -2153,7 +2165,7 @@
             const sepIdx = id.indexOf('::');
             const fundCode = decAttr(id.substring(0, sepIdx));
             const platformName = decAttr(id.substring(sepIdx + 2));
-            const canvasId = `chart-${id}`;
+            const canvasId = getFundChartCanvasId(fundCode, platformName);
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
 

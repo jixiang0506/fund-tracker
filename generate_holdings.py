@@ -10,7 +10,7 @@
 
 import json
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from logger_config import log
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')

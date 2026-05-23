@@ -153,14 +153,17 @@ def generate_holdings_snapshot():
             total_daily_profit_loss += daily_profit_loss
             funds_count += 1
 
-    # 计算汇总
+    # 计算汇总（加除零保护）
+    total_invested_safe = total_invested if abs(total_invested) > 0.0001 else 0
+    total_holdings_value_safe = total_holdings_value if abs(total_holdings_value) > 0.0001 else 0
+    
     snapshot['summary'] = {
         "total_holdings_value": round(total_holdings_value, 2),
         "total_invested": round(total_invested, 2),
         "total_profit_loss": round(total_profit_loss, 2),
-        "total_profit_loss_percent": round((total_profit_loss / total_invested * 100) if total_invested > 0 else 0, 2),
+        "total_profit_loss_percent": round(total_profit_loss / total_invested_safe * 100, 2) if total_invested_safe > 0 else 0,
         "today_profit_loss": round(total_daily_profit_loss, 2),
-        "today_profit_loss_percent": round((total_daily_profit_loss / total_holdings_value * 100) if total_holdings_value > 0 else 0, 2),
+        "today_profit_loss_percent": round(total_daily_profit_loss / total_holdings_value_safe * 100, 2) if total_holdings_value_safe > 0 else 0,
         "funds_count": funds_count,
         "platforms": sorted(list(platforms_set))
     }

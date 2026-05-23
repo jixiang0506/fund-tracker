@@ -8,11 +8,24 @@
 
 import logging
 import os
+import sys
+import io
 from datetime import datetime
 
 # 统一日志格式
 LOG_FORMAT = '[%(asctime)s] %(levelname)s [%(filename)s:%(lineno)d] - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+def setup_encoding():
+    """
+    强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错。
+    在脚本开头调用一次即可。
+    """
+    if hasattr(sys.stdout, "buffer"):
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "buffer"):
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 
 def setup_logger(name='fund_tracker', log_level=logging.INFO):
@@ -65,3 +78,21 @@ def log(message, level='info'):
         logger.error(message)
     else:
         logger.info(message)
+
+def load_env_file():
+    """
+    从 .env 文件加载环境变量到 os.environ。
+    .env 文件位于 logger_config.py 同级目录（项目根目录）。
+    """
+    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if not os.path.exists(env_file):
+        return
+    log("[OK] 读取 .env 文件...", "info")
+    with open(env_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                value = value.strip().strip('"').strip("'")
+                os.environ[key.strip()] = value
+    log("[OK] 已加载 .env 配置", "info")

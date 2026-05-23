@@ -273,9 +273,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         # 从配置文件获取基金名称（回退方案）
         fund_name = _get_fund_name(fund_code, fund_names)
 
-        status_map = {"delayed": "延迟", "confirmed_today": "今日已更新", "confirmed": "确认"}
-        status_text = status_map.get(nav_status, nav_status)
-        log(f"  ✓ 基金 {fund_code} 回退成功 [{status_text}]: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
+        log(f"  ✓ 基金 {fund_code} 回退成功: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
         return {
             "code": fund_code,
             "name": fund_name,

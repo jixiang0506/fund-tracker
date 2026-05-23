@@ -64,7 +64,7 @@ def push_file(file_path, message, owner, repo, token, max_retries=3):
             data['sha'] = sha
 
         try:
-            response = requests.put(url, headers=headers, json=data, timeout=30)
+            response = requests.put(url, headers=headers, json=data, timeout=120)
 
             if response.status_code in [200, 201]:
                 log(f"[OK] 成功推送: {file_path}", "info")

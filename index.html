@@ -1064,6 +1064,36 @@
             border-left-color: #5cb85c;
             background: #dff0d8;
         }
+
+        /* 交易记录平台筛选标签 */
+        .records-filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .records-filter-btn {
+            padding: 6px 16px;
+            border: 1.5px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .records-filter-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .records-filter-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
     </style>
 </head>
 <body>
@@ -1223,6 +1253,10 @@
                         <button class="btn btn-warning" id="btnExportJson">📥 导出 JSON 文件</button>
                     </div>
                 </div>
+                <!-- 交易记录平台筛选标签 -->
+                <div id="recordsFilterButtons" class="records-filter-buttons">
+                    <button class="records-filter-btn active" data-platform="全部">全部</button>
+                </div>
                 <div id="recordsList" class="records-list">
                     <p style="color: var(--color-text-muted); text-align: center;">请先加载买入记录</p>
                 </div>
@@ -1304,6 +1338,11 @@
 
                 // 筛选状态
                 filter: {
+                    platform: '全部'
+                },
+
+                // 交易记录筛选状态
+                recordsFilter: {
                     platform: '全部'
                 }
             };
@@ -3422,64 +3461,114 @@ function getFundName(platform, fundCode) {
             summaryDiv.style.display = 'block';
         }
 
-// 渲染记录列表 - 添加空值检查
+// 渲染交易记录平台筛选标签
+function renderRecordsFilterButtons() {
+    const container = document.getElementById('recordsFilterButtons');
+    if (!container) return;
+
+    // 收集有交易记录的平台列表
+    const platforms = ['全部'];
+    for (const platform in state.purchaseRecords) {
+        if (state.purchaseRecords[platform] && typeof state.purchaseRecords[platform] === 'object') {
+            const hasRecords = Object.values(state.purchaseRecords[platform]).some(r => Array.isArray(r) && r.length > 0);
+            if (hasRecords) platforms.push(platform);
+        }
+    }
+
+    let html = '';
+    platforms.forEach(p => {
+        const active = p === state.recordsFilter.platform ? ' active' : '';
+        html += `<button class="records-filter-btn${active}" data-platform="${encAttr(p)}">${escapeHtml(p)}</button>`;
+    });
+    container.innerHTML = html;
+}
+
+// 按平台筛选交易记录
+function filterRecordsByPlatform(platform) {
+    state.recordsFilter.platform = platform;
+    renderRecordsList();
+}
+
+// 渲染记录列表 - 平台筛选 + 日期倒序
 function renderRecordsList() {
     const container = document.getElementById('recordsList');
 
     if (!state.purchaseRecords || Object.keys(state.purchaseRecords).length === 0) {
-        container.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">暂无买入记录</p>';
+        container.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">暂无交易记录</p>';
+        renderRecordsFilterButtons();
         return;
     }
 
-    let html = '';
+    // 1. 收集所有符合条件的记录
+    let allRecords = [];
 
     for (const platform in state.purchaseRecords) {
-        // ✅ 检查平台对象有效性
+        // 平台筛选
+        if (state.recordsFilter.platform !== '全部' && platform !== state.recordsFilter.platform) continue;
+
         if (!state.purchaseRecords[platform] || typeof state.purchaseRecords[platform] !== 'object') continue;
-        
+
         for (const fundCode in state.purchaseRecords[platform]) {
-            // ✅ 检查基金数组有效性
             const records = state.purchaseRecords[platform][fundCode];
             if (!Array.isArray(records)) continue;
 
             records.forEach((record, index) => {
-                // ✅ 检查单条记录有效性
                 if (!record || !record.date) return;
-                
-                const fundName = getFundName(platform, fundCode);
-                const isSell = record.type === 'sell';
-                const typeLabel = isSell ? '卖出' : '买入';
-                const typeColor = isSell ? 'var(--color-loss)' : 'var(--color-profit)';
-                const amountPrefix = isSell ? '-' : '';
-                const amountValue = typeof record.amount === 'number' ? record.amount.toFixed(2) : '0.00';
 
-                // 构建额外信息（份额、净值）
-                let extraInfo = '';
-                if (record.shares !== undefined && record.shares > 0) {
-                    extraInfo += `, 份额: ${record.shares.toFixed(2)}`;
-                }
-                if (record.nav !== undefined && record.nav > 0) {
-                    extraInfo += `, 净值: ¥${record.nav.toFixed(4)}`;
-                }
-
-                html += `
-                    <div class="record-item">
-                        <div class="record-info">
-                            <strong>${escapeHtml(platform)}</strong> - ${escapeHtml(fundName)} (${escapeHtml(fundCode)})<br>
-                            <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
-                            日期: ${escapeHtml(record.date)}${record.before_15 === false ? ' <span style="color: var(--color-warning); font-size: 12px;">(15点后)</span>' : ''}, 金额: ¥${amountPrefix}${amountValue}${extraInfo}
-                        </div>
-                        <div class="record-actions">
-                            <button class="btn btn-primary edit-record-btn" data-platform="${encAttr(platform)}" data-code="${encAttr(fundCode)}" data-index="${index}" style="margin-right: 5px;">编辑</button>
-                            <button class="btn btn-danger delete-record-btn" data-platform="${encAttr(platform)}" data-code="${encAttr(fundCode)}" data-index="${index}">删除</button>
-                        </div>
-                    </div>
-                `;
+                allRecords.push({
+                    platform: platform,
+                    fundCode: fundCode,
+                    index: index,
+                    record: record
+                });
             });
         }
     }
 
-    container.innerHTML = html || '<p style="color: var(--color-text-muted); text-align: center;">暂无有效记录</p>';
+    // 2. 按日期倒序排序（最新的在前面）
+    allRecords.sort((a, b) => {
+        return b.record.date.localeCompare(a.record.date);
+    });
+
+    // 3. 生成 HTML
+    let html = '';
+
+    allRecords.forEach(item => {
+        const { platform, fundCode, index, record } = item;
+        const fundName = getFundName(platform, fundCode);
+        const isSell = record.type === 'sell';
+        const typeLabel = isSell ? '卖出' : '买入';
+        const typeColor = isSell ? 'var(--color-loss)' : 'var(--color-profit)';
+        const amountPrefix = isSell ? '-' : '';
+        const amountValue = typeof record.amount === 'number' ? record.amount.toFixed(2) : '0.00';
+
+        let extraInfo = '';
+        if (record.shares !== undefined && record.shares > 0) {
+            extraInfo += `，份额: ${record.shares.toFixed(2)}`;
+        }
+        if (record.nav !== undefined && record.nav > 0) {
+            extraInfo += `，净值: ${record.nav.toFixed(4)}`;
+        }
+
+        html += `
+            <div class="record-item">
+                <div class="record-info">
+                    <strong>${escapeHtml(platform)}</strong> - ${escapeHtml(fundName)} (${escapeHtml(fundCode)})<br>
+                    <span style="color: ${typeColor}; font-weight: bold;">[${typeLabel}]</span>
+                    日期: ${escapeHtml(record.date)}${record.before_15 === false ? ' <span style="color: var(--color-warning); font-size: 12px;">(15点后)</span>' : ''}，金额: ¥${amountPrefix}${amountValue}${extraInfo}
+                </div>
+                <div class="record-actions">
+                    <button class="btn btn-primary edit-record-btn" data-platform="${encAttr(platform)}" data-code="${encAttr(fundCode)}" data-index="${index}" style="margin-right: 5px;">编辑</button>
+                    <button class="btn btn-danger delete-record-btn" data-platform="${encAttr(platform)}" data-code="${encAttr(fundCode)}" data-index="${index}">删除</button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html || '<p style="color: var(--color-text-muted); text-align: center;">暂无交易记录</p>';
+
+    // 4. 更新平台筛选标签
+    renderRecordsFilterButtons();
 }
 
 // 删除买入记录 - 添加完整空值检查
@@ -3771,6 +3860,15 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 if (btn) {
                     const platform = btn.dataset.platform;
                     filterByPlatform(platform, btn);
+                }
+            });
+
+            // 3.5 交易记录平台筛选按钮（事件委托）
+            document.getElementById('recordsFilterButtons')?.addEventListener('click', function(e) {
+                const btn = e.target.closest('.records-filter-btn');
+                if (btn) {
+                    const platform = decAttr(btn.dataset.platform);
+                    filterRecordsByPlatform(platform);
                 }
             });
 

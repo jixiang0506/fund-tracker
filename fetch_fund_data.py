@@ -1203,13 +1203,12 @@ def main():
 def _update_benchmark_data(base_dir, log):
     """
     基金净值更新完成后，自动更新业绩基准指数数据
-    依次调用 fetch_benchmark_data.py 和 fetch_nasdaq.py
+    调用 fetch_benchmark_data.py（已合并纳斯达克100指数获取功能）
     """
     import subprocess, sys
 
     scripts = [
-        ("fetch_benchmark_data.py", "业绩基准（A股/港股指数）"),
-        ("fetch_nasdaq.py",       "纳斯达克100指数"),
+        ("fetch_benchmark_data.py", "业绩基准（A股/港股/美股指数）"),
     ]
 
     for script_name, desc in scripts:
@@ -1264,7 +1263,7 @@ def fetch_fund_info_from_web(code, session=None):
                 name = data.get("name", "")
 
                 # 启发式判断是否为 QDII
-                qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"]
+                qdii_keywords = ["全球", "纳斯达克", "美股", "海外", "国际"]
                 is_qdii = any(kw in name for kw in qdii_keywords)
 
                 benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"

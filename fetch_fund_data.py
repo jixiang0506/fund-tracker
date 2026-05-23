@@ -29,6 +29,10 @@ from datetime import datetime, timedelta
 import time
 import argparse
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+# 线程锁：保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
+history_cache_lock = threading.Lock()
 # 时区支持：优先使用 zoneinfo (Python 3.9+)，回退到 pytz
 try:
     from zoneinfo import ZoneInfo
@@ -189,9 +193,14 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             response = session.get(url, timeout=10)
             response.raise_for_status()
 
-            # 解析JSONP响应
+            # 解析JSONP响应：找最外层括号 () 包裹的 JSON，避免匹配字符串值中的 {}
             text = response.text
-            json_str = text[text.find('{'):text.rfind('}')+1]
+            json_start = text.find('(') + 1
+            json_end = text.rfind(')')
+            if json_start <= 0 or json_end <= json_start:
+                log(f"  ⚠ 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
+                return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+            json_str = text[json_start:json_end].strip()
 
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
@@ -340,7 +349,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
             log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
         page_index = 1
-        page_size = 100  # 提升分页大小，减少 API 调用次数（API 支持最大500）
+        page_size = 500  # API支持最大500条/页，减少API调用次数
 
         while page_index <= max_pages:
             params = {
@@ -371,7 +380,8 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
                 break
 
             page_index += 1
-            time.sleep(0.3)  # 避免请求过快
+            # 短暂停顿避免触发API速率限制（0.1s足够，页面已改为500条/页）
+            time.sleep(0.1)
 
         # 按日期排序（从旧到新）
         all_history = sorted(all_history, key=lambda x: x["date"])
@@ -788,6 +798,150 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
             return_rates[h_idx] = round((profit / total_invested) * 100, 2)
 
     return return_rates
+    
+
+# ── 瓶颈3：提取单基金处理函数，供 ThreadPoolExecutor 并行调用 ─────────────────────
+
+def process_fund(platform, code, fund_start_date, http_session,
+                  purchase_records, qdii_codes, fund_names,
+                  prev_fund_map, today, history_cache):
+    """
+    处理单只基金：获取历史数据、实时数据，计算持仓和收益。
+    线程安全：使用 history_cache_lock 保护缓存读写。
+
+    返回: (fund_data_dict, total_invested, total_value) 成功
+           (None, 0, 0, error_message) 失败
+    """
+    try:
+        # --- 第1步：获取历史数据（与实时数据解耦） ---
+        cached_history = history_cache.get(code, [])
+        original_cache_count = len(cached_history)
+        if cached_history:
+            last_cached_date = cached_history[-1]["date"]
+            if cached_history[0]["date"] > fund_start_date:
+                full_history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
+                history = merge_history(cached_history, full_history)
+            else:
+                new_history = fetch_fund_history(code, start_date=fund_start_date,
+                                                  session=http_session, incremental_from=last_cached_date)
+                history = merge_history(cached_history, new_history)
+        else:
+            history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
+
+        # 线程安全：更新缓存并立即保存
+        with history_cache_lock:
+            history_cache[code] = history
+            try:
+                save_history_cache(history_cache)
+            except Exception as cache_err:
+                log("⚠️ 保存历史缓存失败: {}".format(cache_err), "warning")
+
+        if not history:
+            if cached_history:
+                history = cached_history
+            else:
+                return (None, 0, 0, "历史数据为空，且无缓存")
+
+        # --- 第2步：获取实时数据 ---
+        realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
+        if not realtime:
+            if code in prev_fund_map:
+                old_fund = prev_fund_map[code]
+                return (old_fund, old_fund["holdings"]["total_invested"],
+                        old_fund["holdings"]["current_value"], "使用缓存数据")
+            else:
+                return (None, 0, 0, "无法获取实时数据且无缓存")
+
+        # 修正 nav_status
+        beijing_now = get_beijing_time()
+        is_after_15 = 15 <= beijing_now.hour <= 23
+        if history:
+            latest_nav_date = history[-1]["date"]
+            if latest_nav_date == today and is_after_15:
+                realtime["nav_status"] = "confirmed_today"
+            elif code in qdii_codes:
+                realtime["nav_status"] = "delayed"
+            else:
+                realtime["nav_status"] = "confirmed"
+
+        # --- 第3步：计算持仓和收益 ---
+        purchases = purchase_records.get(platform, {}).get(code, [])
+        if not history:
+            return (None, 0, 0, "历史数据为空，无法计算持仓")
+
+        holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
+
+        cumulative_returns = calculate_cumulative_returns(
+            history, holdings["purchases"],
+            original_purchases=purchases, history_for_nav=history
+        )
+
+        # 计算昨日净值、昨日收益率、昨日收益
+        yesterday_nav = realtime["nav"]
+        yesterday_return = 0
+        yesterday_profit = 0
+        yesterday_nav_date = ""
+        day_before_yesterday_return = 0
+        day_before_yesterday_profit = 0
+        if history and len(history) >= 2:
+            latest_entry = history[-1]
+            if latest_entry["date"] == today:
+                yesterday_nav = history[-2]["nav"]
+                yesterday_nav_date = history[-2]["date"]
+                prev_nav = history[-3]["nav"] if len(history) >= 3 else yesterday_nav
+                if len(history) >= 4:
+                    day_before_yesterday_nav = history[-3]["nav"]
+                    day_before_yesterday_prev_nav = history[-4]["nav"]
+                else:
+                    day_before_yesterday_nav = yesterday_nav
+                    day_before_yesterday_prev_nav = yesterday_nav
+            else:
+                yesterday_nav = history[-1]["nav"]
+                yesterday_nav_date = history[-1]["date"]
+                prev_nav = history[-2]["nav"]
+                if len(history) >= 3:
+                    day_before_yesterday_nav = history[-2]["nav"]
+                    day_before_yesterday_prev_nav = history[-3]["nav"]
+                else:
+                    day_before_yesterday_nav = yesterday_nav
+                    day_before_yesterday_prev_nav = yesterday_nav
+
+            if prev_nav > 0:
+                yesterday_return = (yesterday_nav - prev_nav) / prev_nav * 100
+            if day_before_yesterday_prev_nav > 0:
+                day_before_yesterday_return = (day_before_yesterday_nav - day_before_yesterday_prev_nav) / day_before_yesterday_prev_nav * 100
+            if holdings["total_shares"] > 0:
+                yesterday_profit = round(holdings["total_shares"] * (yesterday_nav - prev_nav), 2)
+                day_before_yesterday_profit = round(holdings["total_shares"] * (day_before_yesterday_nav - day_before_yesterday_prev_nav), 2)
+
+        # 组织数据
+        latest_history_date = history[-1]["date"] if history else ""
+        fund_data = {
+            "code": code,
+            "name": realtime["name"],
+            "platform": platform,
+            "current_nav": realtime["nav"],
+            "nav_date": realtime["nav_date"],
+            "daily_return": realtime["change_percent"],
+            "nav_status": realtime.get("nav_status", "confirmed"),
+            "latest_history_date": latest_history_date,
+            "yesterday_nav": round(yesterday_nav, 4),
+            "yesterday_nav_date": yesterday_nav_date,
+            "yesterday_return": round(yesterday_return, 2),
+            "yesterday_profit": yesterday_profit,
+            "day_before_yesterday_return": round(day_before_yesterday_return, 2),
+            "day_before_yesterday_profit": day_before_yesterday_profit,
+            "holdings": holdings,
+            "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
+        }
+
+        return (fund_data, holdings["total_invested"], holdings["current_value"], None)
+
+    except Exception as e:
+        log("❌ 基金 {} 处理失败: {}".format(code, e))
+        import traceback
+        log(traceback.format_exc())
+        return (None, 0, 0, str(e))
 
 
 def main():
@@ -903,188 +1057,53 @@ def main():
         else:
             log("ℹ️ 无历史缓存，将全量获取")
 
-    failed_funds = []
-    today = get_beijing_time().strftime("%Y-%m-%d")
-    for platform, codes in funds.items():
-        log(f"处理 {platform} 的基金...")
+    # 并行处理所有基金（瓶颈3修复：ThreadPoolExecutor）
+    log(f"\n[3/4] 并行获取基金数据（线程池 max_workers=3）...")
 
+    # 收集所有待处理基金
+    fund_tasks = []
+    for platform, codes in funds.items():
         if platform not in all_data["funds"]:
             all_data["funds"][platform] = []
-
         for code in codes:
-            log(f"  正在处理基金 {code}...")
-
-            # 按基金维度计算历史起始日（优化：避免拉取不必要的早期数据）
             fund_start_date = _get_fund_earliest_purchase_date(purchase_records, platform, code)
             if not fund_start_date:
-                fund_start_date = history_start_date  # 兜底使用全局起始日
-            log(f"  历史数据起始日（基金维度）: {fund_start_date}")
+                fund_start_date = history_start_date
+            fund_tasks.append((platform, code, fund_start_date))
 
-            # --- 第1步：获取历史数据（与实时数据解耦，无论实时API是否成功都更新缓存） ---
-            cached_history = history_cache.get(code, [])
-            original_cache_count = len(cached_history)
-            if cached_history:
-                last_cached_date = cached_history[-1]["date"]
-                # 检查是否有早期交易日期超出缓存范围（新增早期交易记录场景）
-                if cached_history[0]["date"] > fund_start_date:
-                    # 早期缺口：一次全量拉取并合并，避免双重拉取
-                    full_history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
-                    history = merge_history(cached_history, full_history)
-                    log(f"  ✓ 缺口补全: 缓存 {original_cache_count} 条 + 全量合并 {len(full_history)} 条 → 总计 {len(history)} 条")
-                else:
-                    # 增量获取（含7天重叠窗口以捕获NAV纠正）
-                    new_history = fetch_fund_history(code, start_date=fund_start_date,
-                                                      session=http_session, incremental_from=last_cached_date)
-                    history = merge_history(cached_history, new_history)
-                    new_count = len(history) - original_cache_count
-                    log(f"  ✓ 增量获取: 缓存 {original_cache_count} 条 + 新增/更新 {max(0, new_count)} 条")
-            else:
-                # 无缓存，全量获取
-                history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
+    failed_funds = []
+    today = get_beijing_time().strftime("%Y-%m-%d")
 
-            # 更新缓存并立即保存（防止中途崩溃丢失已获取的数据）
-            history_cache[code] = history
-            try:
-                save_history_cache(history_cache)
-            except Exception as cache_err:
-                log(f"⚠️ 保存历史缓存失败: {cache_err}", "warning")
-
-            # 检查历史数据是否获取成功（保底回退）
-            if not history:
-                if cached_history:
-                    log(f"  ⚠️ 历史数据获取失败，使用缓存数据: {len(cached_history)} 条")
-                    history = cached_history
-                else:
-                    log(f"  ❌ 基金 {code} 历史数据获取失败，且无缓存，跳过")
-                    failed_funds.append(code)
-                    continue
-
-            # --- 第2步：获取实时数据 ---
-            realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
-            if not realtime:
-                # API失败：尝试使用上次数据（历史缓存已更新，不影响下次增量获取）
-                if code in prev_fund_map:
-                    old_fund = prev_fund_map[code]
-                    log(f"  ⚠ 使用上次缓存数据: {old_fund.get('name', code)}（净值 {old_fund.get('current_nav', '?')} @{old_fund.get('nav_date', '?')}）")
-                    all_data["funds"][platform].append(old_fund)
-                    all_data["summary"]["total_invested"] += old_fund["holdings"]["total_invested"]
-                    all_data["summary"]["total_value"] += old_fund["holdings"]["current_value"]
-                    failed_funds.append(code)
-                else:
-                    log(f"  ❌ 基金 {code} 无上次缓存数据，本次跳过！")
-                    failed_funds.append(code)
-                continue
-
-            # 根据历史数据最新日期修正 nav_status（北京时间 15:00-23:59 时段且今日已更新才标记 confirmed_today）
-            beijing_now = get_beijing_time()
-            is_after_15 = 15 <= beijing_now.hour <= 23
-            if history:
-                latest_nav_date = history[-1]["date"]
-                if latest_nav_date == today and is_after_15:
-                    realtime["nav_status"] = "confirmed_today"
-                    log(f"  ✓ 基金 {code} 今日净值已更新（历史数据最新: {latest_nav_date}）")
-                elif code in qdii_codes:
-                    realtime["nav_status"] = "delayed"
-                else:
-                    realtime["nav_status"] = "confirmed"
-
-            # --- 第3步：计算持仓和收益 ---
-            # 获取该 (platform, code) 对应的交易记录（不与其他平台同名基金混淆）
-            purchases = purchase_records.get(platform, {}).get(code, [])
-
-            # 历史数据为空时跳过持仓计算，避免静默生成0持仓数据
-            if not history:
-                log(f"  ❌ 基金 {code} 历史数据为空，无法计算持仓，跳过")
-                failed_funds.append(code)
-                continue
-
-            holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
-
-            # 预计算累计收益率（使用 FIFO 一致逻辑，避免前端重复计算）
-            cumulative_returns = calculate_cumulative_returns(
-                history, holdings["purchases"],
-                original_purchases=purchases, history_for_nav=history
+    # 使用线程池并行处理
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        future_to_fund = {}
+        for platform, code, fund_start_date in fund_tasks:
+            future = executor.submit(
+                process_fund, platform, code, fund_start_date,
+                None,  # process_fund 内部创建自己的 HTTP session
+                purchase_records, qdii_codes, fund_names,
+                prev_fund_map, today, history_cache
             )
+            future_to_fund[future] = (platform, code)
 
-            # 计算昨日净值、昨日收益率、昨日收益
-            yesterday_nav = realtime["nav"]
-            yesterday_return = 0
-            yesterday_profit = 0
-            yesterday_nav_date = ""
-            day_before_yesterday_return = 0
-            day_before_yesterday_profit = 0
-            if history and len(history) >= 2:
-                latest_entry = history[-1]
-                if latest_entry["date"] == today:
-                    # 今天已更新，昨日数据在 history[-2]
-                    yesterday_nav = history[-2]["nav"]
-                    yesterday_nav_date = history[-2]["date"]
-                    prev_nav = history[-3]["nav"] if len(history) >= 3 else yesterday_nav
-                    # 前日数据在 history[-3]（用于计算变化差）
-                    if len(history) >= 4:
-                        day_before_yesterday_nav = history[-3]["nav"]
-                        day_before_yesterday_prev_nav = history[-4]["nav"]
-                    elif len(history) >= 3:
-                        day_before_yesterday_nav = history[-3]["nav"]
-                        day_before_yesterday_prev_nav = yesterday_nav
-                    else:
-                        day_before_yesterday_nav = yesterday_nav
-                        day_before_yesterday_prev_nav = yesterday_nav
+        # 按完成顺序收集结果
+        for future in as_completed(future_to_fund):
+            platform, code = future_to_fund[future]
+            try:
+                fund_data, invested, value, error_msg = future.result()
+                if fund_data:
+                    all_data["funds"][platform].append(fund_data)
+                    all_data["summary"]["total_invested"] += invested
+                    all_data["summary"]["total_value"] += value
                 else:
-                    # 今天未更新，昨日数据在 history[-1]
-                    yesterday_nav = history[-1]["nav"]
-                    yesterday_nav_date = history[-1]["date"]
-                    prev_nav = history[-2]["nav"]
-                    # 前日数据在 history[-2]
-                    if len(history) >= 3:
-                        day_before_yesterday_nav = history[-2]["nav"]
-                        day_before_yesterday_prev_nav = history[-3]["nav"]
-                    else:
-                        day_before_yesterday_nav = yesterday_nav
-                        day_before_yesterday_prev_nav = yesterday_nav
-                
-                if prev_nav > 0:
-                    yesterday_return = (yesterday_nav - prev_nav) / prev_nav * 100
-                
-                if day_before_yesterday_prev_nav > 0:
-                    day_before_yesterday_return = (day_before_yesterday_nav - day_before_yesterday_prev_nav) / day_before_yesterday_prev_nav * 100
-                
-                if holdings["total_shares"] > 0:
-                    yesterday_profit = round(holdings["total_shares"] * (yesterday_nav - prev_nav), 2)
-                    day_before_yesterday_profit = round(holdings["total_shares"] * (day_before_yesterday_nav - day_before_yesterday_prev_nav), 2)
-            
-            # 非交易日处理：如果 yesterday_nav_date 是非交易日，展示0
-            # （todo：需要交易日历来判断，当前先保留现有逻辑）
-            
-            # 组织数据
-            latest_history_date = history[-1]["date"] if history else ""
-            fund_data = {
-                "code": code,
-                "name": realtime["name"],
-                "platform": platform,
-                "current_nav": realtime["nav"],
-                "nav_date": realtime["nav_date"],
-                "daily_return": realtime["change_percent"],
-                "nav_status": realtime.get("nav_status", "confirmed"),
-                "latest_history_date": latest_history_date,
-                "yesterday_nav": round(yesterday_nav, 4),
-                "yesterday_nav_date": yesterday_nav_date,
-                "yesterday_return": round(yesterday_return, 2),
-                "yesterday_profit": yesterday_profit,
-                "day_before_yesterday_return": round(day_before_yesterday_return, 2),
-                "day_before_yesterday_profit": day_before_yesterday_profit,
-                "holdings": holdings,
-                "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
-            }
-
-            all_data["funds"][platform].append(fund_data)
-
-            # 累计算计
-            all_data["summary"]["total_invested"] += holdings["total_invested"]
-            all_data["summary"]["total_value"] += holdings["current_value"]
-
-            # 避免请求过快
-            time.sleep(0.5)
+                    failed_funds.append(code)
+                    if error_msg and "使用缓存数据" in error_msg:
+                        log(f"  ⚠ 基金 {code} 使用缓存数据")
+                    elif error_msg:
+                        log(f"  ❌ 基金 {code} 处理失败: {error_msg}")
+            except Exception as e:
+                failed_funds.append(code)
+                log(f"  ❌ 基金 {code} 处理异常: {e}")
 
     # 计算总计收益
     log("\n[4/4] 计算总计收益...")

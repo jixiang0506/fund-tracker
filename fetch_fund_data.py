@@ -731,6 +731,10 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
         purchase_idx = 0
         num_purchases = len(sorted_purchases)
 
+        # 滚动维护持仓份额和成本（替代循环内全量 sum）
+        queue_shares = 0.0
+        queue_cost = 0.0
+
         for h_idx, h in enumerate(sorted_history):
             # 增量推进：处理所有在该历史时点之前（含当日）的交易
             while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
@@ -748,14 +752,18 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                 if trans_type == "sell":
                     sell_shares = p["amount"] / nav_on_date
                     remaining_sell = sell_shares
+                    deducted_cost = 0.0
                     for buy in buy_queue:
                         if remaining_sell <= 0:
                             break
                         if buy["remaining_shares"] <= 0:
                             continue
                         deduct = min(remaining_sell, buy["remaining_shares"])
+                        deducted_cost += deduct * buy["nav"]
                         buy["remaining_shares"] -= deduct
                         remaining_sell -= deduct
+                    queue_shares -= (sell_shares - remaining_sell)
+                    queue_cost -= deducted_cost
                 else:
                     shares = p["amount"] / nav_on_date
                     buy_queue.append({
@@ -763,15 +771,14 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                         "nav": nav_on_date,
                         "remaining_shares": shares
                     })
+                    queue_shares += shares
+                    queue_cost += shares * nav_on_date
 
-            # 计算该时点的累计收益率
-            total_shares = sum(b["remaining_shares"] for b in buy_queue)
-            total_cost = sum(b["remaining_shares"] * b["nav"] for b in buy_queue)
-
-            if total_cost > 0 and total_shares > 0:
-                value = h["nav"] * total_shares
-                profit = value - total_cost
-                return_rates[h_idx] = round((profit / total_cost) * 100, 2)
+            # 使用滚动变量，O(1) 计算（不再全量 sum）
+            if queue_cost > 0 and queue_shares > 0:
+                value = h["nav"] * queue_shares
+                profit = value - queue_cost
+                return_rates[h_idx] = round((profit / queue_cost) * 100, 2)
 
         return return_rates
 
@@ -832,13 +839,9 @@ def process_fund(platform, code, fund_start_date, http_session,
         else:
             history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
 
-        # 线程安全：更新缓存并立即保存
+        # 线程安全：更新内存缓存（写盘推迟到 main() 末尾统一执行）
         with history_cache_lock:
             history_cache[code] = history
-            try:
-                save_history_cache(history_cache)
-            except Exception as cache_err:
-                log("⚠️ 保存历史缓存失败: {}".format(cache_err), "warning")
 
         if not history:
             if cached_history:
@@ -1109,6 +1112,12 @@ def main():
                 failed_funds.append(code)
                 log(f"  ❌ 基金 {code} 处理异常: {e}")
 
+    # 统一保存历史缓存（所有基金处理完成后只写一次，避免逐基金写盘）
+    try:
+        save_history_cache(history_cache)
+    except Exception as cache_err:
+        log("⚠️ 保存历史缓存失败: {}".format(cache_err), "warning")
+
     # 计算总计收益
     log("\n[4/4] 计算总计收益...")
     summary = all_data["summary"]
@@ -1190,7 +1199,7 @@ def main():
     log(f"\n✓ 数据已保存到 {output_file}")
     log(f"  更新时间: {all_data['update_time']}")
 
-    # 历史缓存已在处理每只基金时逐个保存，此处无需重复保存
+    # 历史缓存已在 main() 末尾统一保存（第1115-1119行），此处无需重复
 
     # 生成持仓快照
     log("\n生成持仓快照...")

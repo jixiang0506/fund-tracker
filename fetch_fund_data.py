@@ -818,6 +818,9 @@ def main():
         except Exception as e:
             log(f"⚠️ 备份旧汇总失败: {e}", "warning")
 
+    # 自动检测新基金（在加载配置之前执行）
+    auto_detect_new_funds()
+
     # 加载基金配置
     log("\n[0/4] 加载基金配置...")
     funds, qdii_codes, fund_names = load_fund_config()
@@ -1215,6 +1218,132 @@ def _update_benchmark_data(base_dir, log):
             log("[Warning] {}更新超时（>300s），跳过".format(desc))
         except Exception as e:
             log("[Warning] {}更新异常: {}".format(desc, e))
+
+
+def fetch_fund_info_from_web(code, session=None):
+    """
+    从天天基金网获取基金基本信息（基金名称、类型）
+    返回: {"name": "基金名称", "is_qdii": True/False, "benchmark": "..."} 或 None
+    """
+    import re
+
+    url = f"http://fundgz.1234567.com.cn/js/{code}.js"
+
+    try:
+        if session is None:
+            session = _create_session()
+
+        resp = session.get(url, timeout=10)
+        if resp.status_code == 200:
+            # 解析 JSONP: jsonpgz({...});
+            match = re.search(r'jsonpgz\((.*)\);?\s*$', resp.text, re.DOTALL)
+            if match:
+                data = json.loads(match.group(1))
+                name = data.get("name", "")
+
+                # 启发式判断是否为 QDII
+                qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "QDI", "海外", "国际"]
+                is_qdii = any(kw in name for kw in qdii_keywords)
+
+                benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"
+
+                log(f"  ✓ 基金 {code}: {name} ({'QDII' if is_qdii else '国内'}, 基准: {benchmark})")
+
+                return {
+                    "name": name,
+                    "is_qdii": is_qdii,
+                    "benchmark": benchmark
+                }
+    except Exception as e:
+        log(f"⚠️ 获取基金 {code} 信息失败: {e}", "warning")
+
+    return None
+
+
+def auto_detect_new_funds():
+    """
+    自动检测 purchase_records.json 中的新基金，并添加到 fund_config.json
+    """
+    log("\n[0.5/4] 自动检测新基金...")
+
+    records_file = os.path.join(BASE_DIR, "data", "purchase_records.json")
+    if not os.path.exists(records_file):
+        log("ℹ️ 交易记录文件不存在，跳过新基金检测")
+        return
+
+    try:
+        with open(records_file, "r", encoding="utf-8") as f:
+            purchase_records = json.load(f)
+    except Exception as e:
+        log(f"⚠️ 加载交易记录失败: {e}", "warning")
+        return
+
+    all_fund_codes = set()
+    for platform, funds in purchase_records.items():
+        if isinstance(funds, dict):
+            for code in funds.keys():
+                all_fund_codes.add(code)
+
+    if not all_fund_codes:
+        log("ℹ️ 交易记录中没有基金代码")
+        return
+
+    config_file = os.path.join(BASE_DIR, "fund_config.json")
+    if os.path.exists(config_file):
+        with open(config_file, "r", encoding="utf-8") as f:
+            config = json.load(f)
+    else:
+        config = {"funds": {}}
+
+    existing_codes = set()
+    for platform, fund_list in config.get("funds", {}).items():
+        for fund in fund_list:
+            existing_codes.add(fund["code"])
+
+    new_codes = all_fund_codes - existing_codes
+    if not new_codes:
+        log("✓ 无新基金需要添加")
+        return
+
+    log(f"🔍 发现 {len(new_codes)} 只新基金: {', '.join(sorted(new_codes))}")
+
+    session = _create_session()
+    for code in sorted(new_codes):
+        log(f"  正在获取基金 {code} 的信息...")
+        fund_info = fetch_fund_info_from_web(code, session)
+
+        if fund_info is None:
+            log(f"  ⚠️ 无法获取基金 {code} 的信息，跳过", "warning")
+            continue
+
+        platform = None
+        for p, funds in purchase_records.items():
+            if isinstance(funds, dict) and code in funds:
+                platform = p
+                break
+
+        if platform is None:
+            log(f"  ⚠️ 无法确定基金 {code} 的平台，跳过", "warning")
+            continue
+
+        if platform not in config["funds"]:
+            config["funds"][platform] = []
+
+        config["funds"][platform].append({
+            "code": code,
+            "name": fund_info["name"],
+            "is_qdii": fund_info["is_qdii"],
+            "benchmark": fund_info["benchmark"]
+        })
+
+        log(f"  ✓ 已添加基金 {code} ({fund_info['name']}) 到 {platform}")
+
+    try:
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        log(f"✓ 已更新 fund_config.json")
+    except Exception as e:
+        log(f"❌ 保存 fund_config.json 失败: {e}", "error")
 
 
 if __name__ == "__main__":

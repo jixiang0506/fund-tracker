@@ -11,7 +11,8 @@
 4. 支持手动输入净值：如果无法获取历史净值，允许手动输入
 """
 
-import sys, io
+import sys
+import io
 
 # 强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错
 if hasattr(sys.stdout, "buffer"):
@@ -1248,7 +1249,7 @@ def fetch_fund_info_from_web(code, session=None):
     """
     import re
 
-    url = "http://fundgz.1234567.com.cn/js/{}.js".format(code)
+    url = "https://fundgz.1234567.com.cn/js/{}.js".format(code)
 
     try:
         if session is None:
@@ -1263,7 +1264,7 @@ def fetch_fund_info_from_web(code, session=None):
                 name = data.get("name", "")
 
                 # 启发式判断是否为 QDII
-                qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "QDI", "海外", "国际"]
+                qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"]
                 is_qdii = any(kw in name for kw in qdii_keywords)
 
                 benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"

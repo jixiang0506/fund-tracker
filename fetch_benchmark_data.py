@@ -11,19 +11,20 @@ import requests
 import sys
 import io
 
-# 强制 UTF-8 stdout，避免 Windows 控制台 GBK 编码报错
-if hasattr(sys.stdout, "buffer"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-
 from datetime import datetime, timedelta
 from pathlib import Path
 
 # 导入日志模块（与 fetch_fund_data.py 保持一致）
 try:
-    from logger_config import log
+    from logger_config import log, setup_encoding
+    setup_encoding()
 except ImportError:
     def log(message, level='info'):
         print(message)
+    def setup_encoding():
+        if hasattr(sys.stdout, "buffer"):
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    setup_encoding()
 
 # 指数名称到代码的映射
 INDEX_MAPPING = {

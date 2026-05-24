@@ -3188,6 +3188,41 @@ function addPurchaseRecord() {
         return;
     }
 
+    // ========= 检测是否为新基金（不在 fundConfig 中）============
+    let isNewFund = true;
+    if (state.fundConfig && state.fundConfig[platform]) {
+        isNewFund = !state.fundConfig[platform].some(f => f.code === fundCode);
+    }
+    
+    if (isNewFund) {
+        showMessage(`检测到新基金 ${fundCode}，正在联网获取信息...`, 'info');
+        
+        fetchFundInfoWeb(fundCode, function(data) {
+            if (data && data.name) {
+                // 判断是否为 QDII 基金
+                const qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"];
+                const is_qdii = qdii_keywords.some(kw => data.name.includes(kw));
+                const benchmark = is_qdii ? "纳斯达克100指数" : "科创50指数";
+                
+                // 添加到 fundConfig
+                if (!state.fundConfig[platform]) {
+                    state.fundConfig[platform] = [];
+                }
+                state.fundConfig[platform].push({
+                    code: fundCode,
+                    name: data.name,
+                    is_qdii: is_qdii,
+                    benchmark: benchmark
+                });
+                
+                showMessage(`新基金 ${data.name} (${fundCode}) 已自动添加，请重新点击 添加记录`, 'success');
+            } else {
+                showMessage(`无法获取基金 ${fundCode} 的信息，请稍后手动添加`, 'error');
+            }
+        });
+        return; // 获取信息后需要用户重新点击
+    }
+    
     let amount;
     let shares = null;
     let nav = null;
@@ -3262,13 +3297,80 @@ function addPurchaseRecord() {
     renderRecordsList();
     saveLocalRecords();
     clearRecordForm();
-    showMessage('交易记录已添加', 'success');
+        showMessage('交易记录已添加', 'success');
         // 自动上传到 GitHub
         autoUploadToGitHub().then(() => {
             console.log('自动上传成功');
         }).catch(err => {
             console.error('自动上传失败:', err);
         });
+}
+
+// 显示上传状态提示
+function showUploadStatus(type, message) {
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.className = 'upload-status show ' + type;
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+    
+    // 3秒后自动隐藏（success/error 类型）
+    if (type === 'success' || type === 'error') {
+        setTimeout(hideUploadStatus, 3000);
+    }
+}
+
+// 隐藏上传状态提示
+function hideUploadStatus() {
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.classList.remove('show');
+    setTimeout(() => {
+        statusDiv.style.display = 'none';
+    }, 300);
+}
+
+// 自动上传到 GitHub
+async function autoUploadToGitHub() {
+    // 检查 GitHub 配置
+    if (!state.github.token || !state.github.owner || !state.github.repo) {
+        console.warn('GitHub 配置不完整，跳过自动上传');
+        return;
+    }
+    
+    showUploadStatus('loading', '⏳ 正在上传到 GitHub...');
+    
+    try {
+        // 准备 purchase_records.json 内容
+        const purchaseRecordsContent = JSON.stringify(state.purchaseRecords, null, 2);
+        
+        // 准备 fund_config.json 内容
+        const fundConfigContent = JSON.stringify(state.fundConfig, null, 2);
+        
+        // 上传 purchase_records.json
+        await GitHubAPI.autoUpload(
+            state.github.owner,
+            state.github.repo,
+            'data/purchase_records.json',
+            purchaseRecordsContent,
+            '自动更新交易记录 - ' + new Date().toISOString().slice(0, 10),
+            state.github.token
+        );
+        
+        // 上传 fund_config.json
+        await GitHubAPI.autoUpload(
+            state.github.owner,
+            state.github.repo,
+            'fund_config.json',
+            fundConfigContent,
+            '自动更新基金配置 - ' + new Date().toISOString().slice(0, 10),
+            state.github.token
+        );
+        
+        showUploadStatus('success', '✅ 已成功上传到 GitHub');
+    } catch (error) {
+        console.error('自动上传失败:', error);
+        showUploadStatus('error', '❌ 上传失败: ' + error.message);
+        throw error;
+    }
 }
 
 // 获取基金当前净值（辅助函数）
@@ -3517,6 +3619,52 @@ function updatePurchaseRecord() {
             // 清空input，允许重复选择同一文件
             event.target.value = '';
         }
+
+// 联网获取基金信息（通过 JSONP，绕过 CORS）
+function fetchFundInfoWeb(code, callback) {
+    const callbackName = 'jsonp_fetchFundInfoWeb';
+    // 保存旧的 jsonpgz（防止并发冲突）
+    const prev = window.jsonpgz;
+    window.jsonpgz = function(data) {
+        try {
+            if (data && data[code]) {
+                const fundName = data[code][0] || code;
+                callback({ name: fundName });
+            } else {
+                callback(null);
+            }
+        } catch (e) {
+            console.error('解析基金信息失败:', e);
+            callback(null);
+        } finally {
+            // 恢复旧值
+            window.jsonpgz = prev;
+            // 清理 script 标签
+            const script = document.getElementById('jsonp_script_fetchFundInfoWeb');
+            if (script) script.remove();
+        }
+    };
+
+    // 超时处理（5秒）
+    const timeoutId = setTimeout(() => {
+        console.warn('获取基金信息超时:', code);
+        window.jsonpgz = prev;
+        const script = document.getElementById('jsonp_script_fetchFundInfoWeb');
+        if (script) script.remove();
+        callback(null);
+    }, 5000);
+
+    // 创建 JSONP 请求
+    const script = document.createElement('script');
+    script.id = 'jsonp_script_fetchFundInfoWeb';
+    script.src = `https://fund.eastmoney.com/fundcode!getFundCodeList.action?cb=jsonpgz&fundCode=${code}`;
+    script.onerror = function() {
+        clearTimeout(timeoutId);
+        window.jsonpgz = prev;
+        callback(null);
+    };
+    document.head.appendChild(script);
+}
 
  // 获取基金名称 - 添加空值检查
 function getFundName(platform, fundCode) {

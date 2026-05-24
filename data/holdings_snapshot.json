@@ -1,6 +1,6 @@
 {
   "format_version": "1.0",
-  "generated_at": "2026-05-24T12:47:39+08:00",
+  "generated_at": "2026-05-24T14:47:09+08:00",
   "funds": {
     "支付宝": {
       "270023": {
@@ -20,26 +20,7 @@
         },
         "transactions_count": 16,
         "first_purchase_date": "2024-03-06",
-        "last_update": "2026-05-24T12:47:39+08:00"
-      },
-      "016665": {
-        "fund_name": "天弘全球高端制造混合(QDII)C",
-        "current_nav": 3.1259,
-        "nav_date": "2026-05-21",
-        "holdings": {
-          "total_shares": 8673.34,
-          "total_invested": 20000.0,
-          "current_value": 27112.0,
-          "profit_loss": 7112.0,
-          "profit_loss_percent": 35.56,
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 2.3059,
-          "daily_return": 0.74,
-          "daily_profit_loss": 200.63
-        },
-        "transactions_count": 2,
-        "first_purchase_date": "2026-03-12",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
       },
       "001438": {
         "fund_name": "易方达瑞享混合E",
@@ -58,26 +39,7 @@
         },
         "transactions_count": 6,
         "first_purchase_date": "2026-03-12",
-        "last_update": "2026-05-24T12:47:39+08:00"
-      },
-      "018230": {
-        "fund_name": "易方达全球优质企业混合(QDII)C(人民币份额)",
-        "current_nav": 2.119,
-        "nav_date": "2026-05-23 04:00",
-        "holdings": {
-          "total_shares": 40345.84,
-          "total_invested": 78000.0,
-          "current_value": 85492.83,
-          "profit_loss": 7492.83,
-          "profit_loss_percent": 9.61,
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 1.9333,
-          "daily_return": 0.18,
-          "daily_profit_loss": 153.89
-        },
-        "transactions_count": 20,
-        "first_purchase_date": "2026-03-12",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
       },
       "002112": {
         "fund_name": "德邦鑫星价值灵活配置混合C",
@@ -96,7 +58,45 @@
         },
         "transactions_count": 3,
         "first_purchase_date": "2026-04-15",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
+      },
+      "016665": {
+        "fund_name": "天弘全球高端制造混合(QDII)C",
+        "current_nav": 3.1259,
+        "nav_date": "2026-05-21",
+        "holdings": {
+          "total_shares": 8673.34,
+          "total_invested": 20000.0,
+          "current_value": 27112.0,
+          "profit_loss": 7112.0,
+          "profit_loss_percent": 35.56,
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.3059,
+          "daily_return": 0.74,
+          "daily_profit_loss": 200.63
+        },
+        "transactions_count": 2,
+        "first_purchase_date": "2026-03-12",
+        "last_update": "2026-05-24T14:47:09+08:00"
+      },
+      "018230": {
+        "fund_name": "易方达全球优质企业混合(QDII)C(人民币份额)",
+        "current_nav": 2.119,
+        "nav_date": "2026-05-23 04:00",
+        "holdings": {
+          "total_shares": 40345.84,
+          "total_invested": 78000.0,
+          "current_value": 85492.83,
+          "profit_loss": 7492.83,
+          "profit_loss_percent": 9.61,
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 1.9333,
+          "daily_return": 0.18,
+          "daily_profit_loss": 153.89
+        },
+        "transactions_count": 20,
+        "first_purchase_date": "2026-03-12",
+        "last_update": "2026-05-24T14:47:09+08:00"
       }
     },
     "理财通": {
@@ -117,26 +117,7 @@
         },
         "transactions_count": 29,
         "first_purchase_date": "2026-03-01",
-        "last_update": "2026-05-24T12:47:39+08:00"
-      },
-      "019018": {
-        "fund_name": "易方达信息产业混合C",
-        "current_nav": 8.1199,
-        "nav_date": "2026-05-22 15:00",
-        "holdings": {
-          "total_shares": 176.69,
-          "total_invested": 1155.3,
-          "current_value": 1434.72,
-          "profit_loss": 279.42,
-          "profit_loss_percent": 24.19,
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 6.5385,
-          "daily_return": 3.89,
-          "daily_profit_loss": 55.81
-        },
-        "transactions_count": 3,
-        "first_purchase_date": "2026-04-15",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
       },
       "012922": {
         "fund_name": "易方达全球成长精选混合(QDII)人民币C",
@@ -155,7 +136,26 @@
         },
         "transactions_count": 29,
         "first_purchase_date": "2026-03-04",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
+      },
+      "019018": {
+        "fund_name": "易方达信息产业混合C",
+        "current_nav": 8.1199,
+        "nav_date": "2026-05-22 15:00",
+        "holdings": {
+          "total_shares": 176.69,
+          "total_invested": 1155.3,
+          "current_value": 1434.72,
+          "profit_loss": 279.42,
+          "profit_loss_percent": 24.19,
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 6.5385,
+          "daily_return": 3.89,
+          "daily_profit_loss": 55.81
+        },
+        "transactions_count": 3,
+        "first_purchase_date": "2026-04-15",
+        "last_update": "2026-05-24T14:47:09+08:00"
       }
     },
     "招商银行": {
@@ -176,7 +176,7 @@
         },
         "transactions_count": 3,
         "first_purchase_date": "2026-04-17",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
       },
       "000390": {
         "fund_name": "华商优势行业混合A",
@@ -195,7 +195,7 @@
         },
         "transactions_count": 2,
         "first_purchase_date": "2026-04-16",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
       },
       "020723": {
         "fund_name": "国寿安保数字经济股票发起式C",
@@ -214,7 +214,7 @@
         },
         "transactions_count": 1,
         "first_purchase_date": "2026-04-13",
-        "last_update": "2026-05-24T12:47:39+08:00"
+        "last_update": "2026-05-24T14:47:09+08:00"
       }
     }
   },

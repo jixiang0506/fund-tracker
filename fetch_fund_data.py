@@ -76,12 +76,15 @@ def load_fund_config():
         with open(config_file, 'r', encoding='utf-8') as f:
             config = json.load(f)
 
-        # 转换为原有格式 (兼容代码)
-        funds_dict = {}
+        # 兼容两种格式：{"funds": {"支付宝": [...]}} 或 {"支付宝": [...]}
+        funds_source = config.get("funds", config)
+        if not isinstance(funds_source, dict):
+            funds_source = {}
         qdii_codes = set()
         fund_names = {}
 
-        for platform, fund_list in config.get("funds", {}).items():
+        for platform, fund_list in funds_source.items():
+            log(f"[DEBUG] 平台: {platform}, 基金数: {len(fund_list)}", "info")
             funds_dict[platform] = [f["code"] for f in fund_list]
             for fund in fund_list:
                 if fund.get("is_qdii", False):
@@ -90,6 +93,7 @@ def load_fund_config():
                     fund_names[fund["code"]] = fund["name"]
 
         log("[OK] 成功加载基金配置: {} 只QDII基金, {} 只基金名称".format(len(qdii_codes), len(fund_names)), "info")
+        log(f"[DEBUG] funds_dict 平台数: {len(funds_dict)}, 平台列表: {list(funds_dict.keys())}", "info")
 
         return funds_dict, qdii_codes, fund_names
 
@@ -1328,6 +1332,12 @@ def auto_detect_new_funds():
             config = json.load(f)
     else:
         config = {"funds": {}}
+
+    # 兼容两种格式：统一归一化为 {"funds": {"平台": [...]}}
+    if "funds" not in config:
+        # 旧格式：{"支付宝": [...], ...} → 转换为新格式
+        log("[WARN] fund_config.json 是旧格式（无 'funds' 键），正在转换...", "warning")
+        config = {"funds": {k: v for k, v in config.items() if isinstance(v, list)}}
 
     existing_codes = set()
     for platform, fund_list in config.get("funds", {}).items():

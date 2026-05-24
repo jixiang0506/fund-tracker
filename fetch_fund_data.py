@@ -82,6 +82,7 @@ def load_fund_config():
             funds_source = {}
         qdii_codes = set()
         fund_names = {}
+        funds_dict = {}  # 初始化平台->基金代码列表的字典
 
         for platform, fund_list in funds_source.items():
             log(f"[DEBUG] 平台: {platform}, 基金数: {len(fund_list)}", "info")

@@ -4156,20 +4156,23 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
         // 安全删除指定索引的记录
         state.purchaseRecords[platform][fundCode].splice(index, 1);
-
+        
         // 如果基金没有记录了，删除基金键
         if (state.purchaseRecords[platform][fundCode]?.length === 0) {
             delete state.purchaseRecords[platform][fundCode];
         }
-
+        
         // 如果平台没有基金了，删除平台键
         if (Object.keys(state.purchaseRecords[platform] || {}).length === 0) {
             delete state.purchaseRecords[platform];
         }
-
+        
         renderRecordsList();
         saveLocalRecords();
         showMessage('记录已删除', 'success');
+        
+        // 自动上传到 GitHub（删除后也要同步）
+        autoUploadToGitHub();
     }
 }
 

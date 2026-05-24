@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+﻿﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 基金收益追踪系统 - 数据抓取脚本
@@ -77,11 +77,15 @@ def load_fund_config():
             config = json.load(f)
 
         # 转换为原有格式 (兼容代码)
+        # 兼容两种结构：{"funds": {"支付宝": [...]}} 或 {"支付宝": [...]}
+        funds_source = config.get("funds", config)
         funds_dict = {}
         qdii_codes = set()
         fund_names = {}
 
-        for platform, fund_list in config.get("funds", {}).items():
+        for platform, fund_list in funds_source.items():
+            if not isinstance(fund_list, list):
+                continue
             funds_dict[platform] = [f["code"] for f in fund_list]
             for fund in fund_list:
                 if fund.get("is_qdii", False):
@@ -1327,7 +1331,11 @@ def auto_detect_new_funds():
         with open(config_file, "r", encoding="utf-8") as f:
             config = json.load(f)
     else:
-        config = {"funds": {}}
+        config = {}
+
+    # 兼容两种结构：统一归一化为 {"funds": {"平台": [...]}}
+    if "funds" not in config:
+        config = {"funds": {k: v for k, v in config.items() if isinstance(v, list)}}
 
     existing_codes = set()
     for platform, fund_list in config.get("funds", {}).items():

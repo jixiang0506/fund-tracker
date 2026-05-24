@@ -1397,6 +1397,14 @@
                 // 交易记录筛选状态
                 recordsFilter: {
                     platform: '全部'
+                },
+
+                // 数据更新轮询状态
+                dataUpdate: {
+                    pollingTimer: null,
+                    lastUpdateTime: null,
+                    pollCount: 0,
+                    maxPollCount: 30 // 最多轮询 30 次（5 分钟）
                 }
             };
 
@@ -3245,6 +3253,10 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell) {
     // 自动上传到 GitHub
     autoUploadToGitHub().then(() => {
         console.log('自动上传成功');
+        // 乐观更新：立即重新加载数据
+        loadData();
+        // 开始轮询数据更新（检测 GitHub Actions 是否已完成）
+        startDataUpdatePolling();
     }).catch(err => {
         console.error('自动上传失败:', err);
     });
@@ -3705,55 +3717,98 @@ function refreshFundInfo() {
     });
 }
 
-        // 更新盈亏概览
-        function updateProfitLossSummary() {
-            const summaryDiv = document.getElementById('profitLossSummary');
-            const contentDiv = document.getElementById('summaryContent');
-
-            if (!state.fundsData || !state.fundsData.summary) {
-                summaryDiv.style.display = 'none';
-                return;
+// 数据更新轮询（方案1+2混合）
+function startDataUpdatePolling() {
+    if (state.fundsData?.update_time) {
+        state.dataUpdate.lastUpdateTime = state.fundsData.update_time;
+    }
+    
+    state.dataUpdate.pollCount = 0;
+    showMessage('📡 数据正在后台更新，完成后将自动刷新...', 'info');
+    
+    if (state.dataUpdate.pollingTimer) {
+        clearInterval(state.dataUpdate.pollingTimer);
+        state.dataUpdate.pollingTimer = null;
+    }
+    
+    state.dataUpdate.pollingTimer = setInterval(async () => {
+        state.dataUpdate.pollCount++;
+        
+        try {
+            const response = await fetch(`data/funds_data.json?t=${new Date().getTime()}`);
+            if (response.ok) {
+                const newData = await response.json();
+                if (newData.update_time && newData.update_time !== state.dataUpdate.lastUpdateTime) {
+                    clearInterval(state.dataUpdate.pollingTimer);
+                    state.dataUpdate.pollingTimer = null;
+                    showMessage('✅ 后台数据已同步，正在刷新界面...', 'success');
+                    setTimeout(() => {
+                        loadData();
+                    }, 1000);
+                    return;
+                }
             }
+        } catch (e) {
+            console.warn('轮询数据更新失败:', e);
+        }
+        
+        if (state.dataUpdate.pollCount >= state.dataUpdate.maxPollCount) {
+            clearInterval(state.dataUpdate.pollingTimer);
+            state.dataUpdate.pollingTimer = null;
+            showMessage('⚠️ 数据更新超时，请手动刷新页面', 'warning');
+        }
+    }, 10000);
+}
 
-            const summary = state.fundsData.summary;
-            const totalInvested = summary.total_invested || 0;
-            const totalValue = summary.total_value || 0;
-            const totalProfit = summary.total_profit_loss || 0;
-            const totalProfitPercent = summary.total_profit_loss_percent || 0;
-            const totalRealizedProfit = summary.total_realized_profit_loss || 0;
+// 更新盈亏概览
+function updateProfitLossSummary() {
+    const summaryDiv = document.getElementById('profitLossSummary');
+    const contentDiv = document.getElementById('summaryContent');
 
-            const profitClass = totalProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
-            const profitSign = totalProfit >= 0 ? '+' : '';
-            const realizedClass = totalRealizedProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
-            const realizedSign = totalRealizedProfit >= 0 ? '+' : '';
+    if (!state.fundsData || !state.fundsData.summary) {
+        summaryDiv.style.display = 'none';
+        return;
+    }
 
-            contentDiv.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                    <div>
-                        <div style="color: var(--color-text-secondary); font-size: 12px;">总投入</div>
-                        <div style="font-size: 18px; font-weight: bold;">¥${totalInvested.toFixed(2)}</div>
-                    </div>
-                    <div>
-                        <div style="color: var(--color-text-secondary); font-size: 12px;">当前市值</div>
-                        <div style="font-size: 18px; font-weight: bold;">¥${totalValue.toFixed(2)}</div>
-                    </div>
-                    <div>
-                        <div style="color: var(--color-text-secondary); font-size: 12px;">未实现盈亏</div>
-                        <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}¥${totalProfit.toFixed(2)}</div>
-                    </div>
-                    <div>
-                        <div style="color: var(--color-text-secondary); font-size: 12px;">总收益率</div>
-                        <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}${totalProfitPercent.toFixed(2)}%</div>
-                    </div>
-                    <div>
-                        <div style="color: var(--color-text-secondary); font-size: 12px;">已实现盈亏</div>
-                        <div style="font-size: 18px; font-weight: bold; ${realizedClass}">${realizedSign}¥${totalRealizedProfit.toFixed(2)}</div>
-                    </div>
-                </div>
-                <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">最后更新: ${escapeHtml(state.fundsData.update_time)}</div>
-            `;
+    const summary = state.fundsData.summary;
+    const totalInvested = summary.total_invested || 0;
+    const totalValue = summary.total_value || 0;
+    const totalProfit = summary.total_profit_loss || 0;
+    const totalProfitPercent = summary.total_profit_loss_percent || 0;
+    const totalRealizedProfit = summary.total_realized_profit_loss || 0;
 
-            summaryDiv.style.display = 'block';
+    const profitClass = totalProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
+    const profitSign = totalProfit >= 0 ? '+' : '';
+    const realizedClass = totalRealizedProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
+    const realizedSign = totalRealizedProfit >= 0 ? '+' : '';
+
+    contentDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+    <div>
+        <div style="color: var(--color-text-secondary); font-size: 12px;">总投入</div>
+        <div style="font-size: 18px; font-weight: bold;">¥${totalInvested.toFixed(2)}</div>
+    </div>
+    <div>
+        <div style="color: var(--color-text-secondary); font-size: 12px;">当前市值</div>
+        <div style="font-size: 18px; font-weight: bold;">¥${totalValue.toFixed(2)}</div>
+    </div>
+    <div>
+        <div style="color: var(--color-text-secondary); font-size: 12px;">未实现盈亏</div>
+        <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}¥${totalProfit.toFixed(2)}</div>
+    </div>
+    <div>
+        <div style="color: var(--color-text-secondary); font-size: 12px;">总收益率</div>
+        <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}${totalProfitPercent.toFixed(2)}%</div>
+    </div>
+    <div>
+        <div style="color: var(--color-text-secondary); font-size: 12px;">已实现盈亏</div>
+        <div style="font-size: 18px; font-weight: bold; ${realizedClass}">${realizedSign}¥${totalRealizedProfit.toFixed(2)}</div>
+    </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">最后更新: ${escapeHtml(state.fundsData.update_time)}</div>
+    `;
+
+    summaryDiv.style.display = 'block';
         }
 
 // 渲染交易记录平台筛选标签

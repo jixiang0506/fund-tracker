@@ -2848,14 +2848,24 @@
             const resultsDiv = document.getElementById('fundSearchResults');
             resultsDiv.innerHTML = '';
 
-            // 本地已有基金
-            if (localMatches.length > 0) {
+            // 按是否有交易记录将本地匹配分类：已持有 vs 仅配置未持有
+            const heldFunds = localMatches.filter(item =>
+                state.purchaseRecords[item.platform]?.[item.code]?.length > 0
+            );
+            const configOnlyFunds = localMatches.filter(item =>
+                !state.purchaseRecords[item.platform]?.[item.code]?.length
+            );
+            // 未持有的基金 = 配置中有但无交易记录 + 联网搜索到的新基金
+            const unheldFunds = configOnlyFunds.concat(newFunds);
+
+            // 已有基金（有交易记录）
+            if (heldFunds.length > 0) {
                 const header = document.createElement('div');
                 header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
                 header.textContent = '已有基金';
                 resultsDiv.appendChild(header);
 
-                localMatches.forEach(item => {
+                heldFunds.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
                     div.onclick = () => selectFundFromSearch(item.code, item.name, item.platform);
@@ -2868,21 +2878,26 @@
                 });
             }
 
-            // 联网搜索到的新基金
-            if (newFunds.length > 0) {
+            // 新基金（未持有）：配置中无交易记录 + 联网新基金
+            if (unheldFunds.length > 0) {
                 const header = document.createElement('div');
                 header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
                 header.textContent = '新基金（未持有）';
                 resultsDiv.appendChild(header);
 
-                newFunds.forEach(item => {
+                unheldFunds.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
-                    div.onclick = () => selectFundFromSearch(item.code, item.name, '');
+                    // 配置中的基金有平台信息，联网新基金需要用户选择平台
+                    const platform = item.platform || '';
+                    div.onclick = () => selectFundFromSearch(item.code, item.name, platform);
+                    const platformText = platform
+                        ? `平台：${escapeHtml(platform)}（未持有）`
+                        : '<span style="color: var(--color-warning);">新基金 - 点击选择购买平台</span>';
                     div.innerHTML = `
                         <div class="search-result-code">${escapeHtml(item.code)}</div>
                         <div class="search-result-name">${escapeHtml(item.name)}</div>
-                        <div class="search-result-platform" style="color: var(--color-warning);">新基金 - 点击选择购买平台</div>
+                        <div class="search-result-platform">${platformText}</div>
                     `;
                     resultsDiv.appendChild(div);
                 });
@@ -2897,7 +2912,7 @@
             }
 
             // 无结果
-            if (!isSearching && localMatches.length === 0 && newFunds.length === 0) {
+            if (!isSearching && heldFunds.length === 0 && unheldFunds.length === 0) {
                 resultsDiv.innerHTML = '<div class="search-no-result">未找到匹配的基金，请检查输入或手动选择</div>';
             }
 

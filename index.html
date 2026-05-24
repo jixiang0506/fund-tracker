@@ -1131,16 +1131,87 @@
             border-left: 4px solid #5bc0de;
         }
 
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        /* 更多下拉菜单 */
+        .more-dropdown {
+            position: relative;
+            display: inline-block;
         }
+
+        .more-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--color-border);
+            background: white;
+            color: var(--color-text);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .more-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .more-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 200px;
+            z-index: 1001;
+            padding: 8px 0;
+            margin-top: 5px;
+        }
+
+        .more-dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .more-menu-item {
+            display: block;
+            width: 100%;
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            color: var(--color-text);
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .more-menu-item:hover {
+            background: var(--color-bg-light);
+        }
+
+        .more-menu-item.disabled {
+            color: var(--color-text-muted);
+            cursor: not-allowed;
+        }
+
+        .more-menu-item.disabled:hover {
+            background: none;
+        }
+
+        .more-menu-divider {
+            height: 1px;
+            background: var(--color-border-light);
+            margin: 8px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
     </style>
     <script src="github_api.js"></script>
 </head>
@@ -1200,13 +1271,7 @@
                     <div id="summaryContent"></div>
 
                     <hr style="margin: 30px 0;">
-
-                    <div style="margin-bottom: 20px;">
-                        <input type="file" id="importFileInput" accept=".json" style="display: none;">
-                        <button class="btn btn-warning" id="btnImportFile">📂 从文件导入记录</button>
-                        <span style="margin-left: 10px; color: var(--color-text-secondary); font-size: 12px;">选择 purchase_records.json 文件（支持买入和卖出记录）</span>
-                    </div>
-
+                    
                     <h3 style="margin-bottom: 20px;">添加交易记录</h3>
                 <!-- 1. 交易类型 -->
                 <div class="form-group">
@@ -1297,9 +1362,18 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
                     <h3 style="margin: 0;">当前交易记录</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" id="btnSaveGithub">🚀 保存到 GitHub</button>
-                        <button class="btn btn-warning" id="btnExportJson">📥 导出 JSON 文件</button>
+                    <div class="more-dropdown">
+                        <button class="more-btn" id="moreBtn" onclick="toggleMoreMenu(event)">⋮ 更多 ▾</button>
+                        <div class="more-dropdown-menu" id="moreMenu">
+                            <button class="more-menu-item" data-action="import-file">📂 从文件导入记录</button>
+                            <button class="more-menu-item" data-action="save-github">🚀 同步到 GitHub</button>
+                            <button class="more-menu-item" data-action="export-json">📥 导出 JSON 文件</button>
+                            <div class="more-menu-divider"></div>
+                            <button class="more-menu-item" data-action="load-github">🔄 从 GitHub 加载</button>
+                            <button class="more-menu-item" data-action="load-local">💾 加载本地记录</button>
+                            <div class="more-menu-divider"></div>
+                            <button class="more-menu-item" data-action="refresh-fund">🔄 刷新基金信息</button>
+                        </div>
                     </div>
                 </div>
                 <!-- 交易记录平台筛选标签 -->
@@ -1330,11 +1404,6 @@
                     <div class="form-group">
                         <label>仓库名称</label>
                         <input type="text" id="repoName" placeholder="fund-tracker">
-                    </div>
-                    <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                        <button class="btn btn-warning" id="btnLoadFromGithub">🔄 从 GitHub 加载</button>
-                        <button class="btn btn-primary" id="btnLoadLocal" style="margin-left: 10px;">💾 加载本地记录</button>
-                        <button class="btn btn-success" id="btnRefreshFundInfo" style="margin-left: 10px;">🔄 刷新基金信息</button>
                     </div>
                     <div class="tip-box warning" style="margin-top: 20px;">
                         ⚠️ 刷新基金会联网获取最新基金名称，用于修复基金名称显示异常的情况。
@@ -1424,11 +1493,30 @@
 
             // 点击页面其他地方关闭设置菜单
             document.addEventListener('click', function(e) {
-                const dropdown = document.querySelector('.settings-dropdown');
-                if (dropdown && !dropdown.contains(e.target)) {
+                const settingsDropdown = document.querySelector('.settings-dropdown');
+                if (settingsDropdown && !settingsDropdown.contains(e.target)) {
                     hideSettingsMenu();
                 }
+                
+                const moreDropdown = document.querySelector('.more-dropdown');
+                if (moreDropdown && !moreDropdown.contains(e.target)) {
+                    hideMoreMenu();
+                }
             });
+            
+            // 更多菜单项事件委托
+            const moreMenu = document.getElementById('moreMenu');
+            if (moreMenu) {
+                moreMenu.addEventListener('click', function(e) {
+                    const menuItem = e.target.closest('.more-menu-item');
+                    if (menuItem && !menuItem.classList.contains('disabled')) {
+                        const action = menuItem.getAttribute('data-action');
+                        if (action) {
+                            handleMoreMenuAction(action);
+                        }
+                    }
+                });
+            }
         };
 
         // 切换设置菜单显示/隐藏
@@ -1443,6 +1531,48 @@
             const menu = document.getElementById('settingsMenu');
             menu.classList.remove('show');
         }
+
+        // ============ 更多下拉菜单逻辑 ============
+        function toggleMoreMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('moreMenu');
+            menu.classList.toggle('show');
+        }
+
+        function hideMoreMenu() {
+            const menu = document.getElementById('moreMenu');
+            if (menu) {
+                menu.classList.remove('show');
+            }
+        }
+
+        // 更多菜单项点击处理
+        function handleMoreMenuAction(action) {
+            hideMoreMenu();
+            
+            switch(action) {
+                case 'import-file':
+                    document.getElementById('importFileInput').click();
+                    break;
+                case 'save-github':
+                    savePurchaseRecords();
+                    break;
+                case 'export-json':
+                    exportRecordsToFile();
+                    break;
+                case 'load-github':
+                    loadFromGithub();
+                    break;
+                case 'load-local':
+                    loadLocalRecords();
+                    break;
+                case 'refresh-fund':
+                    refreshFundInfo();
+                    break;
+            }
+        }
+
+        // ============ 结束更多菜单逻辑 ============
 
         // 从本地JSON文件加载买入记录（强制UTF-8解码）
         async function loadPurchaseRecordsFromFile() {

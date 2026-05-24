@@ -847,11 +847,9 @@ def process_fund(platform, code, fund_start_date, http_session,
         with history_cache_lock:
             history_cache[code] = history
 
-        if not history:
-            if cached_history:
-                history = cached_history
-            else:
-                return (None, 0, 0, "历史数据为空，且无缓存")
+        history_empty = not history
+        if history_empty and cached_history:
+            history = cached_history
 
         # --- 第2步：获取实时数据 ---
         realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
@@ -862,6 +860,19 @@ def process_fund(platform, code, fund_start_date, http_session,
                         old_fund["holdings"]["current_value"], "使用缓存数据")
             else:
                 return (None, 0, 0, "无法获取实时数据且无缓存")
+
+        # 如果历史数据为空但实时数据可用，用实时数据构造一个单条历史记录
+        # （兼容 API 暂时无法获取历史数据的情况，确保基金仍能展示）
+        if history_empty and not cached_history:
+            nav_date = realtime.get("nav_date", today)
+            history = [{
+                "date": nav_date,
+                "nav": realtime["nav"],
+                "change_percent": realtime.get("change_percent", 0)
+            }]
+            with history_cache_lock:
+                history_cache[code] = history
+            log("  ⚠️ 基金 {} 无历史数据，使用实时净值 {} ({}) 兜底".format(code, realtime["nav"], nav_date))
 
         # 修正 nav_status
         beijing_now = get_beijing_time()

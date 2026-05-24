@@ -3765,49 +3765,28 @@ function updatePurchaseRecord() {
         }
 
 // 联网获取基金信息（通过 JSONP，绕过 CORS）
+// 使用 searchFundOnline API（更稳定，已验证可用）
 function fetchFundInfoWeb(code, callback) {
-    const callbackName = 'jsonp_fetchFundInfoWeb';
-    // 保存旧的 jsonpgz（防止并发冲突）
-    const prev = window.jsonpgz;
-    window.jsonpgz = function(data) {
-        try {
-            if (data && data[code]) {
-                const fundName = data[code][0] || code;
-                callback({ name: fundName });
-            } else {
-                callback(null);
+    console.log('正在获取基金信息:', code);
+    
+    // 使用已有的 searchFundOnline API（天天基金搜索接口，已验证可用）
+    searchFundOnline(code, function(funds) {
+        if (funds && funds.length > 0) {
+            // 优先匹配完全相同的基金代码
+            const exactMatch = funds.find(f => f.code === code);
+            if (exactMatch) {
+                console.log('✅ 找到基金信息:', exactMatch.name, exactMatch.code);
+                callback({ name: exactMatch.name, code: exactMatch.code });
+                return;
             }
-        } catch (e) {
-            console.error('解析基金信息失败:', e);
+            // 如果没有完全匹配，返回第一个结果（模糊匹配）
+            console.log('⚠️ 未找到完全匹配，使用第一个结果:', funds[0].name);
+            callback({ name: funds[0].name, code: funds[0].code });
+        } else {
+            console.warn('❌ 无法获取基金信息:', code);
             callback(null);
-        } finally {
-            // 恢复旧值
-            window.jsonpgz = prev;
-            // 清理 script 标签
-            const script = document.getElementById('jsonp_script_fetchFundInfoWeb');
-            if (script) script.remove();
         }
-    };
-
-    // 超时处理（5秒）
-    const timeoutId = setTimeout(() => {
-        console.warn('获取基金信息超时:', code);
-        window.jsonpgz = prev;
-        const script = document.getElementById('jsonp_script_fetchFundInfoWeb');
-        if (script) script.remove();
-        callback(null);
-    }, 5000);
-
-    // 创建 JSONP 请求
-    const script = document.createElement('script');
-    script.id = 'jsonp_script_fetchFundInfoWeb';
-    script.src = `https://fund.eastmoney.com/fundcode!getFundCodeList.action?cb=jsonpgz&fundCode=${code}`;
-    script.onerror = function() {
-        clearTimeout(timeoutId);
-        window.jsonpgz = prev;
-        callback(null);
-    };
-    document.head.appendChild(script);
+    });
 }
 
  // 获取基金名称 - 添加空值检查

@@ -1094,9 +1094,58 @@
             color: white;
             border-color: var(--color-primary);
         }
+
+        /* 上传状态提示 */
+        .upload-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-size: 14px;
+            display: none;
+        }
+
+        .upload-status.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .upload-status.success {
+            background: #dff0d8;
+            color: #3c763d;
+            border-left: 4px solid #5cb85c;
+        }
+
+        .upload-status.error {
+            background: #f2dede;
+            color: #a94442;
+            border-left: 4px solid #d9534f;
+        }
+
+        .upload-status.loading {
+            background: #d9edf7;
+            color: #31708f;
+            border-left: 4px solid #5bc0de;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
+    <script src="github_api.js"></script>
 </head>
 <body>
+    <div id="uploadStatus" class="upload-status"></div>
     <div class="container">
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -1346,6 +1395,76 @@
                     platform: '全部'
                 }
             };
+
+        // ========= 上传状态提示函数 =========
+        function showUploadStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = `upload-status ${type} show`;
+
+            // 如果是成功或错误，3秒后自动隐藏
+            if (type === 'success' || type === 'error') {
+                setTimeout(hideUploadStatus, 3000);
+            }
+        }
+
+        function hideUploadStatus() {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.classList.remove('show');
+        }
+
+        // ========= 自动上传到 GitHub =========
+        async function autoUploadToGitHub() {
+            // 检查是否有 GitHub token
+            if (!state.github.token) {
+                showMessage('未配置 GitHub Token，无法自动上传', 'warning');
+                return Promise.resolve();
+            }
+
+            if (!state.github.owner || !state.github.repo) {
+                showMessage('未配置 GitHub 仓库信息，无法自动上传', 'warning');
+                return Promise.resolve();
+            }
+
+            showUploadStatus('正在上传到 GitHub...', 'loading');
+
+            try {
+                // 构建文件内容
+                const purchaseRecordsContent = JSON.stringify(state.purchaseRecords, null, 2);
+                const fundConfigContent = JSON.stringify(state.fundConfig, null, 2);
+
+                // 上传 purchase_records.json
+                await GitHubAPI.autoUpload(
+                    state.github.owner,
+                    state.github.repo,
+                    'data/purchase_records.json',
+                    purchaseRecordsContent,
+                    '自动更新交易记录',
+                    state.github.token
+                );
+
+                showUploadStatus('正在上传基金配置...', 'loading');
+
+                // 上传 fund_config.json
+                await GitHubAPI.autoUpload(
+                    state.github.owner,
+                    state.github.repo,
+                    'fund_config.json',
+                    fundConfigContent,
+                    '自动更新基金配置',
+                    state.github.token
+                );
+
+                showUploadStatus('✓ 已自动上传到 GitHub', 'success');
+                showMessage('已自动上传到 GitHub', 'success');
+                return Promise.resolve();
+            } catch (error) {
+                console.error('自动上传失败:', error);
+                showUploadStatus(`✗ 上传失败: ${error.message}`, 'error');
+                showMessage(`自动上传失败: ${error.message}`, 'error');
+                return Promise.reject(error);
+            }
+        }
 
         // 页面加载时恢复设置
         window.onload = function() {
@@ -3144,6 +3263,12 @@ function addPurchaseRecord() {
     saveLocalRecords();
     clearRecordForm();
     showMessage('交易记录已添加', 'success');
+        // 自动上传到 GitHub
+        autoUploadToGitHub().then(() => {
+            console.log('自动上传成功');
+        }).catch(err => {
+            console.error('自动上传失败:', err);
+        });
 }
 
 // 获取基金当前净值（辅助函数）

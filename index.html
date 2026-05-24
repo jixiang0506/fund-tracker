@@ -1668,10 +1668,13 @@
                 const configResp = await fetch('fund_config.json?t=' + new Date().getTime());
                 if (configResp.ok) {
                     const config = await configResp.json();
-                    // 转换为兼容格式
+                    // 转换为兼容格式（兼容两种结构：{funds: {平台: [...]}} 或 {平台: [...]}）
                     const dynamicFunds = {};
-                    for (const [platform, fundList] of Object.entries(config.funds || {})) {
-                        dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name, benchmark: f.benchmark || ''}));
+                    const fundsSource = config.funds || config;
+                    for (const [platform, fundList] of Object.entries(fundsSource)) {
+                        if (Array.isArray(fundList)) {
+                            dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name, benchmark: f.benchmark || ''}));
+                        }
                     }
                     state.fundConfig = dynamicFunds;
                     state.fundPlatforms = Object.keys(dynamicFunds);

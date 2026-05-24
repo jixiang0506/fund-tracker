@@ -1331,9 +1331,13 @@
                         <label>仓库名称</label>
                         <input type="text" id="repoName" placeholder="fund-tracker">
                     </div>
-                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
                         <button class="btn btn-warning" id="btnLoadFromGithub">🔄 从 GitHub 加载</button>
                         <button class="btn btn-primary" id="btnLoadLocal" style="margin-left: 10px;">💾 加载本地记录</button>
+                        <button class="btn btn-success" id="btnRefreshFundInfo" style="margin-left: 10px;">🔄 刷新基金信息</button>
+                    </div>
+                    <div class="tip-box warning" style="margin-top: 20px;">
+                        ⚠️ 刷新基金会联网获取最新基金名称，用于修复基金名称显示异常的情况。
                     </div>
                 </div> <!-- 结束 tab-github 面板 -->
             </div> <!-- 结束 modal-body -->
@@ -3160,7 +3164,7 @@
             }
         }
 
-// 添加交易记录 - 买入按金额，卖出按份额
+// 添加交易记录 - 买入按金额，卖出按份额（支持新基金自动获取信息）
 function addPurchaseRecord() {
     const platform = document.getElementById('recordPlatform').value;
     const date = document.getElementById('recordDate').value;
@@ -3215,14 +3219,23 @@ function addPurchaseRecord() {
                     benchmark: benchmark
                 });
                 
-                showMessage(`新基金 ${data.name} (${fundCode}) 已自动添加，请重新点击 添加记录`, 'success');
+                showMessage(`新基金 ${data.name} (${fundCode}) 已自动添加，正在保存记录...`, 'success');
+                
+                // ===== 自动继续添加记录（一次点击完成所有操作）=====
+                _addRecordInternal(platform, fundCode, date, type, navVal, isSell);
             } else {
                 showMessage(`无法获取基金 ${fundCode} 的信息，请稍后手动添加`, 'error');
             }
         });
-        return; // 获取信息后需要用户重新点击
+        return; // 异步获取信息，回调中继续
     }
     
+    // 已知基金，直接添加
+    _addRecordInternal(platform, fundCode, date, type, navVal, isSell);
+}
+
+// 内部函数：执行实际的记录添加逻辑（被 addPurchaseRecord 调用）
+function _addRecordInternal(platform, fundCode, date, type, navVal, isSell) {
     let amount;
     let shares = null;
     let nav = null;
@@ -3297,13 +3310,14 @@ function addPurchaseRecord() {
     renderRecordsList();
     saveLocalRecords();
     clearRecordForm();
-        showMessage('交易记录已添加', 'success');
-        // 自动上传到 GitHub
-        autoUploadToGitHub().then(() => {
-            console.log('自动上传成功');
-        }).catch(err => {
-            console.error('自动上传失败:', err);
-        });
+    showMessage('交易记录已添加', 'success');
+    
+    // 自动上传到 GitHub
+    autoUploadToGitHub().then(() => {
+        console.log('自动上传成功');
+    }).catch(err => {
+        console.error('自动上传失败:', err);
+    });
 }
 
 // 显示上传状态提示
@@ -3328,7 +3342,7 @@ function hideUploadStatus() {
     }, 300);
 }
 
-// 自动上传到 GitHub
+// 自动上传到 GitHub（带重试机制）
 async function autoUploadToGitHub() {
     // 检查 GitHub 配置
     if (!state.github.token || !state.github.owner || !state.github.repo) {
@@ -3336,40 +3350,61 @@ async function autoUploadToGitHub() {
         return;
     }
     
-    showUploadStatus('loading', '⏳ 正在上传到 GitHub...');
+    const maxRetries = 3;
+    let attempt = 0;
     
-    try {
-        // 准备 purchase_records.json 内容
-        const purchaseRecordsContent = JSON.stringify(state.purchaseRecords, null, 2);
+    while (attempt < maxRetries) {
+        attempt++;
         
-        // 准备 fund_config.json 内容
-        const fundConfigContent = JSON.stringify(state.fundConfig, null, 2);
+        if (attempt > 1) {
+            showUploadStatus('loading', `⏳ 正在重试上传 (${attempt}/${maxRetries})...`);
+        } else {
+            showUploadStatus('loading', '⏳ 正在上传到 GitHub...');
+        }
         
-        // 上传 purchase_records.json
-        await GitHubAPI.autoUpload(
-            state.github.owner,
-            state.github.repo,
-            'data/purchase_records.json',
-            purchaseRecordsContent,
-            '自动更新交易记录 - ' + new Date().toISOString().slice(0, 10),
-            state.github.token
-        );
-        
-        // 上传 fund_config.json
-        await GitHubAPI.autoUpload(
-            state.github.owner,
-            state.github.repo,
-            'fund_config.json',
-            fundConfigContent,
-            '自动更新基金配置 - ' + new Date().toISOString().slice(0, 10),
-            state.github.token
-        );
-        
-        showUploadStatus('success', '✅ 已成功上传到 GitHub');
-    } catch (error) {
-        console.error('自动上传失败:', error);
-        showUploadStatus('error', '❌ 上传失败: ' + error.message);
-        throw error;
+        try {
+            // 准备 purchase_records.json 内容
+            const purchaseRecordsContent = JSON.stringify(state.purchaseRecords, null, 2);
+            
+            // 准备 fund_config.json 内容
+            const fundConfigContent = JSON.stringify(state.fundConfig, null, 2);
+            
+            // 上传 purchase_records.json
+            await GitHubAPI.autoUpload(
+                state.github.owner,
+                state.github.repo,
+                'data/purchase_records.json',
+                purchaseRecordsContent,
+                '自动更新交易记录 - ' + new Date().toISOString().slice(0, 10),
+                state.github.token
+            );
+            
+            // 上传 fund_config.json
+            await GitHubAPI.autoUpload(
+                state.github.owner,
+                state.github.repo,
+                'fund_config.json',
+                fundConfigContent,
+                '自动更新基金配置 - ' + new Date().toISOString().slice(0, 10),
+                state.github.token
+            );
+            
+            showUploadStatus('success', '✅ 已成功上传到 GitHub');
+            return; // 成功，退出重试循环
+        } catch (error) {
+            console.error(`自动上传失败 (尝试 ${attempt}/${maxRetries}):`, error);
+            
+            if (attempt < maxRetries) {
+                // 等待后重试（指数退避：1秒、2秒、4秒）
+                const delay = Math.pow(2, attempt - 1) * 1000;
+                showUploadStatus('loading', `⚠️ 上传失败，${delay/1000}秒后重试...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                // 最后一次也失败了
+                showUploadStatus('error', '❌ 上传失败: ' + error.message);
+                throw error;
+            }
+        }
     }
 }
 
@@ -3685,6 +3720,59 @@ function getFundName(platform, fundCode) {
     }
     
     return fundCode; // 找不到就返回代码
+}
+
+// 手动刷新基金信息（修复基金名称显示异常）
+function refreshFundInfo() {
+    const fundCode = prompt('请输入要刷新信息的基金代码（6位数字）：');
+    if (!fundCode || !/^\d{6}$/.test(fundCode)) {
+        showMessage('请输入有效的6位基金代码', 'error');
+        return;
+    }
+    
+    showMessage(`正在刷新基金 ${fundCode} 的信息...`, 'info');
+    
+    fetchFundInfoWeb(fundCode, function(data) {
+        if (data && data.name) {
+            // 判断是否为 QDII 基金
+            const qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"];
+            const is_qdii = qdii_keywords.some(kw => data.name.includes(kw));
+            const benchmark = is_qdii ? "纳斯达克100指数" : "科创50指数";
+            
+            let updated = false;
+            
+            // 在所有平台中查找并更新该基金
+            for (const platform in state.fundConfig) {
+                const funds = state.fundConfig[platform];
+                if (Array.isArray(funds)) {
+                    const fund = funds.find(f => f.code === fundCode);
+                    if (fund) {
+                        fund.name = data.name;
+                        fund.is_qdii = is_qdii;
+                        fund.benchmark = benchmark;
+                        updated = true;
+                    }
+                }
+            }
+            
+            if (updated) {
+                showMessage(`基金 ${data.name} (${fundCode}) 信息已刷新`, 'success');
+                // 重新渲染基金列表
+                renderData();
+                saveLocalRecords();
+                // 自动上传到 GitHub
+                autoUploadToGitHub().then(() => {
+                    console.log('配置自动上传成功');
+                }).catch(err => {
+                    console.error('配置自动上传失败:', err);
+                });
+            } else {
+                showMessage(`基金 ${fundCode} 不在当前配置中，请先添加`, 'warning');
+            }
+        } else {
+            showMessage(`无法获取基金 ${fundCode} 的信息`, 'error');
+        }
+    });
 }
 
         // 更新盈亏概览
@@ -4155,6 +4243,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             // 5. 加载按钮
             document.getElementById('btnLoadFromGithub')?.addEventListener('click', loadPurchaseRecords);
             document.getElementById('btnLoadLocal')?.addEventListener('click', loadLocalRecords);
+            document.getElementById('btnRefreshFundInfo')?.addEventListener('click', refreshFundInfo);
 
             // 6. 导入文件按钮
             document.getElementById('btnImportFile')?.addEventListener('click', function() {

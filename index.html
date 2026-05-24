@@ -1577,36 +1577,38 @@
 
         // 从本地JSON文件加载买入记录（强制UTF-8解码）
         async function loadPurchaseRecordsFromFile() {
+            // 优先从 localStorage 加载：用户在本地做的增删改代表最新状态
+            const localData = localStorage.getItem('purchase_records');
+            if (localData) {
+                try {
+                    state.purchaseRecords = JSON.parse(localData);
+                    console.log('从本地存储加载买入记录:', state.purchaseRecords);
+                    showMessage('已从本地存储加载买入记录', 'info');
+                    return;
+                } catch (e) {
+                    console.error('解析本地存储记录失败:', e);
+                    // 继续尝试从文件加载
+                }
+            }
+
+            // localStorage 无数据时，从服务器文件加载
             try {
                 const response = await fetch('data/purchase_records.json?t=' + new Date().getTime());
                 if (response.ok) {
                     const buffer = await response.arrayBuffer();
                     const text = new TextDecoder('utf-8').decode(buffer);
                     state.purchaseRecords = JSON.parse(text);
+                    // 同步到 localStorage，保证后续优先走本地
+                    localStorage.setItem('purchase_records', JSON.stringify(state.purchaseRecords));
                     console.log('从文件加载买入记录成功:', state.purchaseRecords);
                     showMessage('已从文件加载买入记录', 'success');
                 } else {
-                    // 如果文件不存在，尝试从本地存储加载
-                    const localData = localStorage.getItem('purchase_records');
-                    if (localData) {
-                        state.purchaseRecords = JSON.parse(localData);
-                        console.log('从本地存储加载买入记录');
-                        showMessage('已从本地存储加载买入记录', 'info');
-                    } else {
-                        state.purchaseRecords = {};
-                        console.log('无买入记录');
-                    }
+                    state.purchaseRecords = {};
+                    console.log('无买入记录');
                 }
             } catch (error) {
                 console.error('加载交易记录文件失败:', error);
-                // 尝试从本地存储加载
-                const localData = localStorage.getItem('purchase_records');
-                if (localData) {
-                    state.purchaseRecords = JSON.parse(localData);
-                    showMessage('已从本地存储加载买入记录', 'info');
-                } else {
-                    state.purchaseRecords = {};
-                }
+                state.purchaseRecords = {};
             }
         }
 

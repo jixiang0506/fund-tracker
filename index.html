@@ -3246,13 +3246,45 @@ function addPurchaseRecord() {
     if (isSell) {
         fundCode = document.getElementById('recordFund').value;
     } else {
-        // 买入时从搜索框获取：优先使用当前选中的下拉框值（搜索结果可能已填充），否则尝试从搜索框提取
+        // 买入时从搜索框获取：优先使用当前选中的下拉框值（搜索结果可能已填充）
         fundCode = document.getElementById('recordFund').value;
         if (!fundCode) {
-            // 从搜索框内容中提取基金代码（格式："270023 - 基金名称"）
             const searchText = document.getElementById('fundSearchInput').value.trim();
-            const match = searchText.match(/^(\d{6})/);
-            if (match) fundCode = match[1];
+            if (searchText) {
+                // 尝试从搜索框内容中提取基金代码（格式："270023 - 基金名称"）
+                const match = searchText.match(/^(\d{6})/);
+                if (match) {
+                    fundCode = match[1];
+                } else {
+                    // 用户输入了关键词但未点击搜索结果：尝试从已渲染的搜索结果中自动匹配
+                    const resultsDiv = document.getElementById('fundSearchResults');
+                    if (resultsDiv && resultsDiv.classList.contains('show')) {
+                        const firstResult = resultsDiv.querySelector('.search-result-item');
+                        if (firstResult) {
+                            const codeEl = firstResult.querySelector('.search-result-code');
+                            if (codeEl) {
+                                fundCode = codeEl.textContent.trim();
+                                console.log('自动从搜索结果匹配基金代码:', fundCode);
+                            }
+                        }
+                    }
+                    // 如果搜索结果未显示，尝试用关键词匹配本地已配置的基金
+                    if (!fundCode) {
+                        const fundConfig = getFundConfig();
+                        const platforms = platform ? [platform] : Object.keys(fundConfig);
+                        for (const plat of platforms) {
+                            const match = fundConfig[plat]?.find(f =>
+                                f.name.includes(searchText) || searchText.includes(f.name)
+                            );
+                            if (match) {
+                                fundCode = match.code;
+                                console.log('自动从本地配置匹配基金代码:', fundCode, match.name);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

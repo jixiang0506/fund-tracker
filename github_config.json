@@ -2,7 +2,12 @@
     "owner": "jixiang0506",
     "repo": "fund-tracker",
     "files": [
-        "index.html"
+        "fetch_fund_data.py",
+        "generate_holdings.py",
+        "logger_config.py",
+        "push_to_github.py",
+        "index.html",
+        "github_api.js"
     ],
-    "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件：python push_to_github.py index.html fetch_fund_data.py"
+    "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件"
 }

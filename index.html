@@ -1473,7 +1473,8 @@
                     pollingTimer: null,
                     lastUpdateTime: null,
                     pollCount: 0,
-                    maxPollCount: 30 // 最多轮询 30 次（5 分钟）
+                    maxPollCount: 30, // 最多轮询 30 次（5 分钟）
+                    newFundCode: null // 新添加的基金代码（用于检测是否出现在 funds_data.json 中）
                 }
             };
 
@@ -3385,10 +3386,13 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell) {
         console.log('自动上传成功');
         // 乐观更新：立即重新加载数据
         loadData();
+        // 记录新添加的基金代码，用于轮询检测
+        state.dataUpdate.newFundCode = fundCode;
         // 开始轮询数据更新（检测 GitHub Actions 是否已完成）
         startDataUpdatePolling();
     }).catch(err => {
         console.error('自动上传失败:', err);
+        showMessage('上传失败，数据将在下次 GitHub Actions 运行时更新', 'warning');
     });
 }
 
@@ -3418,8 +3422,9 @@ function hideUploadStatus() {
 async function autoUploadToGitHub() {
     // 检查 GitHub 配置
     if (!state.github.token || !state.github.owner || !state.github.repo) {
-        console.warn('GitHub 配置不完整，跳过自动上传');
-        return;
+        const errMsg = 'GitHub 配置不完整，无法自动上传。请在管理交易记录中配置 GitHub Token。';
+        showMessage(errMsg, 'error');
+        return Promise.reject(new Error(errMsg));
     }
     
     const maxRetries = 3;
@@ -3849,12 +3854,33 @@ function refreshFundInfo() {
 
 // 数据更新轮询（方案1+2混合）
 function startDataUpdatePolling() {
+    // 记录当前时间（用于检测 update_time 变化）
     if (state.fundsData?.update_time) {
         state.dataUpdate.lastUpdateTime = state.fundsData.update_time;
+    } else {
+        // 首次加载或新基金，不依赖 update_time，改为检测新基金是否出现
+        state.dataUpdate.lastUpdateTime = null;
+    }
+    
+    // 记录当前 funds_data.json 中的所有基金代码（用于检测新基金是否出现）
+    state.dataUpdate.existingFundCodes = [];
+    if (state.fundsData?.funds) {
+        for (const platform in state.fundsData.funds) {
+            state.fundsData.funds[platform].forEach(f => {
+                if (f?.code) {
+                    state.dataUpdate.existingFundCodes.push(f.code);
+                }
+            });
+        }
     }
     
     state.dataUpdate.pollCount = 0;
-    showMessage('📡 数据正在后台更新，完成后将自动刷新...', 'info');
+    const newFund = state.dataUpdate.newFundCode;
+    if (newFund) {
+        showMessage(`📡 正在后台更新数据，等待 ${newFund} 同步...`, 'info');
+    } else {
+        showMessage('📡 数据正在后台更新，完成后将自动刷新...', 'info');
+    }
     
     if (state.dataUpdate.pollingTimer) {
         clearInterval(state.dataUpdate.pollingTimer);
@@ -3868,9 +3894,45 @@ function startDataUpdatePolling() {
             const response = await fetch(`data/funds_data.json?t=${new Date().getTime()}`);
             if (response.ok) {
                 const newData = await response.json();
-                if (newData.update_time && newData.update_time !== state.dataUpdate.lastUpdateTime) {
+                
+                let shouldRefresh = false;
+                let refreshReason = '';
+                
+                // 检测方式1：update_time 变化（正常情况）
+                if (state.dataUpdate.lastUpdateTime && 
+                    newData.update_time && 
+                    newData.update_time !== state.dataUpdate.lastUpdateTime) {
+                    shouldRefresh = true;
+                    refreshReason = 'update_time 已更新';
+                }
+                
+                // 检测方式2：新基金出现在 funds_data.json 中（新添加基金的情况）
+                if (!shouldRefresh && newFund && newData.funds) {
+                    for (const platform in newData.funds) {
+                        if (newData.funds[platform].some(f => f?.code === newFund)) {
+                            shouldRefresh = true;
+                            refreshReason = `新基金 ${newFund} 已出现在数据中`;
+                            break;
+                        }
+                    }
+                }
+                
+                // 检测方式3：funds_data.json 中的基金数量增加了（兜底）
+                if (!shouldRefresh && newData.funds && state.dataUpdate.existingFundCodes) {
+                    let currentCount = 0;
+                    for (const platform in newData.funds) {
+                        currentCount += newData.funds[platform].length;
+                    }
+                    if (currentCount > state.dataUpdate.existingFundCodes.length) {
+                        shouldRefresh = true;
+                        refreshReason = '基金数量增加';
+                    }
+                }
+                
+                if (shouldRefresh) {
                     clearInterval(state.dataUpdate.pollingTimer);
                     state.dataUpdate.pollingTimer = null;
+                    state.dataUpdate.newFundCode = null; // 清除新基金标记
                     showMessage('✅ 后台数据已同步，正在刷新界面...', 'success');
                     setTimeout(() => {
                         loadData();
@@ -3885,6 +3947,7 @@ function startDataUpdatePolling() {
         if (state.dataUpdate.pollCount >= state.dataUpdate.maxPollCount) {
             clearInterval(state.dataUpdate.pollingTimer);
             state.dataUpdate.pollingTimer = null;
+            state.dataUpdate.newFundCode = null;
             showMessage('⚠️ 数据更新超时，请手动刷新页面', 'warning');
         }
     }, 10000);

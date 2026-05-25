@@ -1822,6 +1822,18 @@
 
         // ============ 结束更多菜单逻辑 ============
 
+        function decodeUtf8Base64(base64Content) {
+            const binaryStr = atob(base64Content);
+            const bytes = new Uint8Array([...binaryStr].map(c => c.charCodeAt(0)));
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        function applyPurchaseRecords(records, message, type = 'success') {
+            state.purchaseRecords = records || {};
+            renderRecordsList();
+            showMessage(message, type);
+        }
+
         // 从本地JSON文件加载买入记录（强制UTF-8解码）
         async function loadPurchaseRecordsFromFile() {
             try {
@@ -1829,14 +1841,14 @@
                 if (response.ok) {
                     const buffer = await response.arrayBuffer();
                     const text = new TextDecoder('utf-8').decode(buffer);
-                    state.purchaseRecords = JSON.parse(text);
+                    applyPurchaseRecords(JSON.parse(text), '已从文件加载买入记录', 'success');
                     console.log('从文件加载买入记录成功:', state.purchaseRecords);
                     showMessage('已从文件加载买入记录', 'success');
                 } else {
                     // 如果文件不存在，尝试从本地存储加载
                     const localData = localStorage.getItem('purchase_records');
                     if (localData) {
-                        state.purchaseRecords = JSON.parse(localData);
+                        applyPurchaseRecords(JSON.parse(localData), '已从本地存储加载买入记录', 'info');
                         console.log('从本地存储加载买入记录');
                         showMessage('已从本地存储加载买入记录', 'info');
                     } else {
@@ -1849,7 +1861,7 @@
                 // 尝试从本地存储加载
                 const localData = localStorage.getItem('purchase_records');
                 if (localData) {
-                    state.purchaseRecords = JSON.parse(localData);
+                    applyPurchaseRecords(JSON.parse(localData), '已从本地存储加载买入记录', 'info');
                     showMessage('已从本地存储加载买入记录', 'info');
                 } else {
                     state.purchaseRecords = {};
@@ -3427,6 +3439,68 @@
             }
         }
 
+        function getGithubApiUrl(path) {
+            return `https://api.github.com/repos/${state.github.owner}/${state.github.repo}${path}`;
+        }
+
+        function getGithubRequestHeaders(extraHeaders = {}) {
+            return {
+                'Authorization': `token ${state.github.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                ...extraHeaders
+            };
+        }
+
+        async function githubRequest(path, options = {}) {
+            return fetch(getGithubApiUrl(path), {
+                ...options,
+                headers: getGithubRequestHeaders(options.headers || {})
+            });
+        }
+
+        async function saveFileToGitHub(filePath, data, commitMessage) {
+            const contentPath = `/contents/${filePath}`;
+            let sha = '';
+
+            try {
+                const existingResponse = await githubRequest(contentPath);
+                if (existingResponse.ok) {
+                    const existingData = await existingResponse.json();
+                    sha = existingData.sha || '';
+                }
+            } catch (error) {
+                // 文件不存在或无法读取时直接创建新文件
+            }
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(jsonStr);
+            const content = btoa(String.fromCharCode(...bytes));
+            const body = {
+                message: commitMessage,
+                content: content,
+                branch: 'main'
+            };
+
+            if (sha) {
+                body.sha = sha;
+            }
+
+            const response = await githubRequest(contentPath, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                throw new Error('保存失败');
+            }
+
+            return response;
+        }
+
         // 加载买入记录（从GitHub）
         async function loadPurchaseRecords() {
             if (!state.github.token || !state.github.owner || !state.github.repo) {
@@ -3435,29 +3509,14 @@
             }
 
             try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${state.github.owner}/${state.github.repo}/contents/data/purchase_records.json`,
-                    {
-                        headers: {
-                            'Authorization': `token ${state.github.token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    }
-                );
+                const response = await githubRequest('/contents/data/purchase_records.json');
 
                 if (response.ok) {
                     const data = await response.json();
-                    // 使用 TextDecoder 正确解码 Base64 中的 UTF-8 中文（atob 会乱码）
-                    const binaryStr = atob(data.content);
-                    const bytes = new Uint8Array([...binaryStr].map(c => c.charCodeAt(0)));
-                    const content = new TextDecoder('utf-8').decode(bytes);
-                    state.purchaseRecords = JSON.parse(content);
-                    renderRecordsList();
-                    showMessage('交易记录加载成功', 'success');
+                    const content = decodeUtf8Base64(data.content);
+                    applyPurchaseRecords(JSON.parse(content), '交易记录加载成功', 'success');
                 } else if (response.status === 404) {
-                    state.purchaseRecords = {};
-                    renderRecordsList();
-                    showMessage('未找到交易记录文件，将创建新文件', 'info');
+                    applyPurchaseRecords({}, '未找到交易记录文件，将创建新文件', 'info');
                 } else {
                     throw new Error('加载失败');
                 }
@@ -3676,11 +3735,19 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell) {
 }
 
 // 显示上传状态提示
-function showUploadStatus(type, message) {
+function updateUploadStatusElement(type, message) {
     const statusDiv = document.getElementById('uploadStatus');
+    if (!statusDiv) return null;
+
     statusDiv.className = 'upload-status show ' + type;
     statusDiv.textContent = message;
     statusDiv.style.display = 'block';
+    return statusDiv;
+}
+
+function showUploadStatus(type, message) {
+    const statusDiv = updateUploadStatusElement(type, message);
+    if (!statusDiv) return;
     
     // 3秒后自动隐藏（success/error 类型）
     if (type === 'success' || type === 'error') {
@@ -3691,6 +3758,8 @@ function showUploadStatus(type, message) {
 // 隐藏上传状态提示
 function hideUploadStatus() {
     const statusDiv = document.getElementById('uploadStatus');
+    if (!statusDiv) return;
+
     statusDiv.classList.remove('show');
     setTimeout(() => {
         statusDiv.style.display = 'none';
@@ -4394,10 +4463,11 @@ function deletePurchaseRecord(platform, fundCode, index) {
         showMessage('记录已删除', 'success');
         
         // 自动上传到 GitHub
-        autoUploadToGitHub().then(() => {
+        autoUploadToGitHub().then(async () => {
             console.log('删除记录后自动上传成功');
-            loadData();
-            startPollingForUpdate();
+            await loadData();
+            state.dataUpdate.newFundCode = null;
+            startDataUpdatePolling();
         }).catch(err => {
             console.error('删除记录后自动上传失败:', err);
             showMessage('上传失败，数据将在下次 GitHub Actions 运行时更新', 'warning');
@@ -4413,59 +4483,12 @@ function deletePurchaseRecord(platform, fundCode, index) {
             }
 
             try {
-                // 先获取文件的SHA（如果存在）
-                let sha = '';
-                try {
-                    const response = await fetch(
-                        `https://api.github.com/repos/${state.github.owner}/${state.github.repo}/contents/data/purchase_records.json`,
-                        {
-                            headers: {
-                                'Authorization': `token ${state.github.token}`,
-                                'Accept': 'application/vnd.github.v3+json'
-                            }
-                        }
-                    );
-                    if (response.ok) {
-                        const data = await response.json();
-                        sha = data.sha;
-                    }
-                } catch (e) {
-                    // 文件不存在，忽略
-                }
-
-                // 保存文件（使用 TextEncoder 正确处理 UTF-8 中文）
-                const jsonStr = JSON.stringify(state.purchaseRecords, null, 2);
-                const encoder = new TextEncoder();
-                const bytes = encoder.encode(jsonStr);
-                const content = btoa(String.fromCharCode(...bytes));
-                const body = {
-                    message: '📝 更新交易记录',
-                    content: content,
-                    branch: 'main'
-                };
-
-                if (sha) {
-                    body.sha = sha;
-                }
-
-                const response = await fetch(
-                    `https://api.github.com/repos/${state.github.owner}/${state.github.repo}/contents/data/purchase_records.json`,
-                    {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${state.github.token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(body)
-                    }
+                await saveFileToGitHub(
+                    'data/purchase_records.json',
+                    state.purchaseRecords,
+                    '📝 更新交易记录'
                 );
-
-                if (response.ok) {
-                    showMessage('交易记录已保存到 GitHub', 'success');
-                } else {
-                    throw new Error('保存失败');
-                }
+                showMessage('交易记录已保存到 GitHub', 'success');
             } catch (error) {
                 console.error('保存交易记录失败:', error);
                 if (error.message === 'Failed to fetch') {
@@ -4505,18 +4528,13 @@ function deletePurchaseRecord(platform, fundCode, index) {
             }
 
             try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${state.github.owner}/${state.github.repo}/actions/workflows/update.yml/dispatches`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `token ${state.github.token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ref: 'main' })
-                    }
-                );
+                const response = await githubRequest('/actions/workflows/update.yml/dispatches', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ref: 'main' })
+                });
 
                 if (response.ok) {
                     showMessage('已触发数据更新，请稍后刷新页面', 'success');
@@ -4534,8 +4552,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
         }
 
         // 显示消息（自动堆叠，防止重叠）
-        // action = { text: string, callback: function } 可选
-        function showMessage(message, type, useHTML = false, action = null) {
+        function createToastElement(message, type, useHTML = false, action = null) {
             const existing = document.querySelectorAll('.msg-toast');
             const topOffset = 20 + existing.length * 70;
 
@@ -4580,6 +4597,12 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 div.appendChild(btn);
             }
 
+            return div;
+        }
+
+        // action = { text: string, callback: function } 可选
+        function showMessage(message, type, useHTML = false, action = null) {
+            const div = createToastElement(message, type, useHTML, action);
             document.body.appendChild(div);
 
             setTimeout(() => {

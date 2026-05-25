@@ -509,3 +509,5 @@ function checkIfDataUpdated(newData) {
 
     return false;
 }
+
+

@@ -3697,7 +3697,7 @@ function hideUploadStatus() {
     }, 300);
 }
 
-// 自动上传到 GitHub（带重试机制）
+// 自动上传到 GitHub（带重试机制，使用正确的 API）
 async function autoUploadToGitHub() {
     // 检查 GitHub 配置
     if (!state.github.token || !state.github.owner || !state.github.repo) {
@@ -3719,31 +3719,26 @@ async function autoUploadToGitHub() {
         }
         
         try {
-            // 准备 purchase_records.json 内容
-            const purchaseRecordsContent = JSON.stringify(state.purchaseRecords, null, 2);
-            
-            // 准备 fund_config.json 内容
-            const fundConfigContent = JSON.stringify(state.fundConfig, null, 2);
-            
-            // 上传 purchase_records.json
-            await GitHubAPI.autoUpload(
-                state.github.owner,
-                state.github.repo,
+            // 1. 上传 purchase_records.json
+            await saveFileToGitHub(
                 'data/purchase_records.json',
-                purchaseRecordsContent,
-                '自动更新交易记录 - ' + new Date().toISOString().slice(0, 10),
-                state.github.token
+                state.purchaseRecords,
+                '自动同步：更新交易记录 ' + new Date().toISOString().slice(0, 10)
             );
             
-            // 上传 fund_config.json
-            await GitHubAPI.autoUpload(
-                state.github.owner,
-                state.github.repo,
+            showUploadStatus('loading', '⏳ 正在保存基金配置...');
+            
+            // 2. 上传 fund_config.json
+            await saveFileToGitHub(
                 'fund_config.json',
-                fundConfigContent,
-                '自动更新基金配置 - ' + new Date().toISOString().slice(0, 10),
-                state.github.token
+                { funds: state.fundConfig },
+                '自动同步：更新基金配置 ' + new Date().toISOString().slice(0, 10)
             );
+            
+            showUploadStatus('loading', '⏳ 正在触发数据抓取...');
+            
+            // 3. 触发 GitHub Actions
+            await triggerWorkflow();
             
             showUploadStatus('success', '✅ 已成功上传到 GitHub');
             return; // 成功，退出重试循环
@@ -4397,6 +4392,16 @@ function deletePurchaseRecord(platform, fundCode, index) {
         renderRecordsList();
         saveLocalRecords();
         showMessage('记录已删除', 'success');
+        
+        // 自动上传到 GitHub
+        autoUploadToGitHub().then(() => {
+            console.log('删除记录后自动上传成功');
+            loadData();
+            startPollingForUpdate();
+        }).catch(err => {
+            console.error('删除记录后自动上传失败:', err);
+            showMessage('上传失败，数据将在下次 GitHub Actions 运行时更新', 'warning');
+        });
     }
 }
 

@@ -578,6 +578,58 @@
             margin-bottom: 10px;
         }
 
+        /* 快速配置面板 */
+        .quick-config-panel {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .quick-config-panel h4 {
+            color: #2e7d32;
+            margin: 0 0 8px 0;
+            font-size: 15px;
+        }
+        .quick-config-desc {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        #quickTokenInput {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .quick-config-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+        }
+        .btn-save-config {
+            padding: 8px 20px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-save-config:hover {
+            background: #43a047;
+        }
+        #quickConfigStatus {
+            font-size: 13px;
+        }
+
         /* 设置下拉菜单 */
         .settings-dropdown {
             position: relative;
@@ -768,6 +820,161 @@
             color: var(--color-text-muted);
             margin-top: 6px;
             display: none;
+        }
+
+        /* 确认对话框 */
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .confirm-dialog.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .confirm-dialog-content {
+            background: white;
+            border-radius: var(--radius-card);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .confirm-dialog-header {
+            padding: 20px 30px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-card) var(--radius-card) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .confirm-dialog-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .confirm-dialog-body {
+            padding: 25px 30px;
+        }
+
+        .confirm-section {
+            margin-bottom: 20px;
+        }
+
+        .confirm-section h4 {
+            font-size: 14px;
+            color: var(--color-text);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--color-primary-light);
+        }
+
+        .confirm-item {
+            background: #f8f9fa;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .confirm-item .label {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+        }
+
+        .confirm-item .value {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+
+        .confirm-item .change-add {
+            color: var(--color-loss);
+        }
+
+        .confirm-item .change-del {
+            color: var(--color-profit);
+        }
+
+        .confirm-dialog-footer {
+            padding: 15px 30px;
+            border-top: 1px solid var(--color-border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* 同步状态提示 */
+        .sync-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-size: 14px;
+            display: none;
+            min-width: 280px;
+        }
+
+        .sync-status.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .sync-status.loading {
+            background: #d9edf7;
+            color: #31708f;
+            border-left: 4px solid #5bc0de;
+        }
+
+        .sync-status.success {
+            background: #dff0d8;
+            color: #3c763d;
+            border-left: 4px solid #5cb85c;
+        }
+
+        .sync-status.error {
+            background: #f2dede;
+            color: #a94442;
+            border-left: 4px solid #d9534f;
+        }
+
+        .sync-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(49,112,143,0.3);
+            border-top-color: #31708f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .sync-progress {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: 6px;
         }
 
         /* 搜索筛选栏 */
@@ -1213,11 +1420,33 @@
         }
 
     </style>
-    <script src="github_api.js"></script>
-</head>
+        <script src="github_api.js"></script>
+        <script src="sync.js"></script>
+    </head>
 <body>
-    <div id="uploadStatus" class="upload-status"></div>
-    <div class="container">
+        <div id="uploadStatus" class="upload-status"></div>
+
+        <!-- 保存确认对话框 -->
+        <div id="confirmDialog" class="confirm-dialog">
+            <div class="confirm-dialog-content">
+                <div class="confirm-dialog-header">
+                    <h3>📝 确认保存并同步</h3>
+                    <span class="close" onclick="closeConfirmDialog()" style="color:white;font-size:28px;cursor:pointer;">&times;</span>
+                </div>
+                <div class="confirm-dialog-body" id="confirmDialogBody">
+                    <!-- 动态生成确认内容 -->
+                </div>
+                <div class="confirm-dialog-footer">
+                    <button class="btn" style="background:#909399;color:white;" onclick="closeConfirmDialog()">取消</button>
+                    <button class="btn btn-primary" id="confirmSaveBtn" onclick="executeSaveAndSync()">✅ 确认保存并同步</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 同步状态提示 -->
+        <div id="syncStatus" class="sync-status"></div>
+
+        <div class="container">
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
@@ -1366,7 +1595,7 @@
                         <button class="more-btn" id="moreBtn" onclick="toggleMoreMenu(event)">⋮ 更多 ▾</button>
                         <div class="more-dropdown-menu" id="moreMenu">
                             <button class="more-menu-item" data-action="import-file">📂 从文件导入记录</button>
-                            <button class="more-menu-item" data-action="save-github">🚀 同步到 GitHub</button>
+                            <button class="more-menu-item" data-action="confirm-save-sync">🚀 保存并同步</button>
                             <button class="more-menu-item" data-action="export-json">📥 导出 JSON 文件</button>
                             <div class="more-menu-divider"></div>
                             <button class="more-menu-item" data-action="load-github">🔄 从 GitHub 加载</button>
@@ -1390,6 +1619,21 @@
                     <div class="tip-box">
                         💡 提示：配置 GitHub Token 后，可以直接从 GitHub 加载交易记录，并保存到 GitHub 仓库。
                     </div>
+
+                    <!-- 快速配置 GitHub PAT -->
+                    <div class="quick-config-panel">
+                        <h4>🚀 快速配置 GitHub PAT</h4>
+                        <p class="quick-config-desc">粘贴你的 GitHub Fine-grained PAT，自动保存 Token / Owner / Repo 到浏览器</p>
+                        <div class="form-group">
+                            <label>GitHub PAT（Fine-grained）</label>
+                            <textarea id="quickTokenInput" rows="3" placeholder="粘贴你的 GitHub PAT 到这里（以 ghp_ 或 github_pat_ 开头）"></textarea>
+                        </div>
+                        <div class="quick-config-actions">
+                            <button onclick="saveQuickConfig()" class="btn-save-config">💾 保存并配置</button>
+                            <span id="quickConfigStatus"></span>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>GitHub Token (需要 repo 权限)</label>
                         <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
@@ -1550,13 +1794,16 @@
         // 更多菜单项点击处理
         function handleMoreMenuAction(action) {
             hideMoreMenu();
-            
+
             switch(action) {
                 case 'import-file':
                     document.getElementById('importFileInput').click();
                     break;
                 case 'save-github':
                     savePurchaseRecords();
+                    break;
+                case 'confirm-save-sync':
+                    showConfirmDialog();
                     break;
                 case 'export-json':
                     exportRecordsToFile();
@@ -1577,38 +1824,36 @@
 
         // 从本地JSON文件加载买入记录（强制UTF-8解码）
         async function loadPurchaseRecordsFromFile() {
-            // 优先从 localStorage 加载：用户在本地做的增删改代表最新状态
-            const localData = localStorage.getItem('purchase_records');
-            if (localData) {
-                try {
-                    state.purchaseRecords = JSON.parse(localData);
-                    console.log('从本地存储加载买入记录:', state.purchaseRecords);
-                    showMessage('已从本地存储加载买入记录', 'info');
-                    return;
-                } catch (e) {
-                    console.error('解析本地存储记录失败:', e);
-                    // 继续尝试从文件加载
-                }
-            }
-
-            // localStorage 无数据时，从服务器文件加载
             try {
                 const response = await fetch('data/purchase_records.json?t=' + new Date().getTime());
                 if (response.ok) {
                     const buffer = await response.arrayBuffer();
                     const text = new TextDecoder('utf-8').decode(buffer);
                     state.purchaseRecords = JSON.parse(text);
-                    // 同步到 localStorage，保证后续优先走本地
-                    localStorage.setItem('purchase_records', JSON.stringify(state.purchaseRecords));
                     console.log('从文件加载买入记录成功:', state.purchaseRecords);
                     showMessage('已从文件加载买入记录', 'success');
                 } else {
-                    state.purchaseRecords = {};
-                    console.log('无买入记录');
+                    // 如果文件不存在，尝试从本地存储加载
+                    const localData = localStorage.getItem('purchase_records');
+                    if (localData) {
+                        state.purchaseRecords = JSON.parse(localData);
+                        console.log('从本地存储加载买入记录');
+                        showMessage('已从本地存储加载买入记录', 'info');
+                    } else {
+                        state.purchaseRecords = {};
+                        console.log('无买入记录');
+                    }
                 }
             } catch (error) {
                 console.error('加载交易记录文件失败:', error);
-                state.purchaseRecords = {};
+                // 尝试从本地存储加载
+                const localData = localStorage.getItem('purchase_records');
+                if (localData) {
+                    state.purchaseRecords = JSON.parse(localData);
+                    showMessage('已从本地存储加载买入记录', 'info');
+                } else {
+                    state.purchaseRecords = {};
+                }
             }
         }
 
@@ -1670,13 +1915,10 @@
                 const configResp = await fetch('fund_config.json?t=' + new Date().getTime());
                 if (configResp.ok) {
                     const config = await configResp.json();
-                    // 转换为兼容格式（兼容两种结构：{funds: {平台: [...]}} 或 {平台: [...]}）
+                    // 转换为兼容格式
                     const dynamicFunds = {};
-                    const fundsSource = config.funds || config;
-                    for (const [platform, fundList] of Object.entries(fundsSource)) {
-                        if (Array.isArray(fundList)) {
-                            dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name, benchmark: f.benchmark || ''}));
-                        }
+                    for (const [platform, fundList] of Object.entries(config.funds || {})) {
+                        dynamicFunds[platform] = fundList.map(f => ({code: f.code, name: f.name, benchmark: f.benchmark || ''}));
                     }
                     state.fundConfig = dynamicFunds;
                     state.fundPlatforms = Object.keys(dynamicFunds);
@@ -2848,24 +3090,14 @@
             const resultsDiv = document.getElementById('fundSearchResults');
             resultsDiv.innerHTML = '';
 
-            // 按是否有交易记录将本地匹配分类：已持有 vs 仅配置未持有
-            const heldFunds = localMatches.filter(item =>
-                state.purchaseRecords[item.platform]?.[item.code]?.length > 0
-            );
-            const configOnlyFunds = localMatches.filter(item =>
-                !state.purchaseRecords[item.platform]?.[item.code]?.length
-            );
-            // 未持有的基金 = 配置中有但无交易记录 + 联网搜索到的新基金
-            const unheldFunds = configOnlyFunds.concat(newFunds);
-
-            // 已有基金（有交易记录）
-            if (heldFunds.length > 0) {
+            // 本地已有基金
+            if (localMatches.length > 0) {
                 const header = document.createElement('div');
                 header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
                 header.textContent = '已有基金';
                 resultsDiv.appendChild(header);
 
-                heldFunds.forEach(item => {
+                localMatches.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
                     div.onclick = () => selectFundFromSearch(item.code, item.name, item.platform);
@@ -2878,26 +3110,21 @@
                 });
             }
 
-            // 新基金（未持有）：配置中无交易记录 + 联网新基金
-            if (unheldFunds.length > 0) {
+            // 联网搜索到的新基金
+            if (newFunds.length > 0) {
                 const header = document.createElement('div');
                 header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
                 header.textContent = '新基金（未持有）';
                 resultsDiv.appendChild(header);
 
-                unheldFunds.forEach(item => {
+                newFunds.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
-                    // 配置中的基金有平台信息，联网新基金需要用户选择平台
-                    const platform = item.platform || '';
-                    div.onclick = () => selectFundFromSearch(item.code, item.name, platform);
-                    const platformText = platform
-                        ? `平台：${escapeHtml(platform)}（未持有）`
-                        : '<span style="color: var(--color-warning);">新基金 - 点击选择购买平台</span>';
+                    div.onclick = () => selectFundFromSearch(item.code, item.name, '');
                     div.innerHTML = `
                         <div class="search-result-code">${escapeHtml(item.code)}</div>
                         <div class="search-result-name">${escapeHtml(item.name)}</div>
-                        <div class="search-result-platform">${platformText}</div>
+                        <div class="search-result-platform" style="color: var(--color-warning);">新基金 - 点击选择购买平台</div>
                     `;
                     resultsDiv.appendChild(div);
                 });
@@ -2912,7 +3139,7 @@
             }
 
             // 无结果
-            if (!isSearching && heldFunds.length === 0 && unheldFunds.length === 0) {
+            if (!isSearching && localMatches.length === 0 && newFunds.length === 0) {
                 resultsDiv.innerHTML = '<div class="search-no-result">未找到匹配的基金，请检查输入或手动选择</div>';
             }
 
@@ -4156,23 +4383,20 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
         // 安全删除指定索引的记录
         state.purchaseRecords[platform][fundCode].splice(index, 1);
-        
+
         // 如果基金没有记录了，删除基金键
         if (state.purchaseRecords[platform][fundCode]?.length === 0) {
             delete state.purchaseRecords[platform][fundCode];
         }
-        
+
         // 如果平台没有基金了，删除平台键
         if (Object.keys(state.purchaseRecords[platform] || {}).length === 0) {
             delete state.purchaseRecords[platform];
         }
-        
+
         renderRecordsList();
         saveLocalRecords();
         showMessage('记录已删除', 'success');
-        
-        // 自动上传到 GitHub（删除后也要同步）
-        autoUploadToGitHub();
     }
 }
 

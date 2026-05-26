@@ -54,7 +54,7 @@ jobs:
       - name: 提交更新数据（通过 API 推送，避免 git 冲突）
         run: |
           set -e
-          python push_to_github.py data/funds_data.json data/holdings_snapshot.json data/benchmark_index_data.json
+          python push_to_github.py data/funds_data.json data/holdings_snapshot.json data/benchmark_index_data.json data/history_cache.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

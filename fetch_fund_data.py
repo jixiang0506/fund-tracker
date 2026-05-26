@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 基金收益追踪系统 - 数据抓取脚本
@@ -334,13 +334,13 @@ def _get_earliest_purchase_date(nested_records):
         return dt.strftime("%Y-%m-%d")
     return "2020-01-01"  # 兜底默认值
 
-def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, session=None, incremental_from=None):
+def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, session=None, incremental_from=None):
     """获取基金历史净值数据。
 
     Args:
         fund_code: 基金代码
         start_date: 历史数据起始日期
-        max_pages: 最大翻页数
+        max_pages: 最大翻页数（默认200页，覆盖约4000条记录）
         session: HTTP Session（统一重试策略）
         incremental_from: 增量获取模式，获取此日期附近的数据（含7天重叠以捕获NAV纠正）
     """
@@ -358,7 +358,8 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
             log(f"  获取基金 {fund_code} 的历史净值数据...")
         all_history = []
         page_index = 1
-        page_size = 500  # API支持最大500条/页，减少API调用次数
+        # 2026-05-25: API限制pageSize>=300时返回空数据，且无论设多少固定每页20条
+        page_size = 20
 
         while page_index <= max_pages:
             params = {
@@ -389,7 +390,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=100, sessio
                 break
 
             page_index += 1
-            # 短暂停顿避免触发API速率限制（0.1s足够，页面已改为500条/页）
+            # 短暂停顿避免触发API速率限制
             time.sleep(0.1)
 
         # 按日期排序（从旧到新）
@@ -863,6 +864,22 @@ def process_fund(platform, code, fund_start_date, http_session,
                         old_fund["holdings"]["current_value"], "使用缓存数据")
             else:
                 return (None, 0, 0, "无法获取实时数据且无缓存")
+
+        # 非交易时间修正：实时API返回的gsz是盘中估算值，若历史API已有更新的确认净值，优先使用历史数据
+        if history and history[-1].get("date"):
+            history_latest_date = history[-1]["date"]
+            realtime_date = realtime.get("nav_date", "")[:10]
+            # 场景1: 历史数据日期比实时数据新（凌晨运行时实时API返回的是前一天估算）
+            # 场景2: 日期相同但实时数据是估算值，历史数据是确认净值（两者存在差异时优先确认净值）
+            should_use_history = (
+                history_latest_date > realtime_date or
+                (history_latest_date == realtime_date and realtime.get("nav_status") == "estimated")
+            )
+            if should_use_history:
+                log(f"  基金 {code}: 历史确认净值({history_latest_date} {history[-1]['nav']})优先于实时估算({realtime_date} {realtime['nav']})")
+                realtime["nav"] = history[-1]["nav"]
+                realtime["nav_date"] = history_latest_date
+                realtime["change_percent"] = history[-1].get("change_percent", 0)
 
         # 修正 nav_status
         beijing_now = get_beijing_time()

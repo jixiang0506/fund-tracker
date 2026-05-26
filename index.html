@@ -2115,11 +2115,113 @@
                 }
             };
 
+        // DOM 元素缓存（避免重复查询）
+        const DOM = {
+            // 核心容器
+            mainContent: null,
+            skeletonScreen: null,
+            updateTime: null,
+            manageModal: null,
+
+            // 交易表单元素
+            recordType: null,
+            recordPlatform: null,
+            recordFund: null,
+            recordAmount: null,
+            recordShares: null,
+            fundSearchInput: null,
+            fundSearchResults: null,
+
+            // 交易表单元素（续）
+            recordDate: null,
+            recordNav: null,
+            recordBefore15: null,
+            navHint: null,
+            holdingsValue: null,
+            holdingsNav: null,
+            // 卖出相关
+            holdingsShares: null,
+            sellHoldingsInfo: null,
+            sellQuickButtons: null,
+            sellQuickHint: null,
+            amountGroup: null,
+            sharesGroup: null,
+            amountLabel: null,
+            sharesLabel: null,
+            sharesHint: null,
+            buyFundSearchGroup: null,
+            sellFundSelectGroup: null,
+
+            // GitHub 配置
+            githubToken: null,
+            repoOwner: null,
+            repoName: null,
+
+            // 菜单
+            settingsMenu: null,
+            moreMenu: null,
+            importFileInput: null,
+
+            // 筛选
+            filterButtons: null,
+            recordFilterButtons: null,
+
+            // 初始化方法
+            init() {
+                this.mainContent = document.getElementById('mainContent');
+                this.skeletonScreen = document.getElementById('skeletonScreen');
+                this.updateTime = document.getElementById('updateTime');
+                this.manageModal = document.getElementById('manageModal');
+
+                this.recordType = document.getElementById('recordType');
+                this.recordPlatform = document.getElementById('recordPlatform');
+                this.recordFund = document.getElementById('recordFund');
+                this.recordAmount = document.getElementById('recordAmount');
+                this.recordShares = document.getElementById('recordShares');
+                this.fundSearchInput = document.getElementById('fundSearchInput');
+                this.fundSearchResults = document.getElementById('fundSearchResults');
+
+                this.holdingsShares = document.getElementById('holdingsShares');
+                this.sellHoldingsInfo = document.getElementById('sellHoldingsInfo');
+                this.sellQuickButtons = document.getElementById('sellQuickButtons');
+                this.sellQuickHint = document.getElementById('sellQuickHint');
+                this.amountGroup = document.getElementById('amountGroup');
+                this.sharesGroup = document.getElementById('sharesGroup');
+                this.amountLabel = document.getElementById('amountLabel');
+                this.sharesLabel = document.getElementById('sharesLabel');
+                this.sharesHint = document.getElementById('sharesHint');
+                this.buyFundSearchGroup = document.getElementById('buyFundSearchGroup');
+                this.sellFundSelectGroup = document.getElementById('sellFundSelectGroup');
+
+                // 交易表单元素（续）
+                this.recordDate = DOM.recordDate;
+                this.recordNav = document.getElementById('recordNav');
+                this.recordBefore15 = document.getElementById('recordBefore15');
+                this.navHint = document.getElementById('navHint');
+                this.holdingsValue = DOM.holdingsValue;
+                this.holdingsNav = DOM.holdingsNav;
+
+                this.githubToken = document.getElementById('githubToken');
+                this.repoOwner = document.getElementById('repoOwner');
+                this.repoName = document.getElementById('repoName');
+
+                this.settingsMenu = document.getElementById('settingsMenu');
+                this.moreMenu = document.getElementById('moreMenu');
+                this.importFileInput = document.getElementById('importFileInput');
+
+                this.filterButtons = document.getElementById('filterButtons');
+                this.recordFilterButtons = document.getElementById('recordFilterButtons');
+            }
+        };
+
         // 页面加载时恢复设置
         window.onload = function() {
-            if (state.github.token) document.getElementById('githubToken').value = state.github.token;
-            if (state.github.owner) document.getElementById('repoOwner').value = state.github.owner;
-            if (state.github.repo) document.getElementById('repoName').value = state.github.repo;
+            // 初始化 DOM 缓存
+            DOM.init();
+
+            if (state.github.token) DOM.githubToken.value = state.github.token;
+            if (state.github.owner) DOM.repoOwner.value = state.github.owner;
+            if (state.github.repo) DOM.repoName.value = state.github.repo;
 
             // 生成骨架屏
             renderSkeletonScreen();
@@ -2142,10 +2244,23 @@
                 }
             });
             
+            // 搜索结果事件委托（替代动态 div.onclick）
+            if (DOM.fundSearchResults) {
+                DOM.fundSearchResults.addEventListener('click', function(e) {
+                    const item = e.target.closest('.search-result-item');
+                    if (!item) return;
+                    const code = item.getAttribute('data-code');
+                    const name = item.getAttribute('data-name');
+                    const platform = item.getAttribute('data-platform') || '';
+                    if (code && name) {
+                        selectFundFromSearch(code, name, platform);
+                    }
+                });
+            }
+
             // 更多菜单项事件委托
-            const moreMenu = document.getElementById('moreMenu');
-            if (moreMenu) {
-                moreMenu.addEventListener('click', function(e) {
+            if (DOM.moreMenu) {
+                DOM.moreMenu.addEventListener('click', function(e) {
                     const menuItem = e.target.closest('.more-menu-item');
                     if (menuItem && !menuItem.classList.contains('disabled')) {
                         const action = menuItem.getAttribute('data-action');
@@ -2160,27 +2275,25 @@
         // 切换设置菜单显示/隐藏
         function toggleSettingsMenu(event) {
             event.stopPropagation();
-            const menu = document.getElementById('settingsMenu');
-            menu.classList.toggle('show');
+            DOM.settingsMenu.classList.toggle('show');
         }
 
         // 隐藏设置菜单
         function hideSettingsMenu() {
-            const menu = document.getElementById('settingsMenu');
-            menu.classList.remove('show');
+            DOM.settingsMenu.classList.remove('show');
         }
 
         // ============ 更多下拉菜单逻辑 ============
         function toggleMoreMenu(event) {
             event.stopPropagation();
-            const menu = document.getElementById('moreMenu');
-            menu.classList.toggle('show');
+            if (DOM.moreMenu) {
+                DOM.moreMenu.classList.toggle('show');
+            }
         }
 
         function hideMoreMenu() {
-            const menu = document.getElementById('moreMenu');
-            if (menu) {
-                menu.classList.remove('show');
+            if (DOM.moreMenu) {
+                DOM.moreMenu.classList.remove('show');
             }
         }
 
@@ -2190,7 +2303,7 @@
 
             switch(action) {
                 case 'import-file':
-                    document.getElementById('importFileInput').click();
+                    DOM.importFileInput.click();
                     break;
                 case 'save-github':
                     savePurchaseRecords();
@@ -2265,15 +2378,15 @@
 
         // 保存Token
         function saveToken() {
-            state.github.token = document.getElementById('githubToken').value;
+            state.github.token = DOM.githubToken.value;
             localStorage.setItem('github_token', state.github.token);
             showMessage('Token 已保存', 'success');
         }
 
         // 保存设置
         function saveSettings() {
-            state.github.owner = document.getElementById('repoOwner').value;
-            state.github.repo = document.getElementById('repoName').value;
+            state.github.owner = DOM.repoOwner.value;
+            state.github.repo = DOM.repoName.value;
             localStorage.setItem('repo_owner', state.github.owner);
             localStorage.setItem('repo_name', state.github.repo);
             showMessage('设置已保存', 'success');
@@ -2281,7 +2394,7 @@
 
         // 生成骨架屏 HTML（与实际卡片布局保持一致，修改时只需改此函数）
         function renderSkeletonScreen() {
-            const container = document.getElementById('skeletonScreen');
+            const container = DOM.skeletonScreen;
             if (!container) return;
 
             // 骨架统计卡片（与 renderSummary 的 6 个 stat-card 一致）
@@ -2428,7 +2541,7 @@
             }
 
             try {
-                document.getElementById('updateTime').textContent = `最后更新: ${state.fundsData.update_time}`;
+                DOM.updateTime.textContent = `最后更新: ${state.fundsData.update_time}`;
 
                 let html = renderSummary(state.fundsData.summary);
 
@@ -2459,17 +2572,17 @@
                     </div>
                 `;
 
-                document.getElementById('skeletonScreen').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('mainContent').innerHTML = html;
+                DOM.skeletonScreen.style.display = 'none';
+                DOM.mainContent.style.display = 'block';
+                DOM.mainContent.innerHTML = html;
                 // renderCharts() 在此调用，函数声明会被JS提升，实际无影响
                 renderCharts();
             } catch (error) {
                 console.error('渲染数据失败:', error);
                 showMessage('⚠️ 渲染数据失败: ' + error.message, 'error');
-                document.getElementById('skeletonScreen').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('mainContent').innerHTML = `
+                DOM.skeletonScreen.style.display = 'none';
+                DOM.mainContent.style.display = 'block';
+                DOM.mainContent.innerHTML = `
                     <div class="error-container render-error-container">
                         <h3 class="render-error-title">⚠️ 渲染失败</h3>
                         <p class="render-error-message">${escapeHtml(error.message)}</p>
@@ -3271,7 +3384,7 @@
 
         // 打开管理Modal
         function openManageModal() {
-            document.getElementById('manageModal').style.display = 'block';
+            DOM.manageModal.style.display = 'block';
             populatePlatformSelect();
             renderRecordsList();  // 每次打开时刷新记录列表
             updateProfitLossSummary();
@@ -3280,7 +3393,7 @@
 
         // 关闭管理Modal
         function closeManageModal() {
-            document.getElementById('manageModal').style.display = 'none';
+            DOM.manageModal.style.display = 'none';
         }
 
         // 获取当前基金配置（唯一数据源：fund_config.json）
@@ -3293,7 +3406,7 @@
 
         // 动态生成平台筛选按钮（基于 fund_config.json）
         function renderFilterButtons() {
-            const container = document.getElementById('filterButtons');
+            const container = DOM.filterButtons;
             if (!container) return;
             // 保留"全部"按钮，移除其余
             const allBtn = container.querySelector('[data-platform="全部"]');
@@ -3320,7 +3433,7 @@
 
         // 填充平台选择框
         function populatePlatformSelect() {
-            const select = document.getElementById('recordPlatform');
+            const select = DOM.recordPlatform;
             select.innerHTML = '<option value="">-- 选择平台 --</option>';
 
             // 优先使用已加载的数据，否则使用配置文件中的平台列表
@@ -3339,7 +3452,7 @@
         // 更新基金代码选择框
         // 平台选择变化时更新基金列表
         function updateFundCodes() {
-            const type = document.getElementById('recordType').value;
+            const type = DOM.recordType.value;
             if (type === 'sell') {
                 // 卖出模式：只显示有持仓的基金
                 updateSellFundList();
@@ -3500,7 +3613,7 @@
 
         // 渲染搜索结果（本地结果 + 联网新基金）—— 使用DOM创建，防XSS
         function renderSearchResults(localMatches, newFunds, kw, isSearching) {
-            const resultsDiv = document.getElementById('fundSearchResults');
+            const resultsDiv = DOM.fundSearchResults;
             resultsDiv.innerHTML = '';
 
             // 本地已有基金
@@ -3513,7 +3626,9 @@
                 localMatches.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
-                    div.onclick = () => selectFundFromSearch(item.code, item.name, item.platform);
+                    div.setAttribute('data-code', item.code);
+                    div.setAttribute('data-name', item.name);
+                    div.setAttribute('data-platform', item.platform);
                     div.innerHTML = `
                         <div class="search-result-code">${escapeHtml(item.code)}</div>
                         <div class="search-result-name">${escapeHtml(item.name)}</div>
@@ -3533,7 +3648,9 @@
                 newFunds.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
-                    div.onclick = () => selectFundFromSearch(item.code, item.name, '');
+                    div.setAttribute('data-code', item.code);
+                    div.setAttribute('data-name', item.name);
+                    div.setAttribute('data-platform', '');
                     div.innerHTML = `
                         <div class="search-result-code">${escapeHtml(item.code)}</div>
                         <div class="search-result-name">${escapeHtml(item.name)}</div>
@@ -3561,44 +3678,42 @@
 
         // 从搜索结果中选择基金
         function selectFundFromSearch(code, fundName, platform) {
-            document.getElementById('fundSearchResults').classList.remove('show');
-            const isSell = document.getElementById('recordType').value === 'sell';
+            DOM.fundSearchResults.classList.remove('show');
+            const isSell = DOM.recordType.value === 'sell';
 
             if (platform) {
                 // 已有基金
                 state.search.pendingNewFund = null;
-                const platformSelect = document.getElementById('recordPlatform');
-                platformSelect.value = platform;
+                DOM.recordPlatform.value = platform;
                 updateFundCodes();
-                document.getElementById('recordFund').value = code;
+                DOM.recordFund.value = code;
                 if (!isSell) {
                     // 买入模式：在搜索框显示已选基金
-                    document.getElementById('fundSearchInput').value = `${code} - ${fundName}`;
+                    DOM.fundSearchInput.value = `${code} - ${fundName}`;
                 }
             } else {
                 // 新基金
-                const platformSelect = document.getElementById('recordPlatform');
-                const currentPlatform = platformSelect.value;
+                const currentPlatform = DOM.recordPlatform.value;
 
                 if (currentPlatform) {
                     addNewFundToDefault(code, fundName, currentPlatform);
                     state.search.pendingNewFund = null;
                     updateFundCodes();
-                    document.getElementById('recordFund').value = code;
+                    DOM.recordFund.value = code;
                     if (!isSell) {
-                        document.getElementById('fundSearchInput').value = `${code} - ${fundName}`;
+                        DOM.fundSearchInput.value = `${code} - ${fundName}`;
                     }
                     showMessage('新基金「' + fundName + '」已添加到「' + currentPlatform + '」', 'info');
                 } else {
                     state.search.pendingNewFund = { code, name: fundName };
-                    document.getElementById('recordFund').innerHTML = '<option value="">-- 请先选择平台 --</option>';
+                    DOM.recordFund.innerHTML = '<option value="">-- 请先选择平台 --</option>';
                     const customOpt = document.createElement('option');
                     customOpt.value = code;
                     customOpt.textContent = code + ' - ' + fundName;
                     customOpt.selected = true;
-                    document.getElementById('recordFund').appendChild(customOpt);
+                    DOM.recordFund.appendChild(customOpt);
                     if (!isSell) {
-                        document.getElementById('fundSearchInput').value = `${code} - ${fundName}`;
+                        DOM.fundSearchInput.value = `${code} - ${fundName}`;
                     }
                     showMessage('新基金「' + fundName + '」已添加，请选择购买平台', 'info');
                 }
@@ -3620,21 +3735,21 @@
         // 延迟隐藏搜索结果（允许点击结果项）
         function hideSearchResultsDelayed() {
             state.search.hideTimer = setTimeout(() => {
-                document.getElementById('fundSearchResults').classList.remove('show');
+                DOM.fundSearchResults.classList.remove('show');
             }, 200);
         }
 
         // 基金选择框变更时同步搜索框
         // 基金选择变化时更新持仓信息（卖出模式）
         function onFundSelect() {
-            if (document.getElementById('recordType').value === 'sell') {
+            if (DOM.recordType.value === 'sell') {
                 updateSellHoldingsInfo();
             }
         }
 
         // 卖出快捷按钮：按比例填充份额（卖出固定按份额）
         function applySellPercent(percent) {
-            const holdingsShares = parseFloat(document.getElementById('holdingsShares').textContent.replace(' 份','')) || 0;
+            const holdingsShares = parseFloat(DOM.holdingsShares.textContent.replace(' 份','')) || 0;
 
             // 高亮当前选中按钮
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
@@ -3645,11 +3760,11 @@
             }
 
             const shares = holdingsShares * percent;
-            document.getElementById('recordShares').value = shares.toFixed(2);
+            DOM.recordShares.value = shares.toFixed(2);
             const hintAmount = shares * sellState.nav;
-            document.getElementById('sharesHint').textContent = `预计卖出金额 ≈ ¥${hintAmount.toFixed(2)}`;
-            document.getElementById('sellQuickHint').textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ${shares.toFixed(2)} 份`;
-            document.getElementById('sellQuickHint').style.display = 'block';
+            DOM.sharesHint.textContent = `预计卖出金额 ≈ ¥${hintAmount.toFixed(2)}`;
+            DOM.sellQuickHint.textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ${shares.toFixed(2)} 份`;
+            DOM.sellQuickHint.style.display = 'block';
         }
 
         // 卖出状态管理（保存当前选中基金的净值）
@@ -3662,31 +3777,31 @@
 
         // 交易类型变更时更新界面（买入/卖出切换）
         function onRecordTypeChange() {
-            const type = document.getElementById('recordType').value;
+            const type = DOM.recordType.value;
             const isSell = type === 'sell';
 
             // 基金选择方式切换
-            document.getElementById('buyFundSearchGroup').style.display = isSell ? 'none' : 'block';
-            document.getElementById('sellFundSelectGroup').style.display = isSell ? 'block' : 'none';
+            DOM.buyFundSearchGroup.style.display = isSell ? 'none' : 'block';
+            DOM.sellFundSelectGroup.style.display = isSell ? 'block' : 'none';
 
             // 持仓信息和快捷按钮
-            document.getElementById('sellHoldingsInfo').style.display = isSell ? 'block' : 'none';
-            document.getElementById('sellQuickButtons').style.display = isSell ? 'flex' : 'none';
-            document.getElementById('sellQuickHint').style.display = 'none';
+            DOM.sellHoldingsInfo.style.display = isSell ? 'block' : 'none';
+            DOM.sellQuickButtons.style.display = isSell ? 'flex' : 'none';
+            DOM.sellQuickHint.style.display = 'none';
 
             // 输入框切换：买入=金额，卖出=份额
-            document.getElementById('amountGroup').style.display = isSell ? 'none' : 'block';
-            document.getElementById('sharesGroup').style.display = isSell ? 'block' : 'none';
-            document.getElementById('amountLabel').textContent = '买入金额 (元)';
-            document.getElementById('sharesLabel').textContent = '卖出份额';
+            DOM.amountGroup.style.display = isSell ? 'none' : 'block';
+            DOM.sharesGroup.style.display = isSell ? 'block' : 'none';
+            DOM.amountLabel.textContent = '买入金额 (元)';
+            DOM.sharesLabel.textContent = '卖出份额';
 
             // 清空输入
-            document.getElementById('recordAmount').value = '';
-            document.getElementById('recordShares').value = '';
-            document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥0.00';
-            document.getElementById('fundSearchInput').value = '';
-            document.getElementById('fundSearchResults').classList.remove('show');
-            document.getElementById('recordFund').value = '';
+            DOM.recordAmount.value = '';
+            DOM.recordShares.value = '';
+            DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥0.00';
+            DOM.fundSearchInput.value = '';
+            DOM.fundSearchResults.classList.remove('show');
+            DOM.recordFund.value = '';
 
             // 更新基金列表和持仓信息
             if (isSell) {
@@ -3697,8 +3812,8 @@
 
         // 更新卖出时的基金下拉列表（只显示有持仓的基金）
         function updateSellFundList() {
-            const platform = document.getElementById('recordPlatform').value;
-            const select = document.getElementById('recordFund');
+            const platform = DOM.recordPlatform.value;
+            const select = DOM.recordFund;
             select.innerHTML = '<option value="">-- 选择基金 --</option>';
 
             if (!platform || !state.fundsData?.funds?.[platform]) return;
@@ -3725,15 +3840,15 @@
 
         // 更新卖出时的持仓信息显示
         function updateSellHoldingsInfo() {
-            const platform = document.getElementById('recordPlatform').value;
-            const fundCode = document.getElementById('recordFund').value;
+            const platform = DOM.recordPlatform.value;
+            const fundCode = DOM.recordFund.value;
 
             if (!platform || !fundCode || !state.fundsData || !state.fundsData.funds) {
-                document.getElementById('holdingsValue').textContent = '-';
-                document.getElementById('holdingsShares').textContent = '-';
-                document.getElementById('holdingsNav').textContent = '-';
+                DOM.holdingsValue.textContent = '-';
+                DOM.holdingsShares.textContent = '-';
+                DOM.holdingsNav.textContent = '-';
                 sellState.nav = 0;
-                document.getElementById('sellQuickHint').style.display = 'none';
+                DOM.sellQuickHint.style.display = 'none';
                 document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
                 return;
             }
@@ -3744,51 +3859,51 @@
                 const shares = fund.holdings.total_shares || 0;
                 const nav = fund.current_nav || 0;
 
-                document.getElementById('holdingsValue').textContent = '¥' + value.toFixed(2);
-                document.getElementById('holdingsShares').textContent = shares.toFixed(2) + ' 份';
-                document.getElementById('holdingsNav').textContent = '¥' + nav.toFixed(4);
+                DOM.holdingsValue.textContent = '¥' + value.toFixed(2);
+                DOM.holdingsShares.textContent = shares.toFixed(2) + ' 份';
+                DOM.holdingsNav.textContent = '¥' + nav.toFixed(4);
                 sellState.nav = nav;
             } else {
-                document.getElementById('holdingsValue').textContent = '-';
-                document.getElementById('holdingsShares').textContent = '-';
-                document.getElementById('holdingsNav').textContent = '-';
+                DOM.holdingsValue.textContent = '-';
+                DOM.holdingsShares.textContent = '-';
+                DOM.holdingsNav.textContent = '-';
                 sellState.nav = 0;
             }
             // 切换基金时清空快捷按钮状态
-            document.getElementById('sellQuickHint').style.display = 'none';
+            DOM.sellQuickHint.style.display = 'none';
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
         }
 
         // 金额输入时清除快捷按钮状态
         function onAmountInput() {
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('sellQuickHint').style.display = 'none';
+            DOM.sellQuickHint.style.display = 'none';
         }
 
         // 份额输入时自动计算金额（使用手动净值或自动净值）
         function onSharesInput() {
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('sellQuickHint').style.display = 'none';
+            DOM.sellQuickHint.style.display = 'none';
 
-            const shares = parseFloat(document.getElementById('recordShares').value) || 0;
-            const navVal = document.getElementById('recordNav').value;
+            const shares = parseFloat(DOM.recordShares.value) || 0;
+            const navVal = DOM.recordNav.value;
             let nav = navVal ? parseFloat(navVal) : sellState.nav;
 
             if (nav > 0 && shares > 0) {
                 const amount = shares * nav;
-                document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥' + amount.toFixed(2);
+                DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥' + amount.toFixed(2);
             } else {
-                document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥0.00';
+                DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥0.00';
             }
         }
 
         // 净值输入时更新计算提示
         function onNavInput() {
-            const navVal = document.getElementById('recordNav').value;
-            const isSell = document.getElementById('recordType').value === 'sell';
+            const navVal = DOM.recordNav.value;
+            const isSell = DOM.recordType.value === 'sell';
 
             if (!navVal) {
-                document.getElementById('navHint').textContent = '留空将自动根据交易日期获取对应净值';
+                DOM.navHint.textContent = '留空将自动根据交易日期获取对应净值';
                 if (isSell) {
                     onSharesInput();
                 }
@@ -3796,17 +3911,17 @@
             }
 
             const nav = parseFloat(navVal);
-            document.getElementById('navHint').textContent = '使用手动输入净值: ¥' + nav.toFixed(4);
+            DOM.navHint.textContent = '使用手动输入净值: ¥' + nav.toFixed(4);
 
             if (isSell) {
                 // 卖出：重新计算份额对应的金额提示
                 onSharesInput();
             } else {
                 // 买入：显示可购买的份额
-                const amount = parseFloat(document.getElementById('recordAmount').value) || 0;
+                const amount = parseFloat(DOM.recordAmount.value) || 0;
                 if (amount > 0 && nav > 0) {
                     const shares = amount / nav;
-                    document.getElementById('navHint').textContent += ' (≈ ' + shares.toFixed(2) + ' 份)';
+                    DOM.navHint.textContent += ' (≈ ' + shares.toFixed(2) + ' 份)';
                 }
             }
         }
@@ -3943,7 +4058,7 @@
 // 添加交易记录 - 买入按金额，卖出按份额（支持新基金自动获取信息）
 function addPurchaseRecord() {
     const platform = document.getElementById('recordPlatform').value;
-    const date = document.getElementById('recordDate').value;
+    const date = DOM.recordDate.value;
     const type = document.getElementById('recordType').value;
     const navVal = document.getElementById('recordNav').value;
     const isSell = type === 'sell';
@@ -4254,7 +4369,7 @@ function editPurchaseRecord(platform, fundCode, index) {
     // 填充表单
     document.getElementById('recordType').value = record.type || 'buy';
     document.getElementById('recordPlatform').value = platform;
-    document.getElementById('recordDate').value = record.date;
+    DOM.recordDate.value = record.date;
     document.getElementById('recordBefore15').checked = record.before_15 !== false;
 
     // 先切换交易类型（会更新基金选择区域显示）
@@ -4298,7 +4413,7 @@ function editPurchaseRecord(platform, fundCode, index) {
 // 更新交易记录 - 买入按金额，卖出按份额
 function updatePurchaseRecord() {
     const platform = document.getElementById('recordPlatform').value;
-    const date = document.getElementById('recordDate').value;
+    const date = DOM.recordDate.value;
     const type = document.getElementById('recordType').value;
     const navVal = document.getElementById('recordNav').value;
     const isSell = type === 'sell';
@@ -4439,16 +4554,16 @@ function updatePurchaseRecord() {
 
         // 清空记录表单
         function clearRecordForm() {
-            document.getElementById('recordDate').value = '';
-            document.getElementById('recordAmount').value = '';
-            document.getElementById('recordShares').value = '';
-            document.getElementById('recordNav').value = '';
-            document.getElementById('recordType').value = 'buy';
-            document.getElementById('recordBefore15').checked = true;
-            document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥0.00';
-            document.getElementById('navHint').textContent = '留空将自动根据交易日期获取对应净值';
-            document.getElementById('fundSearchInput').value = '';
-            document.getElementById('fundSearchResults').classList.remove('show');
+            DOM.recordDate.value = '';
+            DOM.recordAmount.value = '';
+            DOM.recordShares.value = '';
+            DOM.recordNav.value = '';
+            DOM.recordType.value = 'buy';
+            DOM.recordBefore15.checked = true;
+            DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥0.00';
+            DOM.navHint.textContent = '留空将自动根据交易日期获取对应净值';
+            DOM.fundSearchInput.value = '';
+            DOM.fundSearchResults.classList.remove('show');
             sellState.reset();
             onRecordTypeChange(); // 重置为买入默认界面
         }
@@ -4729,7 +4844,7 @@ function updateProfitLossSummary() {
 
 // 渲染交易记录平台筛选标签
 function renderRecordsFilterButtons() {
-    const container = document.getElementById('recordsFilterButtons');
+    const container = DOM.recordFilterButtons;
     if (!container) return;
 
     // 收集有交易记录的平台列表
@@ -5280,6 +5395,9 @@ function deletePurchaseRecord(platform, fundCode, index) {
             // 5. 保存并配置按钮
             document.getElementById('saveQuickConfigBtn')?.addEventListener('click', saveQuickConfig);
         });
+    <!-- ============================================ -->
+    <!-- ========== JS逻辑结束 ========== -->
+    <!-- ============================================ -->
     </script>
 </body>
 </html>

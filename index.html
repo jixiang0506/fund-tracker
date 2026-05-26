@@ -1,10 +1,17 @@
 <!DOCTYPE html>
+<!-- ============================================ -->
+<!-- ========== HTML结构开始 ========== -->
+<!-- ============================================ -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>我的基金收益追踪</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- ============================================ -->
+    <!-- ========== CSS样式开始 ========== -->
+    <!-- ============================================ -->
     <style>
         :root {
             /* 主色调 */
@@ -1419,10 +1426,19 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+    <!-- ============================================ -->
+    <!-- ========== CSS样式结束 ========== -->
+    <!-- ============================================ -->
     </style>
         <script src="github_api.js"></script>
         <script src="sync.js"></script>
+    <!-- ============================================ -->
+    <!-- ========== HTML头部结束 ========== -->
+    <!-- ============================================ -->
     </head>
+    <!-- ============================================ -->
+    <!-- ========== HTML主体开始 ========== -->
+    <!-- ============================================ -->
 <body>
         <div id="uploadStatus" class="upload-status"></div>
 
@@ -1431,14 +1447,14 @@
             <div class="confirm-dialog-content">
                 <div class="confirm-dialog-header">
                     <h3>📝 确认保存并同步</h3>
-                    <span class="close" onclick="closeConfirmDialog()" style="color:white;font-size:28px;cursor:pointer;">&times;</span>
+                    <span class="close" id="closeConfirmDialogSpan" style="color:white;font-size:28px;cursor:pointer;">&times;</span>
                 </div>
                 <div class="confirm-dialog-body" id="confirmDialogBody">
                     <!-- 动态生成确认内容 -->
                 </div>
                 <div class="confirm-dialog-footer">
-                    <button class="btn" style="background:#909399;color:white;" onclick="closeConfirmDialog()">取消</button>
-                    <button class="btn btn-primary" id="confirmSaveBtn" onclick="executeSaveAndSync()">✅ 确认保存并同步</button>
+                    <button class="btn" id="cancelConfirmBtn" style="background:#909399;color:white;">取消</button>
+                    <button class="btn btn-primary" id="confirmSaveBtn">✅ 确认保存并同步</button>
                 </div>
             </div>
         </div>
@@ -1486,7 +1502,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>📝 管理交易记录</h2>
-                <span class="close" id="closeManageModalBtn" aria-label="关闭弹窗" onclick="closeManageModal()">&times;</span>
+                <span class="close" id="closeManageModalBtn" aria-label="关闭弹窗">&times;</span>
             </div>
             <!-- 标签页切换 -->
             <div class="modal-tabs" role="tablist" aria-label="管理弹窗标签页">
@@ -1592,7 +1608,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
                     <h3 style="margin: 0;">当前交易记录</h3>
                     <div class="more-dropdown">
-                    <button class="more-btn" id="moreBtn" onclick="toggleMoreMenu(event)" aria-label="更多操作">⋮ 更多 ▾</button>
+                    <button class="more-btn" id="moreBtn" aria-label="更多操作">⋮ 更多 ▾</button>
                         <div class="more-dropdown-menu" id="moreMenu">
                             <button class="more-menu-item" data-action="import-file">📂 从文件导入记录</button>
                             <button class="more-menu-item" data-action="confirm-save-sync">🚀 同步</button>
@@ -1629,7 +1645,7 @@
                             <textarea id="quickTokenInput" rows="3" placeholder="粘贴你的 GitHub PAT 到这里（以 ghp_ 或 github_pat_ 开头）"></textarea>
                         </div>
                         <div class="quick-config-actions">
-                            <button onclick="saveQuickConfig()" class="btn-save-config">💾 保存并配置</button>
+                            <button id="saveQuickConfigBtn" class="btn-save-config">💾 保存并配置</button>
                             <span id="quickConfigStatus"></span>
                         </div>
                     </div>
@@ -1657,6 +1673,12 @@
         </div> <!-- 结束 modal-content -->
     </div> <!-- 结束 manageModal -->
 
+    <!-- ============================================ -->
+    <!-- ========== HTML结构结束 ========== -->
+    <!-- ============================================ -->
+    <!-- ============================================ -->
+    <!-- ========== JS逻辑开始 ========== -->
+    <!-- ============================================ -->
         <script>
             // 统一状态管理（替代散落的全局变量）
             const state = {
@@ -4671,6 +4693,46 @@ function deletePurchaseRecord(platform, fundCode, index) {
             }
         };
 
+        // ===== 缺失的函数定义（替代原内联 onclick） =====
+        
+        // 1. 关闭确认对话框
+        function closeConfirmDialog() {
+            const dialog = document.getElementById('confirmDialog');
+            if (dialog) {
+                dialog.classList.remove('show');
+            }
+        }
+
+        // 2. 执行保存并同步
+        function executeSaveAndSync() {
+            closeConfirmDialog();
+            // 调用保存函数
+            if (typeof savePurchaseRecords === 'function') {
+                savePurchaseRecords();
+            } else {
+                showMessage('⚠️ 保存函数未找到', 'error');
+            }
+        }
+
+        // 3. 保存快速配置（GitHub Token）
+        function saveQuickConfig() {
+            const tokenInput = document.getElementById('quickTokenInput');
+            if (!tokenInput) return;
+            
+            const token = tokenInput.value.trim();
+            if (!token) {
+                showMessage('⚠️ 请输入 GitHub Token', 'warning');
+                return;
+            }
+
+            // 保存到 localStorage 和 state
+            localStorage.setItem('github_token', token);
+            state.github.token = token;
+
+            showMessage('✅ GitHub Token 已保存（下次保存记录时会自动使用）', 'success');
+            console.log('GitHub Token 已保存:', token.substring(0, 10) + '...');
+        }
+
         // ===== 事件监听器绑定（替代内联 onclick） =====
         document.addEventListener('DOMContentLoaded', function() {
             // 1. 设置按钮
@@ -4834,6 +4896,18 @@ function deletePurchaseRecord(platform, fundCode, index) {
             document.getElementById('recordAmount')?.addEventListener('input', onAmountInput);
             document.getElementById('recordShares')?.addEventListener('input', onSharesInput);
             document.getElementById('recordNav')?.addEventListener('input', onNavInput);
+
+            // ===== 替代内联 onclick 的事件监听器 =====
+            // 1. 确认对话框关闭按钮（×）
+            document.getElementById('closeConfirmDialogSpan')?.addEventListener('click', closeConfirmDialog);
+            // 2. 确认对话框取消按钮
+            document.getElementById('cancelConfirmBtn')?.addEventListener('click', closeConfirmDialog);
+            // 3. 确认保存并同步按钮
+            document.getElementById('confirmSaveBtn')?.addEventListener('click', executeSaveAndSync);
+            // 4. 更多操作按钮
+            document.getElementById('moreBtn')?.addEventListener('click', function(e) { toggleMoreMenu(e); });
+            // 5. 保存并配置按钮
+            document.getElementById('saveQuickConfigBtn')?.addEventListener('click', saveQuickConfig);
         });
     </script>
 </body>

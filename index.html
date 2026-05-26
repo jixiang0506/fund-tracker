@@ -1573,14 +1573,14 @@
                     <input type="number" id="recordNav" placeholder="自动获取" step="0.0001">
                     <div class="input-hint" id="navHint">留空将自动根据交易日期获取对应净值</div>
                 </div>
-                <!-- 7. 15点前提交 -->
+                <!-- 7. 净值确认规则 -->
                 <div class="form-group" style="margin-top: 10px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--color-text);">
                         <input type="checkbox" id="recordBefore15" checked style="width: 16px; height: 16px;">
-                        <span>15点前提交（按当天净值确认）</span>
+                        <span>☑️ 按当日净值确认（15:00前有效）</span>
                     </label>
                     <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; padding-left: 24px;">
-                        未勾选：15点后或周末提交，按下一交易日净值确认
+                        15:00后或周末提交，按下一交易日净值确认
                     </div>
                 </div>
                 <!-- 8. 按钮 -->

@@ -104,6 +104,13 @@
             margin-bottom: 30px;
         }
 
+        /* 头部第一行：标题区 + 设置按钮 */
+        .header > div:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
         .header h1 {
             color: var(--color-text);
             font-size: 32px;
@@ -295,10 +302,6 @@
             border-radius: 6px;
         }
 
-
-            text-align: center;
-            padding: 40px;
-        }
 
         .error-title {
             color: var(--color-warning);
@@ -737,6 +740,8 @@
         .fund-metrics td:nth-child(6) { width: 22%; }
 
 
+        /* 交易记录表格 */
+        .funds-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: var(--space-lg);
@@ -932,6 +937,11 @@
 
         .form-group {
             margin-bottom: var(--space-lg);
+        }
+
+        /* 搜索框定位上下文 */
+        #buyFundSearchGroup {
+            position: relative;
         }
 
         .form-group label {
@@ -1320,6 +1330,14 @@
             align-items: center;
         }
 
+        .confirm-dialog-header .close {
+            position: static;
+            transform: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
         .confirm-dialog-header h3 {
             margin: 0;
             font-size: 18px;
@@ -1374,6 +1392,17 @@
             display: flex;
             justify-content: flex-end;
             gap: var(--space-md);
+        }
+
+        /* 确认对话框：取消按钮（次要色） */
+        #cancelConfirmBtn {
+            background: #909399;
+            color: white;
+        }
+
+        /* 编辑对话框：取消按钮 */
+        #cancelEditBtn {
+            margin-left: 10px;
         }
 
         /* ============================================================
@@ -1704,6 +1733,13 @@
             display: block;
         }
 
+        /* Tab 面板内分隔线 */
+        .tab-panel hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 1px solid var(--color-border-light);
+        }
+
         /* 保存按钮组优化 */
         .save-buttons {
             display: flex;
@@ -1735,6 +1771,7 @@
         .tip-box.warning {
             border-left-color: #f0ad4e;
             background: #fcf8e3;
+            margin-top: 20px;
         }
 
         .tip-box.success {
@@ -1812,6 +1849,54 @@
            【模块十六】更多操作下拉菜单
            ============================================================ */
 
+        /* 交易记录列表头部 */
+        #recordsHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #recordsHeader h3 {
+            margin: 0;
+        }
+
+        /* 区块标题 */
+        #recordsSummaryTitle {
+            margin-bottom: 10px;
+        }
+
+        #addRecordTitle {
+            margin-bottom: 20px;
+        }
+
+        /* 净值确认规则区块 */
+        #before15Group {
+            margin-top: 10px;
+        }
+
+        /* 15:00前 checkbox */
+        #recordBefore15 {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 15:00前提示文字 */
+        #before15Hint {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+            padding-left: 24px;
+        }
+
+        /* 空记录提示 */
+        #emptyRecordHint {
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
         /* 更多下拉菜单 */
         .more-dropdown {
             position: relative;
@@ -1854,6 +1939,13 @@
         .more-dropdown-menu.show {
             display: block;
             animation: fadeIn 0.2s ease;
+        }
+
+        /* Token 提示文字 */
+        #tokenTip {
+            color: var(--color-text-secondary);
+            margin-top: 5px;
+            display: block;
         }
 
         .more-menu-item {
@@ -1914,13 +2006,13 @@
             <div class="confirm-dialog-content">
                 <div class="confirm-dialog-header">
                     <h3>📝 确认保存并同步</h3>
-                    <span class="close" id="closeConfirmDialogSpan" style="color:white;font-size:28px;cursor:pointer;">&times;</span>
+                    <span class="close" id="closeConfirmDialogSpan">&times;</span>
                 </div>
                 <div class="confirm-dialog-body" id="confirmDialogBody">
                     <!-- 动态生成确认内容 -->
                 </div>
                 <div class="confirm-dialog-footer">
-                    <button class="btn" id="cancelConfirmBtn" style="background:#909399;color:white;">取消</button>
+                    <button class="btn" id="cancelConfirmBtn">取消</button>
                     <button class="btn btn-primary" id="confirmSaveBtn">✅ 确认保存并同步</button>
                 </div>
             </div>
@@ -1931,7 +2023,7 @@
 
         <div class="container">
         <div class="header">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
                 <div>
                     <h1>📊 我的基金收益追踪</h1>
                     <div class="update-time" id="updateTime">加载中...</div>
@@ -1979,12 +2071,12 @@
             <div class="modal-body">
                 <!-- Tab: 交易记录 -->
                 <div class="tab-panel active" id="tab-records" role="tabpanel">
-                    <h3 style="margin-bottom: 10px;">📊 盈亏概览（截至最新日期）</h3>
+                    <h3 id="recordsSummaryTitle">📊 盈亏概览（截至最新日期）</h3>
                     <div id="summaryContent"></div>
 
-                    <hr style="margin: 30px 0;">
-                    
-                    <h3 style="margin-bottom: 20px;">添加交易记录</h3>
+                    <hr>
+
+                    <h3 id="addRecordTitle">添加交易记录</h3>
                 <!-- 1. 交易类型 -->
                 <div class="form-group">
                     <label>交易类型</label>
@@ -2001,13 +2093,13 @@
                     </select>
                 </div>
                 <!-- 3. 基金选择：买入=搜索框，卖出=下拉框 -->
-                <div class="form-group" id="buyFundSearchGroup" style="position: relative;">
-                    <label>基金名称 <span style="font-size: 12px; color: var(--color-text-muted);">（输入代码或名称搜索）</span></label>
+                <div class="form-group" id="buyFundSearchGroup">
+                    <label>基金名称 <span class="text-muted-sm">（输入代码或名称搜索）</span></label>
                     <input type="text" id="fundSearchInput" placeholder="例如：270023 或 广发全球精选">
                     <div id="fundSearchResults" class="search-results"></div>
                 </div>
                 <div class="form-group hidden" id="sellFundSelectGroup">
-                    <label>选择基金 <span style="font-size: 12px; color: var(--color-text-muted);">（只显示有持仓的基金）</span></label>
+                    <label>选择基金 <span class="text-muted-sm">（只显示有持仓的基金）</span></label>
                     <select id="recordFund">
                         <option value="">-- 选择基金 --</option>
                     </select>
@@ -2052,28 +2144,28 @@
                 </div>
                 <!-- 6. 净值输入（可选） -->
                 <div class="form-group" id="navGroup">
-                    <label>基金净值 <span style="font-size: 12px; color: var(--color-text-muted);">（选填，不填则自动获取）</span></label>
+                    <label>基金净值 <span class="text-muted-sm">（选填，不填则自动获取）</span></label>
                     <input type="number" id="recordNav" placeholder="自动获取" step="0.0001">
                     <div class="input-hint" id="navHint">留空将自动根据交易日期获取对应净值</div>
                 </div>
                 <!-- 7. 净值确认规则 -->
-                <div class="form-group" style="margin-top: 10px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--color-text);">
-                        <input type="checkbox" id="recordBefore15" checked style="width: 16px; height: 16px;">
+                <div class="form-group" id="before15Group">
+                    <label for="recordBefore15">
+                        <input type="checkbox" id="recordBefore15" checked>
                         <span>☑️ 按当日净值确认（15:00前有效）</span>
                     </label>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; padding-left: 24px;">
+                    <div id="before15Hint">
                         15:00后或周末提交，按下一交易日净值确认
                     </div>
                 </div>
                 <!-- 8. 按钮 -->
                 <button class="btn btn-success" id="addOrUpdateBtn">✅ 添加记录</button>
-                <button class="btn btn-warning hidden" id="cancelEditBtn" style="margin-left: 10px;">取消编辑</button>
+                <button class="btn btn-warning hidden" id="cancelEditBtn">取消编辑</button>
 
-                <hr style="margin: 30px 0;">
+                <hr>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-                    <h3 style="margin: 0;">当前交易记录</h3>
+                <div id="recordsHeader">
+                    <h3>当前交易记录</h3>
                     <div class="more-dropdown">
                     <button class="more-btn" id="moreBtn" aria-label="更多操作">⋮ 更多 ▾</button>
                         <div class="more-dropdown-menu" id="moreMenu">
@@ -2093,7 +2185,7 @@
                     <button class="records-filter-btn active" data-platform="全部">全部</button>
                 </div>
                 <div id="recordsList" class="records-list">
-                    <p style="color: var(--color-text-muted); text-align: center;">请先加载买入记录</p>
+                    <p id="emptyRecordHint">请先加载买入记录</p>
                 </div>
                 </div> <!-- 结束 tab-records 面板 -->
 
@@ -2120,7 +2212,7 @@
                     <div class="form-group">
                         <label>GitHub Token</label>
                         <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
-                        <small style="color: var(--color-text-secondary); margin-top: 5px; display: block;">
+                        <small id="tokenTip">
                             获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token。Classic Token 请勾选 repo 权限；Fine-grained PAT 请选择目标仓库并将 Contents 权限设为 Read and write
                         </small>
                     </div>
@@ -2132,7 +2224,7 @@
                         <label>仓库名称</label>
                         <input type="text" id="repoName" placeholder="fund-tracker">
                     </div>
-                    <div class="tip-box warning" style="margin-top: 20px;">
+                    <div class="tip-box warning">
                         ⚠️ 刷新基金会联网获取最新基金名称，用于修复基金名称显示异常的情况。
                     </div>
                 </div> <!-- 结束 tab-github 面板 -->

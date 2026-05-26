@@ -1565,7 +1565,7 @@
                 <div class="form-group" id="sharesGroup" style="display: none;">
                     <label id="sharesLabel">卖出份额</label>
                     <input type="number" id="recordShares" placeholder="100.00" step="0.01">
-                    <div class="input-hint" id="sharesHint">≈ ¥0.00</div>
+                    <div class="input-hint" id="sharesHint">预计卖出金额 ≈ ¥0.00</div>
                 </div>
                 <!-- 6. 净值输入（可选） -->
                 <div class="form-group" id="navGroup">
@@ -1623,9 +1623,9 @@
                     <!-- 快速配置 GitHub PAT -->
                     <div class="quick-config-panel">
                         <h4>🚀 快速配置 GitHub PAT</h4>
-                        <p class="quick-config-desc">粘贴你的 GitHub Fine-grained PAT，自动保存 Token / Owner / Repo 到浏览器</p>
+                        <p class="quick-config-desc">粘贴你的 GitHub PAT（Classic 或 Fine-grained），自动保存 Token / Owner / Repo 到浏览器</p>
                         <div class="form-group">
-                            <label>GitHub PAT（Fine-grained）</label>
+                            <label>GitHub PAT</label>
                             <textarea id="quickTokenInput" rows="3" placeholder="粘贴你的 GitHub PAT 到这里（以 ghp_ 或 github_pat_ 开头）"></textarea>
                         </div>
                         <div class="quick-config-actions">
@@ -1635,10 +1635,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label>GitHub Token (需要 repo 权限)</label>
+                        <label>GitHub Token</label>
                         <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
                         <small style="color: var(--color-text-secondary); margin-top: 5px; display: block;">
-                            获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (需要 repo 权限)
+                            获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token。Classic Token 请勾选 repo 权限；Fine-grained PAT 请选择目标仓库并将 Contents 权限设为 Read and write
                         </small>
                     </div>
                     <div class="form-group">
@@ -2875,6 +2875,7 @@
             populatePlatformSelect();
             renderRecordsList();  // 每次打开时刷新记录列表
             updateProfitLossSummary();
+            clearRecordForm();    // 重置表单为初始状态（买入模式）
         }
 
         // 关闭管理Modal
@@ -3246,7 +3247,7 @@
             const shares = holdingsShares * percent;
             document.getElementById('recordShares').value = shares.toFixed(2);
             const hintAmount = shares * sellState.nav;
-            document.getElementById('sharesHint').textContent = `≈ ¥${hintAmount.toFixed(2)}`;
+            document.getElementById('sharesHint').textContent = `预计卖出金额 ≈ ¥${hintAmount.toFixed(2)}`;
             document.getElementById('sellQuickHint').textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ${shares.toFixed(2)} 份`;
             document.getElementById('sellQuickHint').style.display = 'block';
         }
@@ -3282,7 +3283,7 @@
             // 清空输入
             document.getElementById('recordAmount').value = '';
             document.getElementById('recordShares').value = '';
-            document.getElementById('sharesHint').textContent = '≈ ¥0.00';
+            document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥0.00';
             document.getElementById('fundSearchInput').value = '';
             document.getElementById('fundSearchResults').classList.remove('show');
             document.getElementById('recordFund').value = '';
@@ -3375,9 +3376,9 @@
 
             if (nav > 0 && shares > 0) {
                 const amount = shares * nav;
-                document.getElementById('sharesHint').textContent = '≈ ¥' + amount.toFixed(2);
+                document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥' + amount.toFixed(2);
             } else {
-                document.getElementById('sharesHint').textContent = '≈ ¥0.00';
+                document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥0.00';
             }
         }
 
@@ -4044,7 +4045,7 @@ function updatePurchaseRecord() {
             document.getElementById('recordNav').value = '';
             document.getElementById('recordType').value = 'buy';
             document.getElementById('recordBefore15').checked = true;
-            document.getElementById('sharesHint').textContent = '≈ ¥0.00';
+            document.getElementById('sharesHint').textContent = '预计卖出金额 ≈ ¥0.00';
             document.getElementById('navHint').textContent = '留空将自动根据交易日期获取对应净值';
             document.getElementById('fundSearchInput').value = '';
             document.getElementById('fundSearchResults').classList.remove('show');
@@ -4729,13 +4730,13 @@ function deletePurchaseRecord(platform, fundCode, index) {
             document.querySelectorAll('.modal-tab').forEach(function(tab) {
                 tab.addEventListener('click', function() {
                     const targetTab = this.dataset.tab;
-                    
+
                     // 切换按钮状态
                     document.querySelectorAll('.modal-tab').forEach(function(t) {
                         t.classList.remove('active');
                     });
                     this.classList.add('active');
-                    
+
                     // 切换面板显示
                     document.querySelectorAll('.tab-panel').forEach(function(panel) {
                         panel.classList.remove('active');
@@ -4743,6 +4744,11 @@ function deletePurchaseRecord(platform, fundCode, index) {
                     const targetPanel = document.getElementById('tab-' + targetTab);
                     if (targetPanel) {
                         targetPanel.classList.add('active');
+                    }
+
+                    // 切换回交易记录Tab时重置表单（仅非编辑状态）
+                    if (targetTab === 'records' && !state.editing.platform) {
+                        clearRecordForm();
                     }
                 });
             });

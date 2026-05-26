@@ -2093,7 +2093,7 @@
                     </select>
                 </div>
                 <!-- 3. 基金选择：买入=搜索框，卖出=下拉框 -->
-                <div class="form-group" id="buyFundSearchGroup">
+                <div class="form-group hidden" id="buyFundSearchGroup">
                     <label>基金名称 <span class="text-muted-sm">（输入代码或名称搜索）</span></label>
                     <input type="text" id="fundSearchInput" placeholder="例如：270023 或 广发全球精选">
                     <div id="fundSearchResults" class="search-results"></div>
@@ -5368,7 +5368,52 @@ function deletePurchaseRecord(platform, fundCode, index) {
         };
 
         // ===== 缺失的函数定义（替代原内联 onclick） =====
-        
+
+        // 0. 显示确认对话框
+        function showConfirmDialog() {
+            const dialog = document.getElementById('confirmDialog');
+            const body = document.getElementById('confirmDialogBody');
+            if (!dialog || !body) return;
+
+            // 统计待保存的记录
+            const records = state.purchaseRecords || {};
+            const fundCodes = Object.keys(records);
+            let totalCount = 0;
+            fundCodes.forEach(code => {
+                if (Array.isArray(records[code])) totalCount += records[code].length;
+            });
+
+            // 构建确认内容
+            let html = '<div style="margin-bottom:12px;">确认将以下交易记录保存并同步到 GitHub？</div>';
+            html += '<div style="background:#f7f8fa;border-radius:6px;padding:12px;margin-bottom:12px;font-size:13px;max-height:200px;overflow-y:auto;">';
+            if (fundCodes.length === 0) {
+                html += '<div style="color:#999;">暂无交易记录</div>';
+            } else {
+                html += '<div style="margin-bottom:6px;">共 <b>' + fundCodes.length + '</b> 只基金，<b>' + totalCount + '</b> 条记录</div>';
+                fundCodes.forEach(code => {
+                    const list = records[code] || [];
+                    // 从 fundConfig 中查找基金名称（按平台分组，需遍历）
+                    let fundName = code;
+                    if (state.fundConfig) {
+                        for (const platform of Object.values(state.fundConfig)) {
+                            const found = platform.find(f => f.code === code);
+                            if (found) { fundName = found.name; break; }
+                        }
+                    }
+                    html += '<div style="margin:4px 0;padding:4px 0;border-bottom:1px solid #eee;">';
+                    html += '<span style="font-weight:600;">' + fundName + '</span>';
+                    html += ' <span style="color:#888;">(' + code + ')</span>';
+                    html += ' <span style="color:#666;">— ' + list.length + ' 笔</span>';
+                    html += '</div>';
+                });
+            }
+            html += '</div>';
+            html += '<div style="font-size:12px;color:#888;">保存后将推送到 GitHub 仓库，并触发数据更新工作流。</div>';
+
+            body.innerHTML = html;
+            dialog.classList.add('show');
+        }
+
         // 1. 关闭确认对话框
         function closeConfirmDialog() {
             const dialog = document.getElementById('confirmDialog');

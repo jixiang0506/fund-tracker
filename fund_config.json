@@ -4,48 +4,57 @@
       {
         "code": "270023",
         "name": "广发全球精选股票(QDII)人民币A",
+        "is_qdii": true,
         "benchmark": "纳斯达克100指数"
       },
       {
         "code": "016665",
         "name": "天弘全球高端制造混合(QDII)C",
+        "is_qdii": true,
         "benchmark": "纳斯达克100指数"
       },
       {
         "code": "001438",
         "name": "易方达瑞享混合E",
+        "is_qdii": false,
         "benchmark": "科创50指数"
       },
       {
         "code": "002112",
         "name": "德邦鑫星价值灵活配置混合C",
+        "is_qdii": false,
         "benchmark": "科创50指数"
       },
       {
         "code": "018230",
         "name": "易方达全球优质企业混合(QDII)C",
+        "is_qdii": true,
         "benchmark": "纳斯达克100指数"
       },
       {
         "code": "017811",
         "name": "东方人工智能主题混合C",
-        "benchmark": ""
+        "is_qdii": false,
+        "benchmark": "科创50指数"
       }
     ],
     "理财通": [
       {
         "code": "018147",
         "name": "建信新兴市场混合(QDII)C",
+        "is_qdii": true,
         "benchmark": "纳斯达克100指数"
       },
       {
         "code": "012922",
         "name": "易方达全球成长精选混合(QDII)人民币C",
+        "is_qdii": true,
         "benchmark": "纳斯达克100指数"
       },
       {
         "code": "019018",
         "name": "易方达信息产业混合C",
+        "is_qdii": false,
         "benchmark": "科创50指数"
       }
     ],
@@ -53,16 +62,19 @@
       {
         "code": "021277",
         "name": "广发全球精选股票(QDII)人民币C",
+        "is_qdii": true,
         "benchmark": "纳斯达克100指数"
       },
       {
         "code": "000390",
         "name": "华商优势行业混合A",
+        "is_qdii": false,
         "benchmark": "科创50指数"
       },
       {
         "code": "020723",
         "name": "国寿安保数字经济股票发起式C",
+        "is_qdii": false,
         "benchmark": "科创50指数"
       }
     ]

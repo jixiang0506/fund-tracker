@@ -201,6 +201,345 @@
             color: var(--color-text-muted);
         }
 
+        /* 骨架屏样式 */
+        .skeleton-stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+        }
+
+        .skeleton-text-line {
+            width: 60%;
+            height: 14px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-value-line {
+            width: 80%;
+            height: 28px;
+        }
+
+        .skeleton-platform-section {
+            margin-top: 30px;
+        }
+
+        .skeleton-platform-label {
+            width: 120px;
+            height: 14px;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-fund-card {
+            margin-top: 15px;
+        }
+
+        .skeleton-fund-name {
+            width: 40%;
+            height: 16px;
+            margin-bottom: 12px;
+        }
+
+        .skeleton-fund-cols {
+            display: flex;
+            gap: 10px;
+        }
+
+        .skeleton-fund-col {
+            flex: 1;
+            height: 40px;
+            border-radius: 6px;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error-title {
+            color: var(--color-warning);
+            margin: 0 0 12px 0;
+        }
+
+        .error-message {
+            margin: 15px 0;
+            color: var(--color-profit);
+            font-size: 14px;
+        }
+
+        .cors-help {
+            background: #fff8e6;
+            border: 1px solid var(--color-warning);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: left;
+        }
+
+        .cors-help-title {
+            margin: 0 0 12px 0;
+            color: var(--color-warning);
+        }
+
+        .cors-help-text {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .cors-code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .cors-code-comment {
+            color: #6699cc;
+        }
+
+        .cors-code-command {
+            color: #f8f8f2;
+            margin: 4px 0;
+        }
+
+        .cors-code-output {
+            color: #a6e22e;
+            margin: 4px 0;
+        }
+
+        .cors-help-footer {
+            margin: 12px 0 0 0;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .online-version-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--color-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .render-error-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .render-error-title {
+            margin: 0 0 15px 0;
+        }
+
+        .render-error-message {
+            margin: 15px 0;
+        }
+
+        .render-error-hint {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .no-records {
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        /* 通用布局工具类 */
+        .flex-space-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .flex-align-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flex-baseline {
+            display: flex;
+            align-items: baseline;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .font-size-10 {
+            font-size: 10px;
+        }
+
+        .font-size-12 {
+            font-size: 12px;
+        }
+
+        .whitespace-nowrap {
+            white-space: nowrap;
+        }
+
+        .margin-top-4 {
+            margin-top: 4px;
+        }
+
+        .margin-top-5 {
+            margin-top: 5px;
+        }
+
+        .margin-top-8 {
+            margin-top: 8px;
+        }
+
+        .margin-top-10 {
+            margin-top: 10px;
+        }
+
+        .margin-top-15 {
+            margin-top: 15px;
+        }
+
+        .margin-top-20 {
+            margin-top: 20px;
+        }
+
+        .margin-bottom-10 {
+            margin-bottom: 10px;
+        }
+
+        .margin-bottom-20 {
+            margin-bottom: 20px;
+        }
+
+        .padding-left-24 {
+            padding-left: 24px;
+        }
+
+        .chart-wrapper-main {
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            color: var(--color-text);
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .chart-period-buttons {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .fund-benchmark {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin: 5px 0 10px 0;
+            padding: 0 15px;
+        }
+
+        .realized-profit {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .avg-cost {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .fund-chart-container {
+            position: relative;
+            height: 280px;
+            margin-bottom: 20px;
+        }
+
+        .purchase-table-summary {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .nav-date-label {
+            font-size: 10px;
+            color: #ff9800;
+        }
+
+        .nav-updated-label {
+            font-size: 10px;
+            color: #2196F3;
+        }
+
+        .search-result-new {
+            color: var(--color-warning);
+        }
+
+        /* 交易记录列表样式 */
+        .record-type-buy {
+            font-weight: bold;
+            color: var(--color-profit);
+        }
+
+        .record-type-sell {
+            font-weight: bold;
+            color: var(--color-loss);
+        }
+
+        .record-type-convert {
+            font-weight: bold;
+            color: var(--color-warning);
+        }
+
+        .record-15pm {
+            color: var(--color-warning);
+            font-size: 12px;
+        }
+
+        .edit-record-btn {
+            margin-right: 5px;
+        }
+
+        /* 卖出信息样式 */
+        .sell-info-container {
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .sell-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .sell-info-label {
+            color: var(--color-text-secondary);
+        }
+
+        .sell-info-value {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -252,6 +591,12 @@
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
             margin-bottom: 30px;
+        }
+
+        .platform-section-transparent {
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
         }
 
         .platform-title {
@@ -753,6 +1098,32 @@
             font-size: 13px;
         }
 
+        /* 通用工具类 */
+        .hidden { display: none; }
+        
+        .text-secondary-sm {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+        }
+        
+        .text-muted-sm {
+            color: var(--color-text-muted);
+            font-size: 12px;
+        }
+        
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 14px;
+        }
+        
+        .btn-sm {
+            padding: 5px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -1493,7 +1864,7 @@
             <!-- 骨架屏：由 JS 动态生成（renderSkeletonScreen），布局与实际卡片保持一致 -->
             <div id="skeletonScreen" role="status" aria-live="polite" aria-label="数据加载中"></div>
             <!-- 实际内容由 renderData() 填充 -->
-            <div id="mainContent" style="display:none;"></div>
+            <div id="mainContent" class="hidden"></div>
         </div>
     </div>
 
@@ -1539,14 +1910,14 @@
                     <input type="text" id="fundSearchInput" placeholder="例如：270023 或 广发全球精选">
                     <div id="fundSearchResults" class="search-results"></div>
                 </div>
-                <div class="form-group" id="sellFundSelectGroup" style="display: none;">
+                <div class="form-group hidden" id="sellFundSelectGroup">
                     <label>选择基金 <span style="font-size: 12px; color: var(--color-text-muted);">（只显示有持仓的基金）</span></label>
                     <select id="recordFund">
                         <option value="">-- 选择基金 --</option>
                     </select>
                 </div>
                 <!-- 卖出时显示持仓信息 -->
-                <div id="sellHoldingsInfo" class="sell-holdings-info" style="display: none;">
+                <div id="sellHoldingsInfo" class="sell-holdings-info hidden">
                     <div class="holdings-row">
                         <span class="holdings-label">当前持有市值</span>
                         <span class="holdings-value" id="holdingsValue">-</span>
@@ -1561,13 +1932,13 @@
                     </div>
                 </div>
                 <!-- 快捷卖出按钮 -->
-                <div class="sell-quick-buttons" id="sellQuickButtons" style="display: none;">
+                <div class="sell-quick-buttons hidden" id="sellQuickButtons">
                     <button type="button" class="sell-quick-btn" data-percent="0.25">25%</button>
                     <button type="button" class="sell-quick-btn" data-percent="0.5">50%</button>
                     <button type="button" class="sell-quick-btn" data-percent="0.75">75%</button>
                     <button type="button" class="sell-quick-btn" data-percent="1">全部</button>
                 </div>
-                <div class="sell-quick-hint" id="sellQuickHint" style="display: none;"></div>
+                <div class="sell-quick-hint hidden" id="sellQuickHint"></div>
                 <!-- 4. 交易日期 -->
                 <div class="form-group">
                     <label>交易日期</label>
@@ -1578,7 +1949,7 @@
                     <label id="amountLabel">买入金额 (元)</label>
                     <input type="number" id="recordAmount" placeholder="1000.00" step="0.01">
                 </div>
-                <div class="form-group" id="sharesGroup" style="display: none;">
+                <div class="form-group hidden" id="sharesGroup">
                     <label id="sharesLabel">卖出份额</label>
                     <input type="number" id="recordShares" placeholder="100.00" step="0.01">
                     <div class="input-hint" id="sharesHint">预计卖出金额 ≈ ¥0.00</div>
@@ -1601,7 +1972,7 @@
                 </div>
                 <!-- 8. 按钮 -->
                 <button class="btn btn-success" id="addOrUpdateBtn">✅ 添加记录</button>
-                <button class="btn btn-warning" id="cancelEditBtn" style="margin-left: 10px; display: none;">取消编辑</button>
+                <button class="btn btn-warning hidden" id="cancelEditBtn" style="margin-left: 10px;">取消编辑</button>
 
                 <hr style="margin: 30px 0;">
 
@@ -1917,7 +2288,7 @@
             const STAT_COUNT = 6;
             let statsHtml = '<div class="stats-grid" id="skeletonStats">';
             for (let i = 0; i < STAT_COUNT; i++) {
-                statsHtml += '<div class="skeleton-stat-card"><div class="skeleton" style="width:60%;height:14px;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:28px;"></div></div>';
+                statsHtml += '<div class="skeleton-stat-card"><div class="skeleton skeleton-text-line"></div><div class="skeleton skeleton-value-line"></div></div>';
             }
             statsHtml += '</div>';
 
@@ -1928,12 +2299,12 @@
             ];
             let platformHtml = '';
             platforms.forEach((p, pi) => {
-                platformHtml += `<div class="skeleton-platform-section" style="margin-top:${pi === 0 ? 30 : 15}px;">`;
-                platformHtml += `<div class="skeleton" style="width:${p.labelWidth}px;height:14px;margin-bottom:15px;"></div>`;
+                platformHtml += `<div class="skeleton-platform-section${pi === 0 ? '' : ' skeleton-platform-section-not-first'}">`;
+                platformHtml += `<div class="skeleton skeleton-platform-label"></div>`;
                 p.funds.forEach(f => {
-                    platformHtml += '<div class="skeleton-fund-card"><div class="skeleton" style="width:' + f.nameWidth + ';height:16px;margin-bottom:12px;"></div><div style="display:flex;gap:10px;">';
+                    platformHtml += `<div class="skeleton-fund-card"><div class="skeleton skeleton-fund-name" style="width:${f.nameWidth};"></div><div class="skeleton-fund-cols">`;
                     for (let c = 0; c < f.cols; c++) {
-                        platformHtml += '<div class="skeleton" style="flex:1;height:40px;border-radius:6px;"></div>';
+                        platformHtml += '<div class="skeleton skeleton-fund-col"></div>';
                     }
                     platformHtml += '</div></div>';
                 });
@@ -2005,34 +2376,34 @@
                 const isCors = error.message.includes('Failed to fetch') || error.message.includes('CORS') || error.message.includes('NetworkError');
 
                 document.getElementById('mainContent').innerHTML = `
-                    <div style="text-align:center;padding:40px;">
-                        <h3 style="color:var(--color-warning);">⚠️ 数据加载失败</h3>
-                        <p style="margin:15px 0;color:var(--color-profit);font-size:14px;">${escapeHtml(error.message)}</p>
+                    <div class="error-container">
+                        <h3 class="error-title">⚠️ 数据加载失败</h3>
+                        <p class="error-message">${escapeHtml(error.message)}</p>
 
                         ${(isFileProtocol || isCors) ? `
-                        <div style="background:#fff8e6;border:1px solid var(--color-warning);border-radius:8px;padding:20px;margin:20px auto;max-width:600px;text-align:left;">
-                            <h4 style="margin:0 0 12px 0;color:var(--color-warning);">💡 本地调试：CORS 限制解决方案</h4>
-                            <p style="margin:0 0 10px 0;color:#666;font-size:14px;">
+                        <div class="cors-help">
+                            <h4 class="cors-help-title">💡 本地调试：CORS 限制解决方案</h4>
+                            <p class="cors-help-text">
                                 浏览器禁止 <code>file://</code> 协议下的跨域请求。<br>
                                 需要用本地 HTTP 服务器来绕过此限制。
                             </p>
-                            <div style="background:#2d2d2d;color:#f8f8f2;border-radius:6px;padding:12px 16px;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;">
-                                <div style="color:#6699cc;"># 进入项目目录，然后执行：</div>
-                                <div style="color:#f8f8f2;margin:4px 0;">cd "D:/Program Files (x86)/WorkBuddy/111/2026-05-12-task-2"</div>
-                                <div style="color:#6699cc;"># 启动 HTTP 服务器（Python 3 自带）</div>
-                                <div style="color:#f8f8f2;margin:4px 0;">python -m http.server 8000</div>
-                                <div style="color:#6699cc;"># 然后在浏览器打开：</div>
-                                <div style="color:#a6e22e;margin:4px 0;">http://localhost:8000</div>
+                            <div class="cors-code-block">
+                                <div class="cors-code-comment"># 进入项目目录，然后执行：</div>
+                                <div class="cors-code-command">cd "D:/Program Files (x86)/WorkBuddy/111/2026-05-12-task-2"</div>
+                                <div class="cors-code-comment"># 启动 HTTP 服务器（Python 3 自带）</div>
+                                <div class="cors-code-command">python -m http.server 8000</div>
+                                <div class="cors-code-comment"># 然后在浏览器打开：</div>
+                                <div class="cors-code-output">http://localhost:8000</div>
                             </div>
-                            <p style="margin:12px 0 0 0;color:#999;font-size:12px;">
+                            <p class="cors-help-footer">
                                 ⚠️ 注意：直接双击打开 index.html 会因 CORS 失败，必须通过 http://localhost:8000 访问。
                             </p>
                         </div>
                         ` : ''}
 
-                        <div style="margin-top:20px;">
+                        <div class="margin-top-20">
                             <a href="https://jixiang0506.github.io/fund-tracker/"
-                               style="display:inline-block;padding:10px 20px;background:var(--color-primary);color:white;text-decoration:none;border-radius:5px;"
+                               class="online-version-link"
                                target="_blank">
                                 🌐 访问线上版本（无需本地服务器）
                             </a>
@@ -2068,18 +2439,18 @@
 
                 // 添加统一的累计收益率图表
                 html += `
-                    <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
-                        <div class="chart-wrapper">
-                            <h3 style="font-size: 18px; color: var(--color-text); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                    <div class="platform-section chart-wrapper-main">
+                        <div class="chart-container-inner">
+                            <h3 class="chart-title">
                                 📈 累计收益率走势
                             </h3>
-                            <div style="margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="period-btn" data-period="7d" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近一周</button>
-                                <button class="period-btn" data-period="1m" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近一个月</button>
-                                <button class="period-btn" data-period="3m" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近三个月</button>
-                                <button class="period-btn" data-period="6m" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近半年</button>
-                                <button class="period-btn" data-period="1y" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">近一年</button>
-                                <button class="period-btn active" data-period="all" style="padding: 5px 14px; border-radius: 16px; font-size: 13px; cursor: pointer;">最长期限</button>
+                            <div class="chart-period-buttons">
+                                <button class="period-btn btn-sm" data-period="7d">近一周</button>
+                                <button class="period-btn btn-sm" data-period="1m">近一个月</button>
+                                <button class="period-btn btn-sm" data-period="3m">近三个月</button>
+                                <button class="period-btn btn-sm" data-period="6m">近半年</button>
+                                <button class="period-btn btn-sm" data-period="1y">近一年</button>
+                                <button class="period-btn active btn-sm" data-period="all">最长期限</button>
                             </div>
                             <div class="chart-container">
                                 <canvas id="chart-all"></canvas>
@@ -2099,10 +2470,10 @@
                 document.getElementById('skeletonScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 document.getElementById('mainContent').innerHTML = `
-                    <div class="error" style="text-align:center;padding:40px;">
-                        <h3>⚠️ 渲染失败</h3>
-                        <p style="margin:15px 0;">${escapeHtml(error.message)}</p>
-                        <p style="color:#666;font-size:14px;">请检查控制台(F12)获取详细错误信息。</p>
+                    <div class="error-container render-error-container">
+                        <h3 class="render-error-title">⚠️ 渲染失败</h3>
+                        <p class="render-error-message">${escapeHtml(error.message)}</p>
+                        <p class="render-error-hint">请检查控制台(F12)获取详细错误信息。</p>
                     </div>
                 `;
             }
@@ -2176,7 +2547,7 @@
         // 渲染平台数据
         function renderPlatform(platformName, funds) {
             let html = `
-                <div class="platform-section" style="background: transparent; box-shadow: none; padding: 0;">
+                <div class="platform-section platform-section-transparent">
             `;
 
             funds.forEach(fnd => {
@@ -2212,25 +2583,25 @@
                             </tr>
                             <tr class="metric-values">
                                 <td>
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="flex: 1;"></span>
+                                    <div class="flex-baseline">
+                                        <span class="flex-1"></span>
                                         <span>${yesterdayNav.toFixed(4)}</span>
-                                        <span style="flex: 1; text-align: right; font-size: 10px; white-space: nowrap;">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
+                                        <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     </div>
                                 </td>
                                 <td class="${yesterdayClass}">
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="flex: 1;"></span>
+                                    <div class="flex-baseline">
+                                        <span class="flex-1"></span>
                                         <span>${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%</span>
-                                        <span style="flex: 1; text-align: right; font-size: 10px; white-space: nowrap;">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
+                                        <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     </div>
                                 </td>
                                 <td class="${yesterdayClass}">
                                     ${fnd.holdings ? `
-                                    <div style="display: flex; align-items: baseline;">
-                                        <span style="flex: 1;"></span>
+                                    <div class="flex-baseline">
+                                        <span class="flex-1"></span>
                                         <span>${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}</span>
-                                        <span style="flex: 1; text-align: right; font-size: 10px; white-space: nowrap;">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
+                                        <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     </div>
                                     ` : '-'}
                                 </td>
@@ -2258,14 +2629,14 @@
 
                 if (fnd.holdings && fnd.holdings.purchases && fnd.holdings.purchases.length > 0) {
                     html += `
-                        <div class="purchase-details" id="${getFundDetailsId(fnd.code, platformName)}" style="margin-top: 15px; display: none;">
+                        <div class="purchase-details hidden" id="${getFundDetailsId(fnd.code, platformName)}" style="margin-top: 15px;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="7d" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一周</button>
-                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一月</button>
-                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="3m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近三月</button>
-                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="6m" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近半年</button>
-                                <button class="period-btn fund-period-btn" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1y" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">近一年</button>
-                                <button class="period-btn fund-period-btn active" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="all" style="padding: 4px 10px; font-size: 12px; border-radius: 14px;">全部</button>
+                                <button class="period-btn fund-period-btn btn-xs" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="7d">近一周</button>
+                                <button class="period-btn fund-period-btn btn-xs" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1m">近一月</button>
+                                <button class="period-btn fund-period-btn btn-xs" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="3m">近三月</button>
+                                <button class="period-btn fund-period-btn btn-xs" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="6m">近半年</button>
+                                <button class="period-btn fund-period-btn btn-xs" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="1y">近一年</button>
+                                <button class="period-btn fund-period-btn btn-xs active" data-fund-id="${encAttr(fnd.code)}::${encAttr(platformName)}" data-period="all">全部</button>
                             </div>
                             <div class="fund-chart-wrapper" style="position: relative; height: 280px; margin-bottom: 20px;">
                                 <canvas id="${getFundChartCanvasId(fnd.code, platformName)}"></canvas>
@@ -2553,12 +2924,12 @@
             const details = document.getElementById(detailsId);
             if (!details) return;
 
-            if (details.style.display === 'none') {
-                details.style.display = 'block';
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
                 // 展开时渲染该基金走势图
                 renderFundChart(id);
             } else {
-                details.style.display = 'none';
+                details.classList.add('hidden');
                 // 收起时销毁图表释放资源
                 const chartId = getFundChartCanvasId(fundCode, platformName);
                 if (state.charts.fundInstances[chartId]) {
@@ -3919,7 +4290,7 @@ function editPurchaseRecord(platform, fundCode, index) {
     }, 100);
 
     document.getElementById('addOrUpdateBtn').textContent = '✅ 更新记录';
-    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    document.getElementById('cancelEditBtn').classList.remove('hidden');
 
     showMessage('正在编辑记录，修改后点击「更新记录」', 'info');
 }
@@ -4061,7 +4432,7 @@ function updatePurchaseRecord() {
 
             // 恢复按钮文本和显示
             document.getElementById('addOrUpdateBtn').textContent = '✅ 添加记录';
-            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
 
             clearRecordForm();
         }

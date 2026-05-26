@@ -1443,8 +1443,8 @@
             </div>
         </div>
 
-        <!-- 同步状态提示 -->
-        <div id="syncStatus" class="sync-status"></div>
+        <!-- 同步状态提示（无障碍：屏幕阅读器自动播报） -->
+        <div id="syncStatus" class="sync-status" role="status" aria-live="polite"></div>
 
         <div class="container">
         <div class="header">
@@ -1454,7 +1454,7 @@
                     <div class="update-time" id="updateTime">加载中...</div>
                 </div>
                 <div class="settings-dropdown">
-                    <button class="settings-btn" id="settingsBtn">⚙️</button>
+                <button class="settings-btn" id="settingsBtn" aria-label="打开设置菜单">⚙️</button>
                     <div class="settings-menu" id="settingsMenu">
                         <a data-action="open-manage">📝 添加记录</a>
                         <a data-action="trigger-workflow">🚀 更新数据</a>
@@ -1465,17 +1465,17 @@
         </div>
 
         <!-- 搜索筛选栏 -->
-        <div class="search-filter-bar">
-            <input type="text" id="fundFilterInput" placeholder="搜索基金名称或代码...">
-            <div class="filter-buttons" id="filterButtons">
-                <button class="filter-btn active" data-platform="全部">全部</button>
+        <div class="search-filter-bar" role="search" aria-label="基金搜索与筛选">
+            <input type="text" id="fundFilterInput" placeholder="搜索基金名称或代码..." aria-label="搜索基金">
+            <div class="filter-buttons" id="filterButtons" role="tablist" aria-label="平台筛选">
+                <button class="filter-btn active" data-platform="全部" role="tab" aria-selected="true">全部</button>
                 <!-- 平台筛选按钮由 JS 动态生成 -->
             </div>
         </div>
 
         <div id="content">
             <!-- 骨架屏：由 JS 动态生成（renderSkeletonScreen），布局与实际卡片保持一致 -->
-            <div id="skeletonScreen"></div>
+            <div id="skeletonScreen" role="status" aria-live="polite" aria-label="数据加载中"></div>
             <!-- 实际内容由 renderData() 填充 -->
             <div id="mainContent" style="display:none;"></div>
         </div>
@@ -1486,16 +1486,16 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>📝 管理交易记录</h2>
-                <span class="close" id="closeManageModalBtn">&times;</span>
+                <span class="close" id="closeManageModalBtn" aria-label="关闭弹窗" onclick="closeManageModal()">&times;</span>
             </div>
             <!-- 标签页切换 -->
-            <div class="modal-tabs">
-                <button class="modal-tab active" data-tab="records">📋 交易记录</button>
-                <button class="modal-tab" data-tab="github">⚙️ GitHub 配置</button>
+            <div class="modal-tabs" role="tablist" aria-label="管理弹窗标签页">
+                <button class="modal-tab active" data-tab="records" role="tab" aria-selected="true">📋 交易记录</button>
+                <button class="modal-tab" data-tab="github" role="tab" aria-selected="false">⚙️ GitHub 配置</button>
             </div>
             <div class="modal-body">
                 <!-- Tab: 交易记录 -->
-                <div class="tab-panel active" id="tab-records">
+                <div class="tab-panel active" id="tab-records" role="tabpanel">
                     <h3 style="margin-bottom: 10px;">📊 盈亏概览（截至最新日期）</h3>
                     <div id="summaryContent"></div>
 
@@ -1592,7 +1592,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
                     <h3 style="margin: 0;">当前交易记录</h3>
                     <div class="more-dropdown">
-                        <button class="more-btn" id="moreBtn" onclick="toggleMoreMenu(event)">⋮ 更多 ▾</button>
+                    <button class="more-btn" id="moreBtn" onclick="toggleMoreMenu(event)" aria-label="更多操作">⋮ 更多 ▾</button>
                         <div class="more-dropdown-menu" id="moreMenu">
                             <button class="more-menu-item" data-action="import-file">📂 从文件导入记录</button>
                             <button class="more-menu-item" data-action="confirm-save-sync">🚀 同步</button>
@@ -1615,7 +1615,7 @@
                 </div> <!-- 结束 tab-records 面板 -->
 
                 <!-- Tab: GitHub 配置 -->
-                <div class="tab-panel" id="tab-github">
+                <div class="tab-panel" id="tab-github" role="tabpanel">
                     <div class="tip-box">
                         💡 提示：配置 GitHub Token 后，可以直接从 GitHub 加载交易记录，并保存到 GitHub 仓库。
                     </div>
@@ -1865,6 +1865,7 @@
                     showMessage('已从本地存储加载买入记录', 'info');
                 } else {
                     state.purchaseRecords = {};
+                    showMessage('⚠️ 交易记录加载失败，无本地备份', 'error');
                 }
             }
         }
@@ -1938,9 +1939,11 @@
                     renderFilterButtons();
                 } else {
                     console.error('加载基金配置文件失败，HTTP状态:', configResp.status);
+                    showMessage('⚠️ 基金配置加载失败，交易记录功能可能不可用', 'error');
                 }
             } catch(e) {
                 console.error('加载基金配置文件失败，交易记录管理功能不可用:', e);
+                showMessage('⚠️ 基金配置加载失败', 'error');
             }
 
             // 加载基准指数数据
@@ -1952,9 +1955,11 @@
                 } else {
                     console.error('基准指数数据加载失败，HTTP状态:', benchmarkResp.status);
                     state.benchmarkIndexData = {};
+                    showMessage('⚠️ 基准指数数据加载失败', 'error');
                 }
             } catch(e) {
                 console.error('加载基准指数数据失败:', e);
+                showMessage('⚠️ 基准指数数据加载失败', 'error');
                 state.benchmarkIndexData = {};
             }
 
@@ -1969,6 +1974,7 @@
                 renderData();
             } catch (error) {
                 console.error('加载数据失败:', error);
+                showMessage('⚠️ 数据加载失败: ' + error.message, 'error');
                 document.getElementById('skeletonScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
 
@@ -2067,6 +2073,7 @@
                 renderCharts();
             } catch (error) {
                 console.error('渲染数据失败:', error);
+                showMessage('⚠️ 渲染数据失败: ' + error.message, 'error');
                 document.getElementById('skeletonScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 document.getElementById('mainContent').innerHTML = `

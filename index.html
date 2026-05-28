@@ -4057,6 +4057,9 @@
             // 切换基金时清空快捷按钮状态
             DOM.sellQuickHint.style.display = 'none';
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
+
+            // 净值变化后，如果已有份额输入，重新计算预计卖出金额
+            onSharesInput();
         }
 
         // 金额输入时清除快捷按钮状态

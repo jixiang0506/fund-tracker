@@ -3320,7 +3320,18 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: state.charts.period === 'all' ? '累计收益率走势（%）' : '周期收益率对比（%）'
+                            text: state.charts.period === 'all' ? '累计收益率走势（%）' : '周期收益率对比（%）',
+                            color: '#e2e8f0'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { size: 11 },
+                                color: '#e2e8f0',
+                                usePointStyle: true,
+                                padding: 15
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -3337,7 +3348,8 @@
                             grid: { display: false },
                             ticks: {
                                 maxTicksLimit: 8,
-                                font: { size: 11 }
+                                font: { size: 11 },
+                                color: '#a0aec0'
                             }
                         },
                         y: {
@@ -3346,7 +3358,8 @@
                                 callback: function(value) {
                                     return value.toFixed(1) + '%';
                                 },
-                                font: { size: 11 }
+                                font: { size: 11 },
+                                color: '#a0aec0'
                             },
                             grid: { color: 'rgba(255,255,255,0.08)' }
                         }
@@ -3629,11 +3642,12 @@
                         intersect: false
                     },
                     plugins: {
-                        legend: { 
+                        legend: {
                             display: true,
                             position: 'top',
                             labels: {
                                 font: { size: 11 },
+                                color: '#e2e8f0',
                                 usePointStyle: true,
                                 padding: 15
                             }
@@ -3695,7 +3709,8 @@
                             grid: { display: false },
                             ticks: {
                                 maxTicksLimit: 6,
-                                font: { size: 11 }
+                                font: { size: 11 },
+                                color: '#a0aec0'
                             }
                         },
                         y: {
@@ -3703,7 +3718,8 @@
                                 callback: function(value) {
                                     return (value >= 0 ? '+' : '') + value.toFixed(0) + '%';
                                 },
-                                font: { size: 11 }
+                                font: { size: 11 },
+                                color: '#a0aec0'
                             },
                             grid: { color: 'rgba(255,255,255,0.08)' }
                         }

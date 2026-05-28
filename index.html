@@ -15,59 +15,63 @@
     <style>
         :root {
             /* ============================================================
-               基础重置 & 设计令牌（Design Tokens）
+               专业金融终端主题（Design Tokens）
+               参考：Bloomberg Terminal, Wind, 同花顺
                ============================================================ */
 
-            /* --- 主色调 --- */
-            --color-primary: #667eea;
-            --color-primary-hover: #5568d3;
-            --color-primary-light: rgba(102, 126, 234, 0.1);
-            --color-gradient-start: #667eea;
-            --color-gradient-end: #764ba2;
-
-            /* --- 涨跌色 --- */
-            --color-profit: #f56c6c;
-            --color-profit-hover: #e04d4d;
-            --color-loss: #67c23a;
-            --color-loss-hover: #5daf34;
-
+            /* --- 主色调（深色主题） --- */
+            --color-bg-primary: #0a1929;      /* 主背景：深蓝黑 */
+            --color-bg-secondary: #132f4e;    /* 次背景：深蓝 */
+            --color-bg-card: #1a365d;         /* 卡片背景 */
+            --color-bg-surface: #2d3748;      /* 表面背景（表格等） */
+            
+            /* --- 文本色 --- */
+            --color-text-primary: #e2e8f0;    /* 主文本：浅灰白 */
+            --color-text-secondary: #a0aec0;  /* 次文本：中灰 */
+            --color-text-muted: #718096;      /* 弱文本：深灰 */
+            --color-text-accent: #63b3ed;     /* 强调文本：亮蓝 */
+            
+            /* --- 涨跌色（中国标准：红涨绿跌） --- */
+            --color-profit: #f56565;           /* 涨：红色 */
+            --color-profit-hover: #fc8181;
+            --color-loss: #48bb78;            /* 跌：绿色 */
+            --color-loss-hover: #68d391;
+            
             /* --- 功能色 --- */
-            --color-warning: #e6a23c;
-            --color-warning-hover: #cf8e2a;
-
-            /* --- 通用色 --- */
-            --color-text: #333;
-            --color-text-secondary: #666;
-            --color-text-muted: #999;
-            --color-bg: #fff;
-            --color-bg-light: #f5f5f5;
-            --color-border: #ddd;
-            --color-border-light: #eee;
-
+            --color-warning: #ed8936;         /* 警告：橙色 */
+            --color-warning-hover: #f6ad55;
+            --color-info: #4299e1;            /* 信息：蓝色 */
+            --color-info-hover: #63b3ed;
+            
+            /* --- 边框与分割 --- */
+            --color-border: #2d3748;
+            --color-border-light: #4a5568;
+            
+            /* --- 阴影 --- */
+            --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            
+            /* --- 圆角 --- */
+            --radius-card: 8px;
+            --radius-sm: 4px;
+            
             /* --- 间距令牌（Spacing Tokens） --- */
             --space-xs: 4px;
             --space-sm: 8px;
             --space-md: 12px;
-            --space-lg: 20px;
-            --space-xl: 30px;
-
+            --space-lg: 16px;
+            --space-xl: 24px;
+            
             /* --- 内边距令牌 --- */
-            --pad-card: 25px 30px;   /* 卡片内边距 */
-            --pad-md: 15px;            /* 中等内边距 */
-            --pad-sm: 12px 15px;      /* 小内边距 */
-
-            /* --- 圆角和阴影 --- */
-            --radius-card: 15px;
-            --radius-sm: 8px;
-            --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.1);
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-            /* --- 表面背景色 --- */
-            --bg-surface: #f8f9fa;         /* 表身/列表项 */
-            --bg-surface-alt: #f5f5f5;     /* 页头/浅底区 */
-            --color-bg-secondary: #f5f5f5;  /* 提示框等浅底区 */
-            --pad-content: 15px 20px;      /* 内容区内边距（sync-status等） */
+            --pad-card: 20px 24px;   /* 卡片内边距（紧凑） */
+            --pad-md: 12px;          /* 中等内边距 */
+            --pad-sm: 8px 12px;      /* 小内边距 */
+            --pad-content: 12px 16px; /* 内容区内边距（同步状态等） */
+            
+            /* --- 字体 --- */
+            --font-mono: 'Consolas', 'Courier New', monospace;  /* 数字用等宽字体 */
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         /* ============================================================
@@ -81,10 +85,12 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+            color: var(--color-text-primary);
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px;
+            line-height: 1.6;
         }
 
         .container {
@@ -97,11 +103,12 @@
            ============================================================ */
 
         .header {
-            background: white;
-            padding: 30px;
+            background: var(--color-bg-card);
+            padding: var(--pad-card);
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
-            margin-bottom: 30px;
+            margin-bottom: var(--space-xl);
+            border: 1px solid var(--color-border);
         }
 
         /* 头部第一行：标题区 + 设置按钮 */
@@ -112,76 +119,100 @@
         }
 
         .header h1 {
-            color: var(--color-text);
-            font-size: 32px;
-            margin-bottom: var(--space-sm);
+            color: var(--color-text-primary);
+            font-size: 28px;
+            margin-bottom: var(--space-xs);
+            font-weight: 600;
+            letter-spacing: -0.5px;
         }
 
         .header .update-time {
             color: var(--color-text-secondary);
-            font-size: 14px;
+            font-size: 13px;
+            font-family: var(--font-mono);
         }
 
         /* ============================================================
            【模块三】按钮系统（Button System）
+           专业金融终端风格：紧凑、高对比度
            ============================================================ */
 
         .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
+            font-size: 13px;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+            background: var(--color-bg-surface);
+            color: var(--color-text-primary);
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: var(--color-bg-secondary);
+            border-color: var(--color-text-accent);
         }
 
         .btn-primary {
-            background: var(--color-primary);
-            color: white;
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-text-accent);
+            font-weight: 600;
         }
 
         .btn-primary:hover {
-            background: var(--color-primary-hover);
+            background: var(--color-info-hover);
+            border-color: var(--color-info-hover);
         }
 
         .btn-success {
             background: var(--color-loss);
             color: white;
+            border-color: var(--color-loss);
         }
 
         .btn-success:hover {
             background: var(--color-loss-hover);
+            border-color: var(--color-loss-hover);
         }
 
         .btn-danger {
             background: var(--color-profit);
             color: white;
+            border-color: var(--color-profit);
         }
 
         .btn-danger:hover {
             background: var(--color-profit-hover);
+            border-color: var(--color-profit-hover);
         }
 
         .btn-warning {
             background: var(--color-warning);
-            color: white;
+            color: var(--color-bg-primary);
+            border-color: var(--color-warning);
         }
 
         .btn-warning:hover {
             background: var(--color-warning-hover);
+            border-color: var(--color-warning-hover);
         }
 
         /* 卖出持仓信息展示 */
         /* ============================================================
            【模块四】卖出模式 & 表单提示
+           专业金融终端风格：深色背景、高对比度
            ============================================================ */
 
         .sell-holdings-info {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-info);
             border-radius: var(--radius-sm);
             padding: var(--pad-sm);
             margin-bottom: var(--space-md);
+            color: var(--color-text-primary);
         }
 
         .holdings-row {
@@ -189,6 +220,7 @@
             justify-content: space-between;
             padding: 4px 0;
             font-size: 13px;
+            font-family: var(--font-mono);
         }
 
         .holdings-label {
@@ -197,7 +229,7 @@
 
         .holdings-value {
             font-weight: 600;
-            color: var(--color-text);
+            color: var(--color-text-primary);
         }
 
         /* 卖出模式切换 */
@@ -208,7 +240,7 @@
         .sell-mode-label {
             display: block;
             margin-bottom: 8px;
-            color: var(--color-text);
+            color: var(--color-text-primary);
             font-weight: 600;
             font-size: 14px;
         }
@@ -221,74 +253,80 @@
         .sell-mode-btn {
             flex: 1;
             padding: 8px 16px;
-            border: 2px solid #ddd;
-            background: white;
+            border: 2px solid var(--color-border-light);
+            background: var(--color-bg-card);
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s;
             color: var(--color-text-secondary);
+            font-weight: 500;
         }
 
         .sell-mode-btn.active {
-            border-color: var(--color-primary);
-            background: #f5f7ff;
-            color: var(--color-primary);
+            border-color: var(--color-text-accent);
+            background: var(--color-bg-secondary);
+            color: var(--color-text-accent);
             font-weight: 600;
         }
 
         .sell-mode-btn:hover:not(.active) {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
+            border-color: var(--color-text-accent);
+            color: var(--color-text-accent);
+            background: var(--color-bg-card);
         }
 
         .input-hint {
             margin-top: 6px;
             font-size: 12px;
             color: var(--color-text-muted);
+            font-style: italic;
         }
 
         /* ============================================================
            【模块五】骨架屏 & 错误提示
+           专业金融终端风格：深色主题、高对比度
            ============================================================ */
 
-        /* 骨架屏样式 */
-        .skeleton-stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
-        }
-
+        /* 骨架屏样式 - 子元素定义 */
         .skeleton-text-line {
             width: 60%;
             height: 14px;
             margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--color-bg-surface) 25%, var(--color-bg-secondary) 50%, var(--color-bg-surface) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
         }
 
         .skeleton-value-line {
             width: 80%;
-            height: 28px;
+            height: 24px;
+            background: linear-gradient(90deg, var(--color-bg-surface) 25%, var(--color-bg-secondary) 50%, var(--color-bg-surface) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
         }
 
-        .skeleton-platform-section {
-            margin-top: 30px;
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         .skeleton-platform-label {
             width: 120px;
             height: 14px;
             margin-bottom: var(--space-md);
-        }
-
-        .skeleton-fund-card {
-            margin-top: var(--space-md);
+            background: var(--color-bg-surface);
+            border-radius: 4px;
         }
 
         .skeleton-fund-name {
             width: 40%;
             height: 16px;
             margin-bottom: 12px;
+            background: var(--color-bg-surface);
+            border-radius: 4px;
         }
 
         .skeleton-fund-cols {
@@ -299,6 +337,7 @@
         .skeleton-fund-col {
             flex: 1;
             height: 40px;
+            background: var(--color-bg-surface);
             border-radius: 6px;
         }
 
@@ -306,43 +345,48 @@
         .error-title {
             color: var(--color-warning);
             margin: 0 0 12px 0;
+            font-weight: 600;
         }
 
         .error-message {
             margin: var(--space-md) 0;
             color: var(--color-profit);
             font-size: 14px;
+            font-family: var(--font-mono);
         }
 
         .cors-help {
-            background: #fff8e6;
+            background: var(--color-bg-secondary);
             border: 1px solid var(--color-warning);
             border-radius: var(--radius-sm);
             padding: 20px;
             margin: var(--space-lg) auto;
             max-width: 600px;
             text-align: left;
+            color: var(--color-text-primary);
         }
 
         .cors-help-title {
             margin: 0 0 12px 0;
             color: var(--color-warning);
+            font-weight: 600;
         }
 
         .cors-help-text {
             margin: 0 0 10px 0;
-            color: #666;
+            color: var(--color-text-secondary);
             font-size: 14px;
         }
 
         .cors-code-block {
-            background: #2d2d2d;
-            color: #f8f8f2;
+            background: #1a202c;
+            color: #e2e8f0;
             border-radius: 6px;
             padding: 12px 16px;
-            font-family: 'Courier New', monospace;
+            font-family: var(--font-mono);
             font-size: 13px;
             line-height: 1.8;
+            border: 1px solid var(--color-border);
         }
 
         .cors-code-comment {
@@ -350,7 +394,7 @@
         }
 
         .cors-code-command {
-            color: #f8f8f2;
+            color: #e2e8f0;
             margin: 4px 0;
         }
 
@@ -361,17 +405,17 @@
 
         .cors-help-footer {
             margin: 12px 0 0 0;
-            color: #999;
+            color: var(--color-text-muted);
             font-size: 12px;
         }
 
         .online-version-link {
             display: inline-block;
             padding: 10px 20px;
-            background: var(--color-primary);
-            color: white;
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             margin-top: var(--space-lg);
         }
 
@@ -389,7 +433,7 @@
         }
 
         .render-error-hint {
-            color: #666;
+            color: var(--color-text-muted);
             font-size: 14px;
         }
 
@@ -431,10 +475,12 @@
 
         .font-size-10 {
             font-size: 10px;
+            font-family: var(--font-mono);
         }
 
         .font-size-12 {
             font-size: 12px;
+            font-family: var(--font-mono);
         }
 
         .whitespace-nowrap {
@@ -485,10 +531,10 @@
 
         .chart-title {
             font-size: 18px;
-            color: var(--color-text);
+            color: var(--color-text-primary);
             margin-bottom: 10px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid var(--color-border);
         }
 
         .chart-period-buttons {
@@ -508,17 +554,19 @@
         .realized-profit {
             margin-top: var(--space-sm);
             padding: 8px;
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
             border-radius: 5px;
             font-size: 13px;
+            color: var(--color-text-primary);
         }
 
         .avg-cost {
             margin-top: var(--space-sm);
             padding: 8px;
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
             border-radius: 5px;
             font-size: 13px;
+            color: var(--color-text-primary);
         }
 
         .fund-chart-container {
@@ -528,18 +576,22 @@
         }
 
         .purchase-table-summary {
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
             font-weight: bold;
+            color: var(--color-text-primary);
+            border-top: 2px solid var(--color-text-accent);
         }
 
         .nav-date-label {
             font-size: 10px;
-            color: #ff9800;
+            color: var(--color-warning);
+            font-family: var(--font-mono);
         }
 
         .nav-updated-label {
             font-size: 10px;
-            color: #2196F3;
+            color: var(--color-info);
+            font-family: var(--font-mono);
         }
 
         .search-result-new {
@@ -589,14 +641,14 @@
 
         .sell-info-value {
             font-weight: 600;
-            color: var(--color-text);
+            color: var(--color-text-primary);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         @media (max-width: 1200px) {
@@ -606,27 +658,52 @@
         }
 
         .stat-card {
-            background: white;
-            padding: 25px;
+            background: var(--color-bg-card);
+            padding: 20px;
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
-            transition: transform 0.3s;
+            transition: all 0.2s;
+            border: 1px solid var(--color-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--color-text-accent);
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            border-color: var(--color-text-accent);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
         }
 
         .stat-card .label {
             color: var(--color-text-secondary);
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .stat-card .value {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-family: var(--font-mono);
+            letter-spacing: -0.5px;
         }
 
         .positive {
@@ -638,11 +715,12 @@
         }
 
         .platform-section {
-            background: white;
-            padding: 30px;
+            background: var(--color-bg-card);
+            padding: 24px;
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
-            margin-bottom: 30px;
+            margin-bottom: 24px;
+            border: 1px solid var(--color-border);
         }
 
         .platform-section-transparent {
@@ -660,14 +738,22 @@
 
         /* ============================================================
            【模块七】基金卡片 & 数据表格
+           专业金融终端风格：深色主题、高数据密度
            ============================================================ */
 
         .fund-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--color-bg-card);
+            border-radius: var(--radius-card);
+            padding: 16px 20px;
             margin-bottom: var(--space-md);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--color-border);
+            transition: all 0.2s;
+        }
+
+        .fund-card:hover {
+            border-color: var(--color-text-accent);
+            box-shadow: 0 4px 12px rgba(99, 179, 237, 0.15);
         }
 
         .fund-header {
@@ -676,60 +762,71 @@
             align-items: baseline;
             flex-wrap: wrap;
             gap: 6px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .fund-name {
             font-size: 16px;
-            font-weight: bold;
-            color: var(--color-text);
+            font-weight: 600;
+            color: var(--color-text-primary);
             cursor: pointer;
-            transition: color 0.3s;
+            transition: color 0.2s;
         }
 
         .fund-name:hover {
-            color: var(--color-primary);
-            text-decoration: underline;
+            color: var(--color-text-accent);
+            text-decoration: none;
         }
 
         .fund-code {
             color: var(--color-text-muted);
             font-size: 13px;
+            font-family: var(--font-mono);
         }
 
         .fund-platform {
             display: inline-block;
-            background: #e9ecef;
+            background: var(--color-bg-secondary);
             color: var(--color-text-secondary);
             font-size: 11px;
             padding: 2px 8px;
-            border-radius: 4px;
+            border-radius: 3px;
+            border: 1px solid var(--color-border-light);
         }
 
         .fund-metrics {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
+            font-family: var(--font-mono);
         }
 
         .fund-metrics td {
             text-align: center;
-            padding: 6px 2px;
+            padding: 8px 2px;
             border: none;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            font-size: 14px;
         }
 
         .metric-labels td {
-            color: var(--color-text-muted);
-            font-size: 12px;
-            padding-bottom: 4px;
+            color: var(--color-text-secondary);
+            font-size: 11px;
+            padding-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-family: var(--font-sans);
         }
 
         .metric-values td {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             padding-top: 4px;
+            font-family: var(--font-mono);
+            letter-spacing: -0.3px;
         }
 
         /* 固定6列宽度，确保不同基金卡片之间纵向对齐 */
@@ -746,64 +843,80 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: 13px;
         }
 
         .funds-table th {
-            background: var(--bg-surface);
-            padding: var(--pad-md);
+            background: var(--color-bg-secondary);
+            padding: 10px 12px;
             text-align: left;
             color: var(--color-text-secondary);
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid var(--color-border);
+            font-family: var(--font-sans);
         }
 
         .funds-table td {
-            padding: var(--pad-md);
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 13px;
         }
 
         .funds-table tr:hover {
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
         }
 
         .purchase-details {
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
             padding: var(--pad-md);
             border-radius: var(--radius-sm);
             margin-top: var(--space-md);
             font-size: 13px;
+            border: 1px solid var(--color-border);
         }
 
         .purchase-details h4 {
             margin-bottom: 10px;
-            color: var(--color-text);
+            color: var(--color-text-primary);
+            font-weight: 600;
         }
 
         .purchase-details table {
             width: 100%;
             border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 12px;
         }
 
         .purchase-details th {
-            background: #e9ecef;
+            background: var(--color-bg-surface);
             padding: 8px;
-            font-size: 12px;
+            font-size: 11px;
             text-align: left;
+            color: var(--color-text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-family: var(--font-sans);
         }
 
         .purchase-details td {
             padding: 8px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--color-border);
             font-size: 12px;
         }
 
         .chart-wrapper {
-            background: white;
+            background: var(--color-bg-card);
             border-radius: var(--radius-card);
             padding: 20px;
-            margin-top: 30px;
+            margin-top: 24px;
             box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-border);
         }
 
         .chart-container {
@@ -815,14 +928,16 @@
             text-align: center;
             padding: 50px;
             color: var(--color-text-secondary);
+            font-size: 14px;
         }
 
         .error {
-            background: #fef0f0;
+            background: rgba(245, 101, 101, 0.1);
             color: var(--color-profit);
             padding: var(--pad-md);
             border-radius: var(--radius-sm);
             margin: var(--space-lg) 0;
+            border: 1px solid var(--color-profit);
         }
 
         /* ============================================================
@@ -880,6 +995,7 @@
 
         /* ============================================================
            【模块十】Modal 弹窗
+           专业金融终端风格：深色主题、高对比度
            ============================================================ */
 
         /* Modal Styles */
@@ -891,49 +1007,56 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
-            background-color: white;
-            margin: 5% auto;
+            background-color: var(--color-bg-card);
+            margin: 3% auto;
             padding: 0;
             width: 90%;
             max-width: 800px;
             border-radius: var(--radius-card);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             max-height: 90vh;
             overflow-y: auto;
+            border: 1px solid var(--color-border);
         }
 
         .modal-header {
             padding: 20px 30px;
-            background: var(--color-primary);
-            color: white;
-            border-radius: var(--radius-card) 15px 0 0;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            border-radius: var(--radius-card) var(--radius-card) 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .modal-header h2 {
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .close {
-            color: white;
+            color: var(--color-text-secondary);
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+            transition: color 0.2s;
         }
 
         .close:hover {
+            color: var(--color-text-primary);
             opacity: 0.7;
         }
 
         .modal-body {
             padding: 30px;
+            color: var(--color-text-primary);
         }
 
         .form-group {
@@ -948,21 +1071,31 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--color-text);
+            color: var(--color-text-primary);
             font-weight: 600;
+            font-size: 14px;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 10px 12px;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-sm);
             font-size: 14px;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            font-family: var(--font-mono);
+            transition: border-color 0.2s;
         }
 
         .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: var(--color-primary);
+            border-color: var(--color-text-accent);
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: var(--color-text-muted);
         }
 
         .records-list {
@@ -970,13 +1103,14 @@
         }
 
         .record-item {
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
             padding: var(--pad-md);
             border-radius: var(--radius-sm);
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid var(--color-border);
         }
 
         .record-info {
@@ -989,46 +1123,48 @@
         }
 
         .token-section {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
+            background: rgba(237, 137, 54, 0.1);
+            border: 1px solid var(--color-warning);
             padding: var(--pad-md);
             border-radius: var(--radius-sm);
             margin-bottom: var(--space-lg);
         }
 
         .token-section h3 {
-            color: #856404;
+            color: var(--color-warning);
             margin-bottom: 10px;
         }
 
         /* 快速配置面板 */
         .quick-config-panel {
-            background: #e8f5e9;
-            border: 1px solid #4caf50;
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid var(--color-loss);
             padding: var(--pad-md);
             border-radius: var(--radius-sm);
             margin-bottom: var(--space-lg);
         }
         .quick-config-panel h4 {
-            color: #2e7d32;
+            color: var(--color-loss);
             margin: 0 0 8px 0;
             font-size: 15px;
         }
         .quick-config-desc {
             font-size: 13px;
-            color: #555;
+            color: var(--color-text-secondary);
             margin-bottom: 12px;
             line-height: 1.6;
         }
         #quickTokenInput {
             width: 100%;
             padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
             font-size: 13px;
             resize: vertical;
             box-sizing: border-box;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
         }
         .quick-config-actions {
             display: flex;
@@ -1038,16 +1174,16 @@
         }
         .btn-save-config {
             padding: 8px 20px;
-            background: #4caf50;
+            background: var(--color-loss);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 14px;
             transition: background 0.2s;
         }
         .btn-save-config:hover {
-            background: #43a047;
+            background: var(--color-loss-hover);
         }
         #quickConfigStatus {
             font-size: 13px;
@@ -1073,7 +1209,7 @@
         }
 
         .settings-btn:hover {
-            background: #f0f0f0;
+            background: var(--color-bg-surface);
         }
 
         .settings-menu {
@@ -1081,35 +1217,28 @@
             position: absolute;
             right: 0;
             top: 40px;
-            background: white;
-            border-radius: 10px;
+            background: var(--color-bg-card);
+            border-radius: 8px;
             box-shadow: var(--shadow-sm);
             min-width: 180px;
             z-index: 100;
             overflow: hidden;
-        }
-
-        .settings-menu.show {
-            display: block;
+            border: 1px solid var(--color-border);
         }
 
         .settings-menu a {
             display: block;
             padding: 12px 16px;
-            color: var(--color-text);
+            color: var(--color-text-primary);
             text-decoration: none;
             font-size: 14px;
             cursor: pointer;
             transition: background 0.2s;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .settings-menu a:last-child {
-            border-bottom: none;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .settings-menu a:hover {
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
         }
 
         /* ============================================================
@@ -1123,8 +1252,8 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
             border-radius: 0 0 8px 8px;
             box-shadow: var(--shadow-sm);
             max-height: 240px;
@@ -1133,28 +1262,20 @@
             margin-top: 2px;
         }
 
-        .search-results.show {
-            display: block;
-        }
-
         .search-result-item {
             padding: 10px 14px;
             cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--color-border);
             transition: background 0.2s;
         }
 
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
         .search-result-item:hover {
-            background: #f5f7ff;
+            background: var(--color-bg-secondary);
         }
 
         .search-result-code {
             font-weight: bold;
-            color: var(--color-primary);
+            color: var(--color-text-accent);
             font-size: 14px;
         }
 
@@ -1208,7 +1329,7 @@
         }
         
         .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background: linear-gradient(90deg, var(--color-bg-surface) 25%, var(--color-bg-secondary) 50%, var(--color-bg-surface) 75%);
             background-size: 200% 100%;
             animation: skeleton-loading 1.5s infinite;
             border-radius: var(--radius-sm);
@@ -1220,30 +1341,29 @@
         }
 
         .skeleton-stat-card {
-            background: white;
-            padding: 25px;
+            background: var(--color-bg-card);
+            padding: 20px;
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
-        }
-
-        .skeleton-stat-card .skeleton {
-            margin-bottom: 10px;
+            border: 1px solid var(--color-border);
         }
 
         .skeleton-platform-section {
-            background: white;
-            padding: 30px;
+            background: var(--color-bg-card);
+            padding: 20px;
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            border: 1px solid var(--color-border);
         }
 
         .skeleton-fund-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--color-bg-card);
+            border-radius: var(--radius-card);
+            padding: 16px 20px;
             margin-bottom: var(--space-md);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--color-border);
         }
 
         /* ============================================================
@@ -1260,9 +1380,9 @@
 
         .sell-quick-btn {
             padding: 6px 14px;
-            border: 1.5px solid var(--color-primary);
-            background: white;
-            color: var(--color-primary);
+            border: 1.5px solid var(--color-text-accent);
+            background: transparent;
+            color: var(--color-text-accent);
             border-radius: 20px;
             cursor: pointer;
             font-size: 13px;
@@ -1271,13 +1391,13 @@
         }
 
         .sell-quick-btn:hover {
-            background: var(--color-primary);
-            color: white;
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
         }
 
         .sell-quick-btn.active {
-            background: var(--color-primary);
-            color: white;
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
         }
 
         .sell-quick-hint {
@@ -1311,41 +1431,48 @@
         }
 
         .confirm-dialog-content {
-            background: white;
+            background: var(--color-bg-card);
             border-radius: var(--radius-card);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             max-width: 600px;
             width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: slideIn 0.3s ease;
+            overflow: hidden;
+            border: 1px solid var(--color-border);
         }
 
         .confirm-dialog-header {
             padding: 20px 30px;
-            background: var(--color-primary);
-            color: white;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
             border-radius: var(--radius-card) var(--radius-card) 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .confirm-dialog-header .close {
             position: static;
             transform: none;
-            color: white;
+            color: var(--color-text-secondary);
             font-size: 28px;
             cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .confirm-dialog-header .close:hover {
+            color: var(--color-text-primary);
         }
 
         .confirm-dialog-header h3 {
             margin: 0;
             font-size: 18px;
+            font-weight: 600;
         }
 
         .confirm-dialog-body {
             padding: var(--pad-card);
+            color: var(--color-text-primary);
         }
 
         .confirm-section {
@@ -1354,19 +1481,23 @@
 
         .confirm-section h4 {
             font-size: 14px;
-            color: var(--color-text);
+            color: var(--color-text-primary);
             margin-bottom: 10px;
             padding-bottom: 8px;
-            border-bottom: 2px solid var(--color-primary-light);
+            border-bottom: 2px solid var(--color-text-accent);
+            font-weight: 600;
         }
 
         .confirm-item {
-            background: var(--bg-surface);
+            background: var(--color-bg-secondary);
             padding: 10px 14px;
             border-radius: 6px;
             margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
             font-size: 13px;
             line-height: 1.6;
+            border: 1px solid var(--color-border);
         }
 
         .confirm-item .label {
@@ -1375,7 +1506,7 @@
         }
 
         .confirm-item .value {
-            color: var(--color-text);
+            color: var(--color-text-primary);
             font-weight: 600;
         }
 
@@ -1397,8 +1528,9 @@
 
         /* 确认对话框：取消按钮（次要色） */
         #cancelConfirmBtn {
-            background: #909399;
-            color: white;
+            background: var(--color-bg-surface);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border-light);
         }
 
         /* 编辑对话框：取消按钮 */
@@ -1422,6 +1554,7 @@
             font-size: 14px;
             display: none;
             min-width: 280px;
+            border: 1px solid var(--color-border);
         }
 
         .sync-status.show {
@@ -1430,29 +1563,29 @@
         }
 
         .sync-status.loading {
-            background: #d9edf7;
-            color: #31708f;
-            border-left: 4px solid #5bc0de;
+            background: rgba(66, 153, 225, 0.1);
+            color: var(--color-info);
+            border-left: 4px solid var(--color-info);
         }
 
         .sync-status.success {
-            background: #dff0d8;
-            color: #3c763d;
-            border-left: 4px solid #5cb85c;
+            background: rgba(72, 187, 120, 0.1);
+            color: var(--color-loss);
+            border-left: 4px solid var(--color-loss);
         }
 
         .sync-status.error {
-            background: #f2dede;
-            color: #a94442;
-            border-left: 4px solid #d9534f;
+            background: rgba(245, 101, 101, 0.1);
+            color: var(--color-profit);
+            border-left: 4px solid var(--color-profit);
         }
 
         .sync-spinner {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid rgba(49,112,143,0.3);
-            border-top-color: #31708f;
+            border: 2px solid rgba(66, 153, 225, 0.3);
+            border-top-color: var(--color-info);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 8px;
@@ -1471,7 +1604,7 @@
 
         /* 搜索筛选栏 */
         .search-filter-bar {
-            background: white;
+            background: var(--color-bg-card);
             padding: var(--pad-content);
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-card);
@@ -1480,21 +1613,33 @@
             gap: 15px;
             align-items: center;
             flex-wrap: wrap;
+            border: 1px solid var(--color-border);
         }
 
         .search-filter-bar input[type="text"] {
             flex: 1;
             min-width: 200px;
             padding: 10px 15px;
-            border: 1.5px solid #dcdfe6;
-            border-radius: 25px;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-sm);
             font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            font-family: var(--font-mono);
         }
 
         .search-filter-bar input[type="text"]:focus {
-            border-color: var(--color-primary);
+            outline: none;
+            border-color: var(--color-text-accent);
+        }
+
+        .search-filter-bar select {
+            padding: 10px 15px;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
         }
 
         .filter-buttons {
@@ -1505,9 +1650,9 @@
 
         .filter-btn {
             padding: 6px 16px;
-            border: 1.5px solid #dcdfe6;
-            background: white;
-            color: #606266;
+            border: 1.5px solid var(--color-border-light);
+            background: transparent;
+            color: var(--color-text-secondary);
             border-radius: 20px;
             cursor: pointer;
             font-size: 13px;
@@ -1515,32 +1660,32 @@
         }
 
         .filter-btn:hover {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
+            border-color: var(--color-text-accent);
+            color: var(--color-text-accent);
         }
 
         .filter-btn.active {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-text-accent);
         }
 
         /* 周期切换按钮 */
         .period-btn {
             transition: all 0.3s;
-            background: var(--bg-surface-alt);
+            background: var(--color-bg-secondary);
             color: var(--color-text-secondary);
-            border: 1px solid #ddd;
+            border: 1px solid var(--color-border-light);
         }
         .period-btn:hover {
-            background: var(--color-primary);
-            color: #fff;
-            border-color: var(--color-primary);
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-text-accent);
         }
         .period-btn.active {
-            background: var(--color-primary);
-            color: #fff;
-            border-color: var(--color-primary);
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-text-accent);
         }
 
         /* 筛选隐藏 */
@@ -1713,14 +1858,14 @@
         }
 
         .modal-tab:hover {
-            color: var(--color-primary);
-            background: rgba(0,0,0,0.02);
+            color: var(--color-text-accent);
+            background: var(--color-bg-secondary);
         }
 
         .modal-tab.active {
-            color: var(--color-primary);
-            border-bottom-color: var(--color-primary);
-            background: rgba(0,0,0,0.02);
+            color: var(--color-text-accent);
+            border-bottom-color: var(--color-text-accent);
+            background: var(--color-bg-secondary);
         }
 
         .tab-panel {
@@ -1761,23 +1906,24 @@
         /* 提示信息优化 */
         .tip-box {
             background: var(--color-bg-secondary);
-            border-left: 4px solid var(--color-primary);
+            border-left: 4px solid var(--color-text-accent);
             padding: var(--pad-sm);
             border-radius: 6px;
             margin-bottom: var(--space-lg);
             font-size: 13px;
             line-height: 1.6;
+            color: var(--color-text-primary);
         }
 
         .tip-box.warning {
-            border-left-color: #f0ad4e;
-            background: #fcf8e3;
+            border-left-color: var(--color-warning);
+            background: rgba(237, 137, 54, 0.1);
             margin-top: 20px;
         }
 
         .tip-box.success {
-            border-left-color: #5cb85c;
-            background: #dff0d8;
+            border-left-color: var(--color-loss);
+            background: rgba(72, 187, 120, 0.1);
         }
 
         /* 交易记录平台筛选标签 */
@@ -1790,9 +1936,9 @@
 
         .records-filter-btn {
             padding: 6px 16px;
-            border: 1.5px solid #dcdfe6;
-            background: white;
-            color: #606266;
+            border: 1.5px solid var(--color-border-light);
+            background: transparent;
+            color: var(--color-text-secondary);
             border-radius: 20px;
             cursor: pointer;
             font-size: 13px;
@@ -1800,14 +1946,14 @@
         }
 
         .records-filter-btn:hover {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
+            border-color: var(--color-text-accent);
+            color: var(--color-text-accent);
         }
 
         .records-filter-btn.active {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-text-accent);
         }
 
         /* 上传状态提示 */
@@ -1821,6 +1967,7 @@
             z-index: 10000;
             font-size: 14px;
             display: none;
+            border: 1px solid var(--color-border);
         }
 
         .upload-status.show {
@@ -1829,21 +1976,21 @@
         }
 
         .upload-status.success {
-            background: #dff0d8;
-            color: #3c763d;
-            border-left: 4px solid #5cb85c;
+            background: rgba(72, 187, 120, 0.1);
+            color: var(--color-loss);
+            border-left: 4px solid var(--color-loss);
         }
 
         .upload-status.error {
-            background: #f2dede;
-            color: #a94442;
-            border-left: 4px solid #d9534f;
+            background: rgba(245, 101, 101, 0.1);
+            color: var(--color-profit);
+            border-left: 4px solid var(--color-profit);
         }
 
         .upload-status.loading {
-            background: #d9edf7;
-            color: #31708f;
-            border-left: 4px solid #5bc0de;
+            background: rgba(66, 153, 225, 0.1);
+            color: var(--color-info);
+            border-left: 4px solid var(--color-info);
         }
 
         /* ============================================================
@@ -1907,20 +2054,20 @@
         .more-btn {
             padding: 10px 20px;
             border: 1px solid var(--color-border);
-            background: white;
-            color: var(--color-text);
-            border-radius: 5px;
+            background: var(--color-bg-card);
+            color: var(--color-text-primary);
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
         .more-btn:hover {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
+            border-color: var(--color-text-accent);
+            color: var(--color-text-accent);
         }
 
         .more-dropdown-menu {
@@ -1928,18 +2075,19 @@
             position: absolute;
             right: 0;
             top: 100%;
-            background: white;
+            background: var(--color-bg-card);
             border-radius: var(--radius-sm);
             box-shadow: var(--shadow-sm);
             min-width: 200px;
             z-index: 1001;
             padding: 8px 0;
             margin-top: var(--space-xs);
+            border: 1px solid var(--color-border);
         }
 
         .more-dropdown-menu.show {
             display: block;
-            animation: fadeIn 0.2s ease;
+            animation: fadeInDown 0.2s ease;
         }
 
         /* Token 提示文字 */
@@ -1955,7 +2103,7 @@
             padding: 10px 20px;
             border: none;
             background: none;
-            color: var(--color-text);
+            color: var(--color-text-primary);
             font-size: 14px;
             text-align: left;
             cursor: pointer;
@@ -1963,7 +2111,7 @@
         }
 
         .more-menu-item:hover {
-            background: var(--color-bg-light);
+            background: var(--color-bg-secondary);
         }
 
         .more-menu-item.disabled {
@@ -1981,7 +2129,7 @@
             margin: 8px 0;
         }
 
-        @keyframes fadeIn {
+        @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
@@ -2897,7 +3045,7 @@
                             </tr>
                         </table>
                         ${fnd.holdings && fnd.holdings.realized_profit_loss !== 0 ? `
-                        <div class="realized-profit" style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">
+                        <div class="realized-profit" style="margin-top: 8px; padding: 8px; background: var(--color-bg-secondary); border-radius: 5px; font-size: 13px;">
                             <span style="color: var(--color-text-secondary);">已实现盈亏：</span>
                             <span style="font-weight: bold; color: ${fnd.holdings.realized_profit_loss >= 0 ? 'var(--color-profit)' : 'var(--color-loss)'};">
                                 ${fnd.holdings.realized_profit_loss >= 0 ? '+' : ''}¥${fnd.holdings.realized_profit_loss.toFixed(2)}
@@ -2905,9 +3053,9 @@
                         </div>
                         ` : ''}
                         ${fnd.holdings && fnd.holdings.avg_cost_nav > 0 ? `
-                        <div class="avg-cost" style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">
+                        <div class="avg-cost" style="margin-top: 8px; padding: 8px; background: var(--color-bg-secondary); border-radius: 5px; font-size: 13px;">
                             <span style="color: var(--color-text-secondary);">持仓成本：</span>
-                            <span style="font-weight: bold; color: var(--color-text);">
+                            <span style="font-weight: bold; color: var(--color-text-primary);">
                                 ${fnd.holdings.avg_cost_nav.toFixed(4)}
                             </span>
                         </div>
@@ -2954,7 +3102,7 @@
                                 <td>${escapeHtml(p.date)}</td>
                                 <td class="${typeClass}" style="font-weight: bold;">${typeLabel}</td>
                                 <td class="${typeClass}">¥${amountPrefix}${Math.abs(p.amount).toFixed(2)}</td>
-                                <td>${p.nav.toFixed(4)}${p.nav_source === 'next_trading_day' ? ' <span style="font-size:10px;color:#ff9800;" title="非交易日，按下一交易日净值确认">(延)</span>' : ''}</td>
+                                <td>${p.nav.toFixed(4)}${p.nav_source === 'next_trading_day' ? ' <span style="font-size:10px;color:var(--color-warning);" title="非交易日，按下一交易日净值确认">(延)</span>' : ''}</td>
                                 <td class="${typeClass}">${isSell ? '-' : '+'}${Math.abs(p.shares).toFixed(2)}</td>
                                 <td class="${isSell && p.realized_profit !== undefined ? (p.realized_profit >= 0 ? 'positive' : 'negative') : ''}">
                                     ${isSell && p.realized_profit !== undefined ? ((p.realized_profit >= 0 ? '+' : '') + '¥' + p.realized_profit.toFixed(2)) : '-'}
@@ -2967,11 +3115,11 @@
                     const totalInvested = fnd.holdings.total_invested || 0;
                     const totalShares = fnd.holdings.total_shares || 0;
                     html += `
-                            <tr style="background: #f8f9fa; font-weight: bold;">
+                            <tr style="background: var(--color-bg-secondary); font-weight: bold;">
                                 <td colspan="2" style="text-align: right; color: var(--color-text-secondary);">投入总金额：</td>
-                                <td style="color: var(--color-text);">¥${totalInvested.toFixed(2)}</td>
+                                <td style="color: var(--color-text-primary);">¥${totalInvested.toFixed(2)}</td>
                                 <td style="text-align: right; color: var(--color-text-secondary);">持有总份额：</td>
-                                <td style="color: var(--color-text);">${totalShares.toFixed(2)}</td>
+                                <td style="color: var(--color-text-primary);">${totalShares.toFixed(2)}</td>
                             </tr>
                     `;
 
@@ -3192,7 +3340,7 @@
                                 },
                                 font: { size: 11 }
                             },
-                            grid: { color: 'rgba(0,0,0,0.05)' }
+                            grid: { color: 'rgba(255,255,255,0.08)' }
                         }
                     }
                 },
@@ -3252,15 +3400,15 @@
             const yesterday = getBeijingYesterday();
 
             if (navDate === today) {
-                return '<span style="font-size:10px;color:#2196F3;">(已根据今日净值更新)</span>';
+                return '<span style="font-size:10px;color:var(--color-info);">(已根据今日净值更新)</span>';
             }
             if (navDate === yesterday) {
                 return ''; // 昨日净值不显示日期标签
             }
             // 更早的日期（延迟）
-            let html = `<span style="font-size:10px;color:#999;">(${escapeHtml(navDate)})</span>`;
+            let html = `<span style="font-size:10px;color:var(--color-text-muted);">(${escapeHtml(navDate)})</span>`;
             if (navStatus === 'delayed') {
-                html += '<span style="color:#ff9800;font-weight:bold;font-size:10px;margin-left:2px;">(延迟)</span>';
+                html += '<span style="color:var(--color-warning);font-weight:bold;font-size:10px;margin-left:2px;">(延迟)</span>';
             }
             return html;
         }
@@ -3446,7 +3594,7 @@
                     ...(costReturnRate !== null ? [{
                         label: '持仓成本',
                         data: labels.map(() => costReturnRate),
-                        borderColor: '#999',
+                        borderColor: '#718096',
                         borderWidth: 2,
                         borderDash: [5, 5],
                         fill: false,
@@ -3549,7 +3697,7 @@
                                 },
                                 font: { size: 11 }
                             },
-                            grid: { color: 'rgba(0,0,0,0.05)' }
+                            grid: { color: 'rgba(255,255,255,0.08)' }
                         }
                     }
                 }
@@ -3793,7 +3941,7 @@
             // 本地已有基金
             if (localMatches.length > 0) {
                 const header = document.createElement('div');
-                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
+                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: var(--color-bg-secondary);';
                 header.textContent = '已有基金';
                 resultsDiv.appendChild(header);
 
@@ -3815,7 +3963,7 @@
             // 联网搜索到的新基金
             if (newFunds.length > 0) {
                 const header = document.createElement('div');
-                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: #f8f9fa;';
+                header.style.cssText = 'padding: 6px 14px; font-size: 12px; color: var(--color-text-muted); background: var(--color-bg-secondary);';
                 header.textContent = '新基金（未持有）';
                 resultsDiv.appendChild(header);
 
@@ -5268,7 +5416,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             } else if (type === 'error') {
                 div.style.backgroundColor = 'var(--color-profit)';
             } else {
-                div.style.backgroundColor = '#909399';
+                div.style.backgroundColor = 'var(--color-bg-surface)';
             }
 
             if (useHTML) {
@@ -5281,7 +5429,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             if (action && action.text && action.callback) {
                 const btn = document.createElement('button');
                 btn.textContent = action.text;
-                btn.style.cssText = 'margin-left:12px;background:none;border:1px solid #fff;border-radius:4px;color:#fff;padding:4px 10px;cursor:pointer;font-size:13px;';
+                btn.style.cssText = 'margin-left:12px;background:none;border:1px solid var(--color-text-primary);border-radius:var(--radius-sm);color:var(--color-text-primary);padding:4px 10px;cursor:pointer;font-size:13px;';
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     action.callback();
@@ -5374,9 +5522,9 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
             // 构建确认内容
             let html = '<div style="margin-bottom:12px;">确认将以下交易记录保存并同步到 GitHub？</div>';
-            html += '<div style="background:#f7f8fa;border-radius:6px;padding:12px;margin-bottom:12px;font-size:13px;max-height:200px;overflow-y:auto;">';
+            html += '<div style="background:var(--color-bg-secondary);border-radius:6px;padding:12px;margin-bottom:12px;font-size:13px;max-height:200px;overflow-y:auto;">';
             if (fundCodes.length === 0) {
-                html += '<div style="color:#999;">暂无交易记录</div>';
+                html += '<div style="color:var(--color-text-muted);">暂无交易记录</div>';
             } else {
                 html += '<div style="margin-bottom:6px;">共 <b>' + fundCodes.length + '</b> 只基金，<b>' + totalCount + '</b> 条记录</div>';
                 fundCodes.forEach(code => {
@@ -5389,15 +5537,15 @@ function deletePurchaseRecord(platform, fundCode, index) {
                             if (found) { fundName = found.name; break; }
                         }
                     }
-                    html += '<div style="margin:4px 0;padding:4px 0;border-bottom:1px solid #eee;">';
+                    html += '<div style="margin:4px 0;padding:4px 0;border-bottom:1px solid var(--color-border);">';
                     html += '<span style="font-weight:600;">' + fundName + '</span>';
-                    html += ' <span style="color:#888;">(' + code + ')</span>';
-                    html += ' <span style="color:#666;">— ' + list.length + ' 笔</span>';
+                    html += ' <span style="color:var(--color-text-muted);">(' + code + ')</span>';
+                    html += ' <span style="color:var(--color-text-muted);">— ' + list.length + ' 笔</span>';
                     html += '</div>';
                 });
             }
             html += '</div>';
-            html += '<div style="font-size:12px;color:#888;">保存后将推送到 GitHub 仓库，并触发数据更新工作流。</div>';
+            html += '<div style="font-size:12px;color:var(--color-text-muted);">保存后将推送到 GitHub 仓库，并触发数据更新工作流。</div>';
 
             body.innerHTML = html;
             dialog.classList.add('show');

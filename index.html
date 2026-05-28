@@ -2881,24 +2881,18 @@
                                 <td>持仓收益</td>
                             </tr>
                             <tr class="metric-values">
-                                <td>
-                                    <div class="flex-baseline">
-                                        <span>${yesterdayNav.toFixed(4)}</span>
-                                        <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
-                                    </div>
+                                <td style="position: relative;">
+                                    <span>${yesterdayNav.toFixed(4)}</span>
+                                    <span style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 10px; white-space: nowrap;">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                 </td>
-                                <td class="${yesterdayClass}">
-                                    <div class="flex-baseline">
-                                        <span>${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%</span>
-                                        <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
-                                    </div>
+                                <td class="${yesterdayClass}" style="position: relative;">
+                                    <span>${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%</span>
+                                    <span style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 10px; white-space: nowrap;">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                 </td>
-                                <td class="${yesterdayClass}">
+                                <td class="${yesterdayClass}" style="position: relative;">
                                     ${fnd.holdings ? `
-                                    <div class="flex-baseline">
-                                        <span>${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}</span>
-                                        <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
-                                    </div>
+                                    <span>${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}</span>
+                                    <span style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 10px; white-space: nowrap;">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     ` : '-'}
                                 </td>
                                 <td class="${profitClass}">${fnd.holdings ? ((fnd.holdings.profit_loss_percent >= 0 ? '+' : '') + fnd.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>

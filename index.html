@@ -418,6 +418,7 @@
         .flex-baseline {
             display: flex;
             align-items: baseline;
+            justify-content: center;
         }
 
         .flex-1 {
@@ -2882,14 +2883,12 @@
                             <tr class="metric-values">
                                 <td>
                                     <div class="flex-baseline">
-                                        <span class="flex-1"></span>
                                         <span>${yesterdayNav.toFixed(4)}</span>
                                         <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     </div>
                                 </td>
                                 <td class="${yesterdayClass}">
                                     <div class="flex-baseline">
-                                        <span class="flex-1"></span>
                                         <span>${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%</span>
                                         <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     </div>
@@ -2897,7 +2896,6 @@
                                 <td class="${yesterdayClass}">
                                     ${fnd.holdings ? `
                                     <div class="flex-baseline">
-                                        <span class="flex-1"></span>
                                         <span>${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}</span>
                                         <span class="text-right font-size-10 whitespace-nowrap">${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}</span>
                                     </div>

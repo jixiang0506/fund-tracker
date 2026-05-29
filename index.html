@@ -829,6 +829,15 @@
             letter-spacing: -0.3px;
         }
 
+        .metric-date-label {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 2px;
+            line-height: 1.2;
+            font-weight: normal;
+            font-family: var(--font-sans);
+        }
+
         /* 固定6列宽度，确保不同基金卡片之间纵向对齐 */
         .fund-metrics td:nth-child(1) { width: 14%; }
         .fund-metrics td:nth-child(2) { width: 16%; }
@@ -3015,6 +3024,7 @@
                 const yesterdayReturn = fnd.yesterday_return || 0;
                 const yesterdayProfit = fnd.yesterday_profit || 0;
                 const yesterdayClass = yesterdayReturn >= 0 ? 'positive' : 'negative';
+                const navDateLabel = getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status);
 
                 html += `
                     <div class="fund-card" data-platform="${encAttr(platformName)}" data-code="${encAttr(fnd.code)}">
@@ -3037,15 +3047,17 @@
                                 <td>持仓收益</td>
                             </tr>
                             <tr class="metric-values">
-                                <td style="text-align: center;">
-                                    ${yesterdayNav.toFixed(4)}${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}
+                                <td>
+                                    <div>${yesterdayNav.toFixed(4)}</div>
+                                    ${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}
                                 </td>
-                                <td class="${yesterdayClass}" style="text-align: center;">
-                                    ${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}
+                                <td class="${yesterdayClass}">
+                                    <div>${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%</div>
+                                    ${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}
                                 </td>
-                                <td class="${yesterdayClass}" style="text-align: center;">
+                                <td class="${yesterdayClass}">
                                     ${fnd.holdings
-                                        ? `${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}${getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status)}`
+                                        ? `<div>${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}</div>${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}`
                                         : '-'}
                                 </td>
                                 <td class="${profitClass}">${fnd.holdings ? ((fnd.holdings.profit_loss_percent >= 0 ? '+' : '') + fnd.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>

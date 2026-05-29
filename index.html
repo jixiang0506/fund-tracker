@@ -4107,7 +4107,8 @@
 
         // 卖出快捷按钮：按比例填充份额（卖出固定按份额）
         function applySellPercent(percent) {
-            const holdingsShares = parseFloat(DOM.holdingsShares.textContent.replace(' 份','')) || 0;
+            const sharesText = DOM.holdingsShares.textContent.replace(' 份','').trim();
+            const holdingsShares = parseFloat(sharesText) || 0;
 
             // 高亮当前选中按钮
             document.querySelectorAll('.sell-quick-btn').forEach(btn => btn.classList.remove('active'));
@@ -4115,6 +4116,12 @@
             const btns = document.querySelectorAll('.sell-quick-btn');
             if (btnMap[percent] !== undefined && btns[btnMap[percent]]) {
                 btns[btnMap[percent]].classList.add('active');
+            }
+
+            if (!holdingsShares || sharesText === '-') {
+                DOM.sellQuickHint.textContent = '请先选择有持仓的基金';
+                DOM.sellQuickHint.style.display = 'block';
+                return;
             }
 
             const shares = holdingsShares * percent;
@@ -4211,7 +4218,15 @@
                 return;
             }
 
-            const fund = state.fundsData.funds[platform]?.find(f => f.code === fundCode);
+            // 先尝试从当前平台查找，找不到则遍历所有平台
+            let fund = state.fundsData.funds[platform]?.find(f => f.code === fundCode);
+            if (!fund) {
+                for (const p in state.fundsData.funds) {
+                    const found = state.fundsData.funds[p].find(f => f.code === fundCode);
+                    if (found) { fund = found; break; }
+                }
+            }
+
             if (fund && fund.holdings) {
                 const value = fund.holdings.current_value || 0;
                 const shares = fund.holdings.total_shares || 0;

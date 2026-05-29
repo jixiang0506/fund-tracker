@@ -4110,6 +4110,10 @@
             if (DOM.recordType.value === 'sell') {
                 updateSellHoldingsInfo();
             }
+            // 日期已选时，联动更新该日期的净值提示
+            if (DOM.recordDate.value) {
+                onRecordDateChange();
+            }
         }
 
         // 卖出快捷按钮：按比例填充份额（卖出固定按份额）
@@ -4303,7 +4307,7 @@
             }
 
             const nav = parseFloat(navVal);
-            DOM.navHint.textContent = '使用手动输入净值: ¥' + nav.toFixed(4);
+            DOM.navHint.textContent = '使用手动输入净值: ' + nav.toFixed(4);
 
             if (isSell) {
                 // 卖出：重新计算份额对应的金额提示
@@ -4315,6 +4319,55 @@
                     const shares = amount / nav;
                     DOM.navHint.textContent += ' (≈ ' + shares.toFixed(2) + ' 份)';
                 }
+            }
+        }
+
+        // 交易日期变化时，查找并显示对应日期的基金净值
+        function onRecordDateChange() {
+            const fundCode = DOM.recordFund.value;
+            const date = DOM.recordDate.value;
+
+            if (!fundCode || !date || !state.fundsData || !state.fundsData.funds) {
+                DOM.navHint.textContent = '留空将自动根据交易日期获取对应净值';
+                return;
+            }
+
+            // 查找基金数据
+            let fund = null;
+            for (const p of Object.keys(state.fundsData.funds)) {
+                const found = state.fundsData.funds[p].find(f => f.code === fundCode);
+                if (found) { fund = found; break; }
+            }
+
+            if (!fund || !fund.history || fund.history.length === 0) {
+                DOM.navHint.textContent = '留空将自动根据交易日期获取对应净值';
+                return;
+            }
+
+            // 在历史数据中查找对应日期的净值
+            const record = fund.history.find(h => h.date === date);
+
+            if (record && record.nav > 0) {
+                const navStr = record.nav.toFixed(4);
+                // 若净值输入框为空，自动填充
+                if (!DOM.recordNav.value) {
+                    DOM.recordNav.value = record.nav.toFixed(4);
+                    DOM.navHint.textContent = date + ' 净值: ' + navStr + '（已自动填充）';
+                } else {
+                    DOM.navHint.textContent = date + ' 净值: ' + navStr + '（当前为手动输入值）';
+                }
+            } else {
+                // 未找到该日期净值（非交易日或数据缺失）
+                if (!DOM.recordNav.value) {
+                    DOM.navHint.textContent = date + ' 为非交易日或数据缺失，将按规则自动获取对应净值';
+                } else {
+                    DOM.navHint.textContent = date + ' 为非交易日或数据缺失（当前为手动输入净值）';
+                }
+            }
+
+            // 触发卖出金额重算
+            if (DOM.recordType.value === 'sell') {
+                onSharesInput();
             }
         }
 
@@ -5811,6 +5864,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             document.getElementById('recordPlatform')?.addEventListener('change', updateFundCodes);
             document.getElementById('recordFund')?.addEventListener('change', onFundSelect);
             document.getElementById('recordType')?.addEventListener('change', onRecordTypeChange);
+            document.getElementById('recordDate')?.addEventListener('change', onRecordDateChange);
 
             // 金额和份额输入框
             document.getElementById('recordAmount')?.addEventListener('input', onAmountInput);

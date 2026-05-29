@@ -2548,12 +2548,12 @@
                 this.sellFundSelectGroup = document.getElementById('sellFundSelectGroup');
 
                 // 交易表单元素（续）
-                this.recordDate = DOM.recordDate;
+                this.recordDate = document.getElementById('recordDate');
                 this.recordNav = document.getElementById('recordNav');
                 this.recordBefore15 = document.getElementById('recordBefore15');
                 this.navHint = document.getElementById('navHint');
-                this.holdingsValue = DOM.holdingsValue;
-                this.holdingsNav = DOM.holdingsNav;
+                this.holdingsValue = document.getElementById('holdingsValue');
+                this.holdingsNav = document.getElementById('holdingsNav');
 
                 this.githubToken = document.getElementById('githubToken');
                 this.repoOwner = document.getElementById('repoOwner');
@@ -3741,12 +3741,19 @@
         }
 
         // 打开管理Modal
-        function openManageModal() {
+        // 打开管理弹窗，支持传入初始模式（'buy' 或 'sell'）
+        function openManageModal(initialType) {
             DOM.manageModal.style.display = 'block';
             populatePlatformSelect();
-            renderRecordsList();  // 每次打开时刷新记录列表
+            renderRecordsList();
             updateProfitLossSummary();
-            clearRecordForm();    // 重置表单为初始状态（买入模式）
+
+            if (initialType === 'sell') {
+                DOM.recordType.value = 'sell';
+                onRecordTypeChange();
+            } else {
+                clearRecordForm();
+            }
         }
 
         // 关闭管理Modal
@@ -4181,17 +4188,29 @@
             const select = DOM.recordFund;
             select.innerHTML = '<option value="">-- 选择基金 --</option>';
 
-            if (!platform || !state.fundsData?.funds?.[platform]) return;
+            if (!state.fundsData || !state.fundsData.funds) return;
 
-            // 只显示有持仓的基金
-            const funds = state.fundsData.funds[platform].filter(f => {
-                const holdings = f.holdings;
-                return holdings && (holdings.total_shares || 0) > 0;
-            });
+            // 收集有持仓的基金：如果选中了平台只查该平台，否则查所有平台
+            let funds = [];
+            if (platform && state.fundsData.funds[platform]) {
+                funds = state.fundsData.funds[platform].filter(f => {
+                    return f.holdings && (f.holdings.total_shares || 0) > 0;
+                }).map(f => ({ ...f, _platform: platform }));
+            } else {
+                // 使用 Object.keys() 避免 for...in 遍历原型链
+                for (const p of Object.keys(state.fundsData.funds)) {
+                    const withHoldings = (state.fundsData.funds[p] || []).filter(f => {
+                        return f.holdings && (f.holdings.total_shares || 0) > 0;
+                    }).map(f => ({ ...f, _platform: p }));
+                    funds.push(...withHoldings);
+                }
+            }
 
             funds.forEach(fnd => {
                 const option = document.createElement('option');
                 option.value = fnd.code;
+                // 保存平台信息，供 updateSellHoldingsInfo 使用
+                option.dataset.platform = fnd._platform || '';
                 option.textContent = `${fnd.code} - ${fnd.name}`;
                 select.appendChild(option);
             });
@@ -4205,10 +4224,9 @@
 
         // 更新卖出时的持仓信息显示
         function updateSellHoldingsInfo() {
-            const platform = DOM.recordPlatform.value;
             const fundCode = DOM.recordFund.value;
 
-            if (!platform || !fundCode || !state.fundsData || !state.fundsData.funds) {
+            if (!fundCode || !state.fundsData || !state.fundsData.funds) {
                 DOM.holdingsValue.textContent = '-';
                 DOM.holdingsShares.textContent = '-';
                 DOM.holdingsNav.textContent = '-';
@@ -4218,13 +4236,11 @@
                 return;
             }
 
-            // 先尝试从当前平台查找，找不到则遍历所有平台
-            let fund = state.fundsData.funds[platform]?.find(f => f.code === fundCode);
-            if (!fund) {
-                for (const p in state.fundsData.funds) {
-                    const found = state.fundsData.funds[p].find(f => f.code === fundCode);
-                    if (found) { fund = found; break; }
-                }
+            // 直接遍历所有平台查找基金（基金总数少，性能无影响）
+            let fund = null;
+            for (const p of Object.keys(state.fundsData.funds)) {
+                const found = state.fundsData.funds[p].find(f => f.code === fundCode);
+                if (found) { fund = found; break; }
             }
 
             if (fund && fund.holdings) {

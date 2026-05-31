@@ -4757,7 +4757,7 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
     // 自动上传到 GitHub，返回 Promise
     return autoUploadToGitHub().then(() => {
         console.log('自动上传成功');
-        loadData();
+        // 不再调用 loadData()，state 已是最新数据，避免 CDN 延迟导致旧数据覆盖
         state.dataUpdate.newFundCode = fundCode;
         startDataUpdatePolling();
     }).catch(err => {
@@ -5368,6 +5368,7 @@ function updateProfitLossSummary() {
 
     if (summaryDiv) summaryDiv.style.display = 'block';
         }
+
 
 // 渲染交易记录平台筛选标签
 function renderRecordsFilterButtons() {

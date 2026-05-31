@@ -5323,7 +5323,7 @@ function updateProfitLossSummary() {
     const contentDiv = document.getElementById('summaryContent');
 
     if (!state.fundsData || !state.fundsData.summary) {
-        summaryDiv.style.display = 'none';
+        if (summaryDiv) summaryDiv.style.display = 'none';
         return;
     }
 
@@ -5339,6 +5339,7 @@ function updateProfitLossSummary() {
     const realizedClass = totalRealizedProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
     const realizedSign = totalRealizedProfit >= 0 ? '+' : '';
 
+    if (!contentDiv) return;
     contentDiv.innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
     <div>
@@ -5365,7 +5366,7 @@ function updateProfitLossSummary() {
         <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">最后更新: ${escapeHtml(state.fundsData.update_time)}</div>
     `;
 
-    summaryDiv.style.display = 'block';
+    if (summaryDiv) summaryDiv.style.display = 'block';
         }
 
 // 渲染交易记录平台筛选标签

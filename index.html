@@ -2733,10 +2733,11 @@
             return new TextDecoder('utf-8').decode(bytes);
         }
 
-        function applyPurchaseRecords(records, message, type = 'success') {
+        // 纯数据操作：应用交易记录到 state + 重新渲染列表
+        // ⚠️ 注意：此函数不弹提示，调用方需显式调用 showMessage()
+        function applyPurchaseRecords(records) {
             state.purchaseRecords = records || {};
             renderRecordsList();
-            showMessage(message, type);
         }
 
         // 从本地JSON文件加载买入记录（强制UTF-8解码）
@@ -2746,14 +2747,14 @@
                 if (response.ok) {
                     const buffer = await response.arrayBuffer();
                     const text = new TextDecoder('utf-8').decode(buffer);
-                    applyPurchaseRecords(JSON.parse(text), '已从文件加载买入记录', 'success');
+                    applyPurchaseRecords(JSON.parse(text));
                     console.log('从文件加载买入记录成功:', state.purchaseRecords);
                     showMessage('已从文件加载买入记录', 'success');
                 } else {
                     // 如果文件不存在，尝试从本地存储加载
                     const localData = localStorage.getItem('purchase_records');
                     if (localData) {
-                        applyPurchaseRecords(JSON.parse(localData), '已从本地存储加载买入记录', 'info');
+                        applyPurchaseRecords(JSON.parse(localData));
                         console.log('从本地存储加载买入记录');
                         showMessage('已从本地存储加载买入记录', 'info');
                     } else {
@@ -2766,7 +2767,7 @@
                 // 尝试从本地存储加载
                 const localData = localStorage.getItem('purchase_records');
                 if (localData) {
-                    applyPurchaseRecords(JSON.parse(localData), '已从本地存储加载买入记录', 'info');
+                    applyPurchaseRecords(JSON.parse(localData));
                     showMessage('已从本地存储加载买入记录', 'info');
                 } else {
                     state.purchaseRecords = {};
@@ -4537,9 +4538,11 @@
                 if (response.ok) {
                     const data = await response.json();
                     const content = decodeUtf8Base64(data.content);
-                    applyPurchaseRecords(JSON.parse(content), '交易记录加载成功', 'success');
+                    applyPurchaseRecords(JSON.parse(content));
+                    showMessage('交易记录加载成功', 'success');
                 } else if (response.status === 404) {
-                    applyPurchaseRecords({}, '未找到交易记录文件，将创建新文件', 'info');
+                    applyPurchaseRecords({});
+                    showMessage('未找到交易记录文件，将创建新文件', 'info');
                 } else {
                     throw new Error('加载失败');
                 }

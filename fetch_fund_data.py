@@ -1203,7 +1203,7 @@ def main():
     log(f"  昨日盈亏: {yesterday_sign}¥{summary['yesterday_profit_loss']:.2f} ({yesterday_sign}{summary['yesterday_profit_loss_percent']:.2f}%)")
     realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
     log(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
-    log(f"  总盈亏: ¥{profit_sign}{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    log(f"  总盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
     if failed_funds:
         log(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
     log("="*60)
@@ -1294,7 +1294,7 @@ def fetch_fund_info_from_web(code, session=None):
         resp = session.get(url, timeout=10)
         if resp.status_code == 200:
             # 解析 JSONP: jsonpgz({...});
-            match = re.search(r'jsonpgz\((.*)\);?\s*$', resp.text, re.DOTALL)
+            match = re.search(r'jsonpgz\((.*?)\);?\s*$', resp.text, re.DOTALL)
             if match:
                 data = json.loads(match.group(1))
                 name = data.get("name", "")

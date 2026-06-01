@@ -1111,7 +1111,7 @@ def main():
         for platform, code, fund_start_date in fund_tasks:
             future = executor.submit(
                 process_fund, platform, code, fund_start_date,
-                None,  # process_fund 内部创建自己的 HTTP session
+                http_session,  # 传递共享 session，避免每只基金重复创建
                 purchase_records, qdii_codes, fund_names,
                 prev_fund_map, today, history_cache
             )

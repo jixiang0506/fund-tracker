@@ -2895,8 +2895,10 @@
             } catch (error) {
                 console.error('加载数据失败:', error);
                 showMessage('⚠️ 数据加载失败: ' + error.message, 'error');
-                document.getElementById('skeletonScreen').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
+                const skeletonScreen = document.getElementById('skeletonScreen');
+                const mainContent = document.getElementById('mainContent');
+                if (skeletonScreen) skeletonScreen.style.display = 'none';
+                if (mainContent) mainContent.style.display = 'block';
 
                 // 检测是否为 CORS 错误（本地 file:// 打开时常见）
                 const isFileProtocol = window.location.protocol === 'file:';
@@ -3593,7 +3595,7 @@
             let benchmarkDataPoints = null;
             const benchmark = getFundBenchmark(fundCode, platformName);
             
-            if (benchmark && state.benchmarkIndexData) {
+            if (benchmark && state.benchmarkIndexData && Object.keys(state.benchmarkIndexData).length > 0) {
                 // 根据基准字符串找到对应的指数代码
                 let indexCode = null;
                 for (const [key, code] of Object.entries(BENCHMARK_INDEX_MAP)) {

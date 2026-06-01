@@ -2016,6 +2016,29 @@
             border-color: var(--color-text-accent);
         }
 
+        /* 交易记录类型筛选标签 */
+        .records-type-filter-btn {
+            padding: 6px 16px;
+            border: 1.5px solid var(--color-border-light);
+            background: transparent;
+            color: var(--color-text-secondary);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        .records-type-filter-btn:hover {
+            border-color: var(--color-text-accent);
+            color: var(--color-text-accent);
+        }
+
+        .records-type-filter-btn.active {
+            background: var(--color-text-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-text-accent);
+        }
+
         /* 上传状态提示 */
         .upload-status {
             position: fixed;
@@ -2390,6 +2413,12 @@
                 <div id="recordsFilterButtons" class="records-filter-buttons">
                     <button class="records-filter-btn active" data-platform="全部">全部</button>
                 </div>
+                <!-- 交易记录类型筛选标签 -->
+                <div id="recordsTypeFilterButtons" class="records-filter-buttons">
+                    <button class="records-type-filter-btn active" data-type="全部">全部</button>
+                    <button class="records-type-filter-btn" data-type="buy">买入</button>
+                    <button class="records-type-filter-btn" data-type="sell">卖出</button>
+                </div>
                 <div id="recordsList" class="records-list">
                     <p id="emptyRecordHint">请先加载买入记录</p>
                 </div>
@@ -2499,7 +2528,8 @@
 
                 // 交易记录筛选状态
                 recordsFilter: {
-                    platform: '全部'
+                    platform: '全部',
+                    type: '全部'
                 },
 
                 // 数据更新轮询状态
@@ -5391,11 +5421,30 @@ function renderRecordsFilterButtons() {
         html += `<button class="records-filter-btn${active}" data-platform="${encAttr(p)}">${escapeHtml(p)}</button>`;
     });
     container.innerHTML = html;
+
+    // 同步更新类型筛选按钮的激活状态（使用 decAttr 与事件处理保持一致）
+    const typeContainer = document.getElementById('recordsTypeFilterButtons');
+    if (typeContainer) {
+        typeContainer.querySelectorAll('.records-type-filter-btn').forEach(btn => {
+            const btnType = decAttr(btn.dataset.type);
+            if (btnType === state.recordsFilter.type) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
 }
 
 // 按平台筛选交易记录
 function filterRecordsByPlatform(platform) {
     state.recordsFilter.platform = platform;
+    renderRecordsList();
+}
+
+// 按交易类型筛选交易记录
+function filterRecordsByType(type) {
+    state.recordsFilter.type = type;
     renderRecordsList();
 }
 
@@ -5424,6 +5473,12 @@ function renderRecordsList() {
 
             records.forEach((record, index) => {
                 if (!record || !record.date) return;
+
+                // 交易类型筛选
+                if (state.recordsFilter.type !== '全部') {
+                    const recordType = record.type === 'sell' ? 'sell' : 'buy';
+                    if (recordType !== state.recordsFilter.type) return;
+                }
 
                 allRecords.push({
                     platform: platform,
@@ -5838,6 +5893,15 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 if (btn) {
                     const platform = decAttr(btn.dataset.platform);
                     filterRecordsByPlatform(platform);
+                }
+            });
+
+            // 3.6 交易记录类型筛选按钮（事件委托）
+            document.getElementById('recordsTypeFilterButtons')?.addEventListener('click', function(e) {
+                const btn = e.target.closest('.records-type-filter-btn');
+                if (btn) {
+                    const type = decAttr(btn.dataset.type);
+                    filterRecordsByType(type);
                 }
             });
 

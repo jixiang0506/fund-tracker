@@ -288,7 +288,6 @@
             transition: border-color 0.2s, background 0.2s, color 0.2s, font-weight 0.2s;
             color: var(--color-text-secondary);
             font-weight: 500;
-            transition: border-color 0.2s, background 0.2s, color 0.2s, font-weight 0.2s;
         }
 
         .sell-mode-btn.active {
@@ -518,10 +517,6 @@
         }
 
         .margin-top-4 {
-            margin-top: var(--space-xs);
-        }
-
-        .margin-top-5 {
             margin-top: var(--space-xs);
         }
 
@@ -3294,12 +3289,6 @@
                 btn.classList.toggle('active', btn.dataset.period === state.charts.period);
             });
 
-            // 销毁旧图表，防止重复叠加
-            if (state.charts.mainInstance) {
-                state.charts.mainInstance.destroy();
-                state.charts.mainInstance = null;
-            }
-
             // 收集所有基金
             let allFunds = [];
             for (const platform in state.fundsData.funds) {
@@ -3383,67 +3372,77 @@
                 };
             });
 
-            const zeroLinePlugin = createZeroLinePlugin();
+            const chart = state.charts.mainInstance;
 
-            state.charts.mainInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: mappedDatasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: state.charts.period === 'all' ? '累计收益率走势（%）' : '周期收益率对比（%）',
-                            color: '#e2e8f0'
-                        },
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: { size: 11 },
-                                color: '#e2e8f0',
-                                usePointStyle: true,
-                                padding: 15
+            if (chart) {
+                // 增量更新：只更新数据和选项，不销毁重建
+                chart.data.labels = labels;
+                chart.data.datasets = mappedDatasets;
+                chart.options.plugins.title.text = state.charts.period === 'all' ? '累计收益率走势（%）' : '周期收益率对比（%）';
+                chart.update();
+            } else {
+                // 首次创建
+                const zeroLinePlugin = createZeroLinePlugin();
+                state.charts.mainInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: mappedDatasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: state.charts.period === 'all' ? '累计收益率走势（%）' : '周期收益率对比（%）',
+                                color: '#e2e8f0'
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    font: { size: 11 },
+                                    color: '#e2e8f0',
+                                    usePointStyle: true,
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const v = context.parsed.y;
+                                        const sign = v >= 0 ? '+' : '';
+                                        return context.dataset.label + ': ' + sign + v.toFixed(2) + '%';
+                                    }
+                                }
                             }
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const v = context.parsed.y;
-                                    const sign = v >= 0 ? '+' : '';
-                                    return context.dataset.label + ': ' + sign + v.toFixed(2) + '%';
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    maxTicksLimit: 8,
+                                    font: { size: 11 },
+                                    color: '#a0aec0'
                                 }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toFixed(1) + '%';
+                                    },
+                                    font: { size: 11 },
+                                    color: '#a0aec0'
+                                },
+                                grid: { color: 'rgba(255,255,255,0.08)' }
                             }
                         }
                     },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                maxTicksLimit: 8,
-                                font: { size: 11 },
-                                color: '#a0aec0'
-                            }
-                        },
-                        y: {
-                            beginAtZero: false,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toFixed(1) + '%';
-                                },
-                                font: { size: 11 },
-                                color: '#a0aec0'
-                            },
-                            grid: { color: 'rgba(255,255,255,0.08)' }
-                        }
-                    }
-                },
-                plugins: [zeroLinePlugin]
-            });
+                    plugins: [zeroLinePlugin]
+                });
+            }
         }
 
 

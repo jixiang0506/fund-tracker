@@ -322,7 +322,7 @@
             margin-bottom: 8px;
             background: linear-gradient(90deg, var(--color-bg-surface) 25%, var(--color-bg-secondary) 50%, var(--color-bg-surface) 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            animation: skeleton-loading 1.5s infinite;
             border-radius: 4px;
         }
 
@@ -332,13 +332,8 @@
             margin-bottom: 4px;
             background: linear-gradient(90deg, var(--color-bg-surface) 25%, var(--color-bg-secondary) 50%, var(--color-bg-surface) 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            animation: skeleton-loading 1.5s infinite;
             border-radius: 4px;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
 
         .skeleton-fund-name {
@@ -525,10 +520,6 @@
         }
 
         .margin-top-10 {
-            margin-top: var(--space-md);
-        }
-
-        .margin-top-15 {
             margin-top: var(--space-md);
         }
 
@@ -1646,13 +1637,9 @@
             border: 2px solid rgba(66, 153, 225, 0.3);
             border-top-color: var(--color-info);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: btnSpin 1s linear infinite;
             margin-right: 8px;
             vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
         .sync-progress {
@@ -1712,7 +1699,9 @@
             flex-wrap: wrap;
         }
 
-        .filter-btn {
+        .filter-btn,
+        .records-filter-btn,
+        .records-type-filter-btn {
             padding: 6px 16px;
             border: 1.5px solid var(--color-border-light);
             background: transparent;
@@ -1723,12 +1712,16 @@
             transition: border-color 0.2s, color 0.2s, background 0.2s;
         }
 
-        .filter-btn:hover {
+        .filter-btn:hover,
+        .records-filter-btn:hover,
+        .records-type-filter-btn:hover {
             border-color: var(--color-text-accent);
             color: var(--color-text-accent);
         }
 
-        .filter-btn.active {
+        .filter-btn.active,
+        .records-filter-btn.active,
+        .records-type-filter-btn.active {
             background: var(--color-text-accent);
             color: var(--color-bg-primary);
             border-color: var(--color-text-accent);
@@ -1852,7 +1845,9 @@
                 gap: 6px;
             }
 
-            .filter-btn {
+            .filter-btn,
+            .records-filter-btn,
+            .records-type-filter-btn {
                 padding: 4px 10px;
                 font-size: 12px;
             }
@@ -1992,51 +1987,6 @@
             gap: var(--space-sm);
             flex-wrap: wrap;
             margin-bottom: var(--space-md);
-        }
-
-        .records-filter-btn {
-            padding: 6px 16px;
-            border: 1.5px solid var(--color-border-light);
-            background: transparent;
-            color: var(--color-text-secondary);
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: border-color 0.2s, color 0.2s, background 0.2s;
-        }
-
-        .records-filter-btn:hover {
-            border-color: var(--color-text-accent);
-            color: var(--color-text-accent);
-        }
-
-        .records-filter-btn.active {
-            background: var(--color-text-accent);
-            color: var(--color-bg-primary);
-            border-color: var(--color-text-accent);
-        }
-
-        /* 交易记录类型筛选标签 */
-        .records-type-filter-btn {
-            padding: 6px 16px;
-            border: 1.5px solid var(--color-border-light);
-            background: transparent;
-            color: var(--color-text-secondary);
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: border-color 0.2s, color 0.2s, background 0.2s;
-        }
-
-        .records-type-filter-btn:hover {
-            border-color: var(--color-text-accent);
-            color: var(--color-text-accent);
-        }
-
-        .records-type-filter-btn.active {
-            background: var(--color-text-accent);
-            color: var(--color-bg-primary);
-            border-color: var(--color-text-accent);
         }
 
         /* 上传状态提示 */
@@ -2221,8 +2171,6 @@
     <!-- ========== CSS样式结束 ========== -->
     <!-- ============================================ -->
     </style>
-        <script src="github_api.js"></script>
-        <script src="sync.js"></script>
     <!-- ============================================ -->
     <!-- ========== HTML头部结束 ========== -->
     <!-- ============================================ -->

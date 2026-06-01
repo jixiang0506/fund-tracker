@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 import io
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # 统一日志格式
 LOG_FORMAT = '[%(asctime)s] %(levelname)s [%(filename)s:%(lineno)d] - %(message)s'
@@ -52,7 +52,9 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
     os.makedirs(log_dir, exist_ok=True)
 
-    log_file = os.path.join(log_dir, f'fund_tracker_{datetime.now().strftime("%Y%m%d")}.log')
+    # 使用北京时间（UTC+8）与脚本其他部分保持一致
+    beijing_now = datetime.now(timezone(timedelta(hours=8)))
+    log_file = os.path.join(log_dir, f'fund_tracker_{beijing_now.strftime("%Y%m%d")}.log')
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)

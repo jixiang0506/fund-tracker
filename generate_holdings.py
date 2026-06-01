@@ -124,8 +124,8 @@ def generate_holdings_snapshot():
             realized_profit_loss = holdings.get('realized_profit_loss', 0)
             avg_cost_nav = holdings.get('avg_cost_nav', 0)
 
-            # 计算今日盈亏
-            daily_profit_loss = total_shares * current_nav * daily_return / 100 if current_nav > 0 else 0
+            # 直接复用 funds_data.json 中已算好的昨日收益，避免重复计算导致不一致
+            daily_profit_loss = fund.get('yesterday_profit', 0)
 
             snapshot['funds'][platform][fund_code] = {
                 "fund_name": fund_name,

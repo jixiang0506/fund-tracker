@@ -18,7 +18,7 @@ const GitHubAPI = {
     uploadFile: function(owner, repo, path, content, message, token, sha = null) {
         return new Promise((resolve, reject) => {
             // 将内容转换为 base64
-            const contentBase64 = btoa(unescape(encodeURIComponent(content)));
+            const contentBase64 = btoa(Array.from(new TextEncoder().encode(content)).map(b => String.fromCharCode(b)).join(''));
 
             // 构建请求体
             const body = {

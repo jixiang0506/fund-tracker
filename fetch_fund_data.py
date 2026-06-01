@@ -270,7 +270,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         items = result.get("Data", {}).get("LSJZList", [])
         if not items:
             log(f"  ❌ 基金 {fund_code} 历史数据也为空")
-            return None
+            raise RuntimeError(f"基金 {fund_code} 历史数据为空")
 
         latest = items[0]
         nav = float(latest.get("DWJZ", 0))

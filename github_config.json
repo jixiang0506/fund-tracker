@@ -9,7 +9,10 @@
         "data/purchase_records.json",
         "data/funds_data.json",
         "data/holdings_snapshot.json",
-        "data/history_cache.json"
+        "data/history_cache.json",
+        "add_tabular.py",
+        "replace_transition.py",
+        "replace_transition_v2.py"
     ],
     "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件"
 }

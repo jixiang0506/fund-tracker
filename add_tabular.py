@@ -6,9 +6,7 @@ with open(filepath, 'r', encoding='utf-8') as f:
 
 new_lines = []
 modified = 0
-i = 0
-while i < len(lines):
-    line = lines[i]
+for i, line in enumerate(lines):
     new_lines.append(line)
     # If this line has "font-family: var(--font-mono)", add tabular-nums after it
     if re.search(r'font-family:\s*var\(--font-mono\)', line):
@@ -27,7 +25,6 @@ while i < len(lines):
             new_lines.append(new_line)
             modified += 1
             print(f"  Line {i+1}: added tabular-nums")
-    i += 1
 
 with open(filepath, 'w', encoding='utf-8') as f:
     f.writelines(new_lines)

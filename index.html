@@ -5850,7 +5850,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
             // 6. 导入文件按钮
             document.getElementById('btnImportFile')?.addEventListener('click', function() {
-                document.getElementById('importFileInput').click();
+                DOM.importFileInput.click();
             });
 
             // 7. 卖出快速百分比按钮
@@ -5983,6 +5983,8 @@ function deletePurchaseRecord(platform, fundCode, index) {
     <!-- ========== JS逻辑结束 ========== -->
     <!-- ============================================ -->
     </script>
+    <!-- 隐藏的文件导入输入框（由 JS 触发 click()） -->
+    <input type="file" id="importFileInput" accept=".json" style="display:none">
 </body>
 </html>
 

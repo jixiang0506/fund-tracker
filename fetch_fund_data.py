@@ -785,34 +785,8 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
 
         return return_rates
 
-    # ── 路径2：回退（使用 purchase_details 中的 fifo_cost）──
-    # 同样改为增量计算，从 O(H×P) 降至 O(H+P)
-    sorted_purchases = sorted(purchases, key=lambda p: p["date"])
-    purchase_idx = 0
-    num_purchases = len(sorted_purchases)
-    total_shares = 0
-    total_invested = 0
-
-    for h_idx, h in enumerate(sorted_history):
-        while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
-            p = sorted_purchases[purchase_idx]
-            purchase_idx += 1
-
-            if p.get("type") == "sell":
-                total_shares -= abs(p["shares"])
-                fifo_cost = p.get("fifo_cost", abs(p["amount"]))
-                total_invested -= fifo_cost
-            else:
-                total_shares += p["shares"]
-                total_invested += p["amount"]
-
-        if total_invested > 0:
-            value = h["nav"] * total_shares
-            profit = value - total_invested
-            return_rates[h_idx] = round((profit / total_invested) * 100, 2)
-
     return return_rates
-    
+
 
 def _fetch_and_merge_history(code, fund_start_date, http_session,
                             history_cache, history_cache_lock):
@@ -1287,52 +1261,6 @@ def main():
         generate_holdings_snapshot()
     except Exception as e:
         log("[Warning] 持仓快照生成失败: {}".format(e))
-
-    # 自动更新业绩基准指数数据
-    log("\n[5/5] 更新业绩基准指数数据...")
-    _update_benchmark_data(BASE_DIR)
-
-
-def _update_benchmark_data(base_dir):
-    """
-    基金净值更新完成后，自动更新业绩基准指数数据
-    调用 fetch_benchmark_data.py（已合并纳斯达克100指数获取功能）
-    """
-    import subprocess
-
-    scripts = [
-        ("fetch_benchmark_data.py", "业绩基准（A股/港股/美股指数）"),
-    ]
-
-    for script_name, desc in scripts:
-        script_path = os.path.join(base_dir, script_name)
-        if not os.path.exists(script_path):
-            log("[Warning] {} 不存在，跳过 {}".format(script_name, desc))
-            continue
-        try:
-            log("  正在更新{}（{}）...".format(desc, script_name))
-            result = subprocess.run(
-                [sys.executable, script_path],
-                cwd=base_dir,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=300,
-            )
-            if result.returncode == 0:
-                lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
-                tail = (": " + lines[-1]) if lines else ""
-                log("[OK] {}更新完成{}".format(desc, tail))
-            else:
-                err = result.stderr.strip().splitlines()
-                log("[Warning] {}更新失败（退出码 {}）".format(desc, result.returncode))
-                if err:
-                    log("    错误: {}".format(err[-1][:200]))
-        except subprocess.TimeoutExpired:
-            log("[Warning] {}更新超时（>300s），跳过".format(desc))
-        except Exception as e:
-            log("[Warning] {}更新异常: {}".format(desc, e))
-
 
 def fetch_fund_info_from_web(code, session=None):
     """

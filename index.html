@@ -4499,7 +4499,7 @@
             const jsonStr = JSON.stringify(data, null, 2);
             const encoder = new TextEncoder();
             const bytes = encoder.encode(jsonStr);
-            const content = btoa(String.fromCharCode(...bytes));
+            const content = btoa(Array.from(bytes).map(b => String.fromCharCode(b)).join(''));
             const body = {
                 message: commitMessage,
                 content: content,

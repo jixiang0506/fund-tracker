@@ -985,6 +985,7 @@ def main():
     # 解析命令行参数
     parser = argparse.ArgumentParser()
     parser.add_argument('--skip-summary', action='store_true', help='跳过汇总更新（仅更新基金数据）')
+    parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式：忽略历史缓存，全量获取')
     args = parser.parse_args()
 
     # 自动判断是否需要跳过汇总更新
@@ -1076,7 +1077,7 @@ def main():
     log(f"历史数据全局起始日期（兜底）: {history_start_date}")
 
     # 加载历史数据缓存（增量拉取）
-    force_refresh = "--force-refresh" in sys.argv or os.environ.get("FORCE_REFRESH", "").lower() == "true"
+    force_refresh = args.force_refresh or os.environ.get("FORCE_REFRESH", "").lower() == "true"
     if force_refresh:
         log("⚡ 强制刷新模式: 忽略历史缓存，全量获取")
         history_cache = {}
@@ -1235,10 +1236,10 @@ def main():
 
     # 自动更新业绩基准指数数据
     log("\n[5/5] 更新业绩基准指数数据...")
-    _update_benchmark_data(BASE_DIR, log)
+    _update_benchmark_data(BASE_DIR)
 
 
-def _update_benchmark_data(base_dir, log):
+def _update_benchmark_data(base_dir):
     """
     基金净值更新完成后，自动更新业绩基准指数数据
     调用 fetch_benchmark_data.py（已合并纳斯达克100指数获取功能）

@@ -831,7 +831,9 @@ def process_fund(platform, code, fund_start_date, http_session,
     """
     try:
         # --- 第1步：获取历史数据（与实时数据解耦） ---
-        cached_history = history_cache.get(code, [])
+        # 线程安全：在锁内读取缓存快照（复制），避免并发写入导致的不一致
+        with history_cache_lock:
+            cached_history = list(history_cache.get(code, []))
         original_cache_count = len(cached_history)
         if cached_history:
             last_cached_date = cached_history[-1]["date"]

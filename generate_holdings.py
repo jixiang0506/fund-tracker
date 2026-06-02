@@ -68,8 +68,8 @@ def generate_holdings_snapshot():
             "total_invested": 0.0,
             "total_profit_loss": 0.0,
             "total_profit_loss_percent": 0.0,
-            "today_profit_loss": 0.0,
-            "today_profit_loss_percent": 0.0,
+            "latest_trading_day_profit_loss": 0.0,
+            "latest_trading_day_profit_loss_percent": 0.0,
             "funds_count": 0,
             "platforms": []
         }
@@ -79,7 +79,7 @@ def generate_holdings_snapshot():
     total_holdings_value = 0.0
     total_invested = 0.0
     total_profit_loss = 0.0
-    total_daily_profit_loss = 0.0
+    total_latest_trading_day_profit_loss = 0.0
     funds_count = 0
 
     # 遍历 funds_data 中的基金，直接复用 holdings 数据
@@ -124,8 +124,8 @@ def generate_holdings_snapshot():
             realized_profit_loss = holdings.get('realized_profit_loss', 0)
             avg_cost_nav = holdings.get('avg_cost_nav', 0)
 
-            # 直接复用 funds_data.json 中已算好的昨日收益，避免重复计算导致不一致
-            daily_profit_loss = fund.get('yesterday_profit', 0)
+            # 直接复用 funds_data.json 中已算好的最新交易日收益，避免重复计算导致不一致
+            daily_profit_loss = fund.get('latest_trading_day_profit', 0)
 
             snapshot['funds'][platform][fund_code] = {
                 "fund_name": fund_name,
@@ -150,7 +150,7 @@ def generate_holdings_snapshot():
             total_holdings_value += current_value
             total_invested += total_invested_fund
             total_profit_loss += profit_loss
-            total_daily_profit_loss += daily_profit_loss
+            total_latest_trading_day_profit_loss += daily_profit_loss
             funds_count += 1
 
     # 计算汇总（加除零保护）
@@ -162,10 +162,10 @@ def generate_holdings_snapshot():
         "total_invested": round(total_invested, 2),
         "total_profit_loss": round(total_profit_loss, 2),
         "total_profit_loss_percent": round(total_profit_loss / total_invested_safe * 100, 2) if total_invested_safe > 0 else 0,
-        "today_profit_loss": round(total_daily_profit_loss, 2),
-        "today_profit_loss_percent": round(total_daily_profit_loss / total_holdings_value_safe * 100, 2) if total_holdings_value_safe > 0 else 0,
+        "latest_trading_day_profit_loss": round(total_latest_trading_day_profit_loss, 2),
+        "latest_trading_day_profit_loss_percent": round(total_latest_trading_day_profit_loss / total_holdings_value_safe * 100, 2) if total_holdings_value_safe > 0 else 0,
         "funds_count": funds_count,
-        "platforms": sorted(list(platforms_set))
+        "platforms": sorted(platforms_set)
     }
 
     # 移除没有持仓的平台

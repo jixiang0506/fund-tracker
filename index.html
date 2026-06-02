@@ -3057,12 +3057,15 @@
                 const profit = fnd.holdings ? fnd.holdings.profit_loss : 0;
                 const profitClass = profit >= 0 ? 'positive' : 'negative';
 
-                // 使用后端计算的昨日数据
-                const yesterdayNav = fnd.yesterday_nav || fnd.current_nav;
-                const yesterdayReturn = fnd.yesterday_return || 0;
-                const yesterdayProfit = fnd.yesterday_profit || 0;
+                // 使用后端计算的最新交易日数据（兼容新旧字段名）
+                const yesterdayNav = fnd.latest_trading_day_nav || fnd.yesterday_nav || fnd.current_nav;
+                const yesterdayReturn = fnd.latest_trading_day_return || fnd.yesterday_return || 0;
+                const yesterdayProfit = fnd.latest_trading_day_profit || fnd.yesterday_profit || 0;
                 const yesterdayClass = yesterdayReturn >= 0 ? 'positive' : 'negative';
-                const navDateLabel = getNavDateLabel(fnd.yesterday_nav_date, fnd.nav_status);
+                const navDateLabel = getNavDateLabel(
+                    fnd.latest_trading_day_nav_date || fnd.yesterday_nav_date || '',
+                    fnd.nav_status
+                );
 
                 html += `
                     <div class="fund-card" data-platform="${encAttr(platformName)}" data-code="${encAttr(fnd.code)}">

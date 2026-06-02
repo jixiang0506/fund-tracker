@@ -18,7 +18,7 @@ from logger_config import log, load_env_file
 
 
 def get_file_sha(file_path, owner, repo, token):
-    """获取文件的当前 SHA"""
+    """获取文件的当前 SHA（区分 404 和其他错误）"""
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
     headers = {
         'Authorization': 'token ' + token,
@@ -28,9 +28,15 @@ def get_file_sha(file_path, owner, repo, token):
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
             return response.json().get('sha')
+        elif response.status_code == 404:
+            return None  # 文件确实不存在，正常
+        else:
+            # 401/403/500 等异常，记录错误并返回特殊值触发重试
+            log(f"[WARN] get_file_sha 返回异常状态码 {response.status_code}: {response.text[:200]}", "warning")
+            return "__ERROR__"
     except Exception as e:
-        pass
-    return None
+        log(f"[WARN] get_file_sha 请求异常: {e}", "warning")
+        return "__ERROR__"
 
 
 def push_file(file_path, message, owner, repo, token, max_retries=3):
@@ -54,6 +60,9 @@ def push_file(file_path, message, owner, repo, token, max_retries=3):
     for attempt in range(max_retries):
         # 每次重试前重新获取 SHA，防止 409 冲突
         sha = get_file_sha(file_path, owner, repo, token)
+        if sha == "__ERROR__":
+            log(f"[ERROR] 获取 SHA 失败，跳过此次推送: {file_path}", "error")
+            return False
 
         data = {
             'message': message,

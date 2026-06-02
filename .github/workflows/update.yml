@@ -65,6 +65,7 @@ jobs:
         run: |
           mkdir -p site/data
           cp index.html site/
+          cp fund_config.json site/
           # 只部署必要的数据文件（不包含原始交易记录）
           cp data/funds_data.json site/data/
           cp data/holdings_snapshot.json site/data/

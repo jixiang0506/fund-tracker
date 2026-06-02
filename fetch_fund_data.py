@@ -939,6 +939,56 @@ def _calculate_latest_trading_day_metrics(history, holdings, today):
     return result
 
 
+def _calculate_year_to_date_metrics(history, holdings, today):
+    """
+    计算本年(YTD)数据：本年收益率、本年盈亏
+
+    以本年第一条历史记录的净值作为年初基准，当前净值为最新值。
+    单基金本年收益率 = (current_nav - year_start_nav) / year_start_nav * 100
+    单基金本年盈亏  = total_shares * (current_nav - year_start_nav)
+
+    参数:
+        history: 历史净值数组（已按日期排序）
+        holdings: 持仓数据（含 total_shares）
+        today: 当前日期字符串 "YYYY-MM-DD"
+
+    返回:
+        dict: {ytd_return, ytd_profit, ytd_start_nav}
+    """
+    if not history:
+        return {"ytd_return": 0, "ytd_profit": 0, "ytd_start_nav": 0}
+
+    current_year = datetime.strptime(today, "%Y-%m-%d").year
+
+    # 找到本年第一条历史记录（若基金年中才买入，则从第一条记录算起）
+    year_start_nav = None
+    for h in history:
+        h_date = h.get("date", "")
+        if h_date.startswith(str(current_year)):
+            year_start_nav = h.get("nav", 0)
+            break
+
+    # 若 history 中无本年数据（理论上不会发生），退到第一条记录
+    if year_start_nav is None:
+        year_start_nav = history[0].get("nav", 0)
+
+    current_nav = history[-1].get("nav", 0)
+    total_shares = holdings.get("total_shares", 0)
+
+    if year_start_nav > 0:
+        ytd_return = (current_nav - year_start_nav) / year_start_nav * 100
+    else:
+        ytd_return = 0
+
+    ytd_profit = total_shares * (current_nav - year_start_nav) if total_shares > 0 else 0
+
+    return {
+        "ytd_return": round(ytd_return, 2),
+        "ytd_profit": round(ytd_profit, 2),
+        "ytd_start_nav": round(year_start_nav, 4)
+    }
+
+
 def process_fund(platform, code, fund_start_date, http_session,
                   purchase_records, qdii_codes, fund_names,
                   prev_fund_map, today, history_cache):
@@ -985,6 +1035,9 @@ def process_fund(platform, code, fund_start_date, http_session,
         # 计算昨日净值、昨日收益率、昨日收益
         m = _calculate_latest_trading_day_metrics(history, holdings, today)
 
+        # 计算本年(YTD)数据
+        ytd = _calculate_year_to_date_metrics(history, holdings, today)
+
         # 组织数据
         latest_history_date = history[-1].get("date", "") if history else ""
         fund_data = {
@@ -1002,6 +1055,9 @@ def process_fund(platform, code, fund_start_date, http_session,
             "latest_trading_day_profit": m["latest_trading_day_profit"],
             "day_before_latest_trading_day_return": round(m["day_before_latest_trading_day_return"], 2),
             "day_before_latest_trading_day_profit": m["day_before_latest_trading_day_profit"],
+            "ytd_return": ytd["ytd_return"],
+            "ytd_profit": ytd["ytd_profit"],
+            "ytd_start_nav": ytd["ytd_start_nav"],
             "holdings": holdings,
             "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
         }
@@ -1228,7 +1284,22 @@ def main():
         summary["latest_trading_day_profit_loss_percent_diff"] = round(latest_trading_day_return_avg - day_before_latest_trading_day_return_avg, 2)
     else:
         summary["latest_trading_day_profit_loss_percent_diff"] = 0
-    
+
+    # 计算本年数据（YTD）
+    ytd_profit_sum = 0
+    ytd_return_weighted_sum = 0
+    ytd_total_weight = 0
+    for platform_funds in all_data["funds"].values():
+        for fund in platform_funds:
+            ytd_profit_sum += fund.get("ytd_profit", 0)
+            weight = fund.get("holdings", {}).get("current_value", 0)
+            if weight > 0:
+                ytd_return_weighted_sum += fund.get("ytd_return", 0) * weight
+                ytd_total_weight += weight
+
+    summary["ytd_profit_loss"] = round(ytd_profit_sum, 2)
+    summary["ytd_profit_loss_percent"] = round(ytd_return_weighted_sum / ytd_total_weight, 2) if ytd_total_weight > 0 else 0
+
     # 累计算已实现盈亏
     total_realized_profit = 0
     for platform_funds in all_data["funds"].values():

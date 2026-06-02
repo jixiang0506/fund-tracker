@@ -664,14 +664,14 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             margin-bottom: 24px;
         }
 
         @media (max-width: 1200px) {
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -2770,8 +2770,8 @@
             const container = DOM.skeletonScreen;
             if (!container) return;
 
-            // 骨架统计卡片（与 renderSummary 的 6 个 stat-card 一致）
-            const STAT_COUNT = 6;
+            // 骨架统计卡片（与 renderSummary 的 8 个 stat-card 一致）
+            const STAT_COUNT = 8;
             let statsHtml = '<div class="stats-grid" id="skeletonStats">';
             for (let i = 0; i < STAT_COUNT; i++) {
                 statsHtml += '<div class="skeleton-stat-card"><div class="skeleton skeleton-text-line"></div><div class="skeleton skeleton-value-line"></div></div>';
@@ -2995,7 +2995,7 @@
             const yesterdayProfitPercent = summary.yesterday_profit_loss_percent || 0;
             const yesterdayClass = yesterdayProfit >= 0 ? 'positive' : 'negative';
             const yesterdaySign = yesterdayProfit >= 0 ? '+' : '';
-            
+
             // 变化差（与前一交易日对比）
             const yesterdayProfitDiff = summary.yesterday_profit_loss_diff || 0;
             const yesterdayPercentDiff = summary.yesterday_profit_loss_percent_diff || 0;
@@ -3005,6 +3005,11 @@
             const percentDiffSign = yesterdayPercentDiff >= 0 ? '+' : '';
             const percentDiffArrow = yesterdayPercentDiff >= 0 ? '↑' : '↓';
             const percentDiffClass = yesterdayPercentDiff >= 0 ? 'positive' : 'negative';
+
+            // 本年数据（YTD）
+            const ytdProfit = summary.ytd_profit_loss || 0;
+            const ytdProfitPercent = summary.ytd_profit_loss_percent || 0;
+            const ytdClass = ytdProfit >= 0 ? 'positive' : 'negative';
 
             return `
                 <div class="stats-grid">
@@ -3028,6 +3033,18 @@
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}
                             ${yesterdayProfitDiff !== 0 ? `<br><span class="${diffClass}" style="font-size:12px;">（较前日 ${diffSign}¥${Math.abs(yesterdayProfitDiff).toFixed(2)} ${diffArrow}）</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">本年收益率</div>
+                        <div class="value ${ytdClass}">
+                            ${ytdProfitPercent >= 0 ? '+' : ''}${ytdProfitPercent.toFixed(2)}%
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">本年盈亏</div>
+                        <div class="value ${ytdClass}">
+                            ${ytdProfit >= 0 ? '+' : ''}¥${ytdProfit.toFixed(2)}
                         </div>
                     </div>
                     <div class="stat-card">

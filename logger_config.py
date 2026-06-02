@@ -23,8 +23,8 @@ def setup_encoding():
     在脚本开头调用一次即可。
     """
     if getattr(sys.stdout, '_encoding_setup_done', False):
-        return
-    if hasattr(sys.stdout, "buffer"):
+        pass
+    elif hasattr(sys.stdout, "buffer"):
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stdout._encoding_setup_done = True
     if getattr(sys.stderr, '_encoding_setup_done', False):
@@ -87,10 +87,21 @@ def log(message, level='info'):
     else:
         logger.info(message)
 
+# .env parser limitations (simple implementation, no python-dotenv dependency):
+# - Multi-line values (e.g. private keys) are not supported
+# - Inline comments (# must be at line start) are not supported
+# - Escaped quotes are not supported
+# For full .env support, install python-dotenv and replace this function.
 def load_env_file():
     """
     从 .env 文件加载环境变量到 os.environ。
     .env 文件位于 logger_config.py 同级目录（项目根目录）。
+
+    限制（简化实现，不引入 python-dotenv 依赖）：
+    - 不支持多行值（如私钥、证书）
+    - 不支持行内注释（# 必须独占行首）
+    - 不支持转义引号
+    如需完整 .env 支持，请安装 python-dotenv 并替换此函数。
     """
     env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
     if not os.path.exists(env_file):

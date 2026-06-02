@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 基金收益追踪系统 - 数据抓取脚本
@@ -43,6 +43,17 @@ except ImportError:
 def get_beijing_time():
     """获取当前北京时间"""
     return datetime.now(_BEIJING_TZ)
+
+
+def safe_float(val, default=0.0):
+    """
+    安全转换为 float，处理 '--'、空值、None 等非数字字符串。
+    API 返回 '--' 时 float() 会抛 ValueError，此函数统一兜底。
+    """
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
 
 # 导入日志模块
 try:
@@ -204,14 +215,14 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             response = session.get(url, timeout=10)
             response.raise_for_status()
 
-            # 解析JSONP响应：找最外层括号 () 包裹的 JSON，避免匹配字符串值中的 {}
+            # 解析JSONP响应：用正则匹配最外层 () 包裹的 JSON，避免字符串值内含 ) 导致截断
             text = response.text
-            json_start = text.find('(') + 1
-            json_end = text.rfind(')')
-            if json_start <= 0 or json_end <= json_start:
+            import re as _re
+            jsonp_match = _re.search(r'\((.*)\)\s*$', text, _re.DOTALL)
+            if not jsonp_match:
                 log(f"  ⚠ 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
                 return _fallback()
-            json_str = text[json_start:json_end].strip()
+            json_str = jsonp_match.group(1).strip()
 
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
@@ -273,9 +284,9 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
             raise RuntimeError(f"基金 {fund_code} 历史数据为空")
 
         latest = items[0]
-        nav = float(latest.get("DWJZ", 0))
+        nav = safe_float(latest.get("DWJZ", 0))
         nav_date = latest.get("FSRQ", "")
-        change_percent = float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
+        change_percent = safe_float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
 
         # 净值状态：由 main() 根据历史数据最新日期统一修正
         # 此处先设为 confirmed，main() 会覆盖为 confirmed_today / delayed / confirmed
@@ -378,8 +389,8 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, sessio
             for item in items:
                 all_history.append({
                     "date": item.get("FSRQ", ""),
-                    "nav": float(item.get("DWJZ", 0)),
-                    "change_percent": float(item.get("JZZZL", 0)) if item.get("JZZZL") else 0
+                    "nav": safe_float(item.get("DWJZ", 0)),
+                    "change_percent": safe_float(item.get("JZZZL", 0)) if item.get("JZZZL") else 0
                 })
 
             # 如果返回的数据少于page_size，说明没有更多页了
@@ -1256,10 +1267,14 @@ def main():
     elif args.skip_summary:
         log("⏭ 无旧汇总数据，仍更新汇总")
 
-    # 保存数据
+    # 保存数据（加异常保护）
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    try:
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(all_data, f, ensure_ascii=False, indent=2)
+    except (IOError, OSError) as e:
+        log(f"[ERROR] 保存 funds_data.json 失败: {e}", "error")
+        sys.exit(1)
 
     log(f"\n✓ 数据已保存到 {output_file}")
     log(f"  更新时间: {all_data['update_time']}")

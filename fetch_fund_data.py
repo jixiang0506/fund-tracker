@@ -520,8 +520,8 @@ def validate_purchase_records(records):
                     continue
 
                 # 校验 type（可选）
-                if "type" in rec and rec["type"] not in ("buy", "sell"):
-                    all_errors.append(f"{prefix}: 'type' 必须是 'buy' 或 'sell'")
+                if "type" in rec and rec["type"].lower() not in ("buy", "sell"):
+                    all_errors.append(f"{prefix}: 'type' 必须是 'buy' 或 'sell'（不区分大小写）")
                     continue
 
                 validated[platform][fund_code].append(rec)
@@ -589,7 +589,7 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
     for purchase in sorted_purchases:
         date = purchase["date"]
         amount = purchase["amount"]
-        trans_type = purchase.get("type", "buy")
+        trans_type = purchase.get("type", "buy").lower()
 
         # 从历史数据中查找交易日的净值
         # before_15: 是否为15点前提交（默认True，即按当天净值确认）
@@ -744,7 +744,7 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                 p = sorted_purchases[purchase_idx]
                 purchase_idx += 1
 
-                trans_type = p.get("type", "buy")
+                trans_type = p.get("type", "buy").lower()
                 before_15 = p.get("before_15", True)
 
                 nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
@@ -765,7 +765,11 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                         deducted_cost += deduct * buy["nav"]
                         buy["remaining_shares"] -= deduct
                         remaining_sell -= deduct
-                    queue_shares -= (sell_shares - remaining_sell)
+                    if remaining_sell > 0.0001:
+                        actual_sold = sell_shares - remaining_sell
+                        log(f"  ⚠ 警告: 累计收益率计算中基金卖出份额超过持仓。尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sold:.2f} 份")
+                        sell_shares = actual_sold
+                    queue_shares -= sell_shares
                     queue_cost -= deducted_cost
                 else:
                     shares = p["amount"] / nav_on_date
@@ -812,14 +816,15 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
         else:
             history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
 
-        with history_cache_lock:
-            history_cache[code] = history
-
         if not history:
             if cached_history:
                 history = cached_history
             else:
                 return (None, "历史数据为空，且无缓存")
+
+        with history_cache_lock:
+            if history:
+                history_cache[code] = history
 
         return (history, None)
     except Exception as e:
@@ -1132,6 +1137,7 @@ def main():
             fund_tasks.append((platform, code, fund_start_date))
 
     failed_funds = []
+    stale_funds = []   # 使用缓存数据的基金（非失败，但数据可能过期）
     today = get_beijing_time().strftime("%Y-%m-%d")
 
     # 使用线程池并行处理
@@ -1155,6 +1161,10 @@ def main():
                     all_data["funds"][platform].append(fund_data)
                     all_data["summary"]["total_invested"] += invested
                     all_data["summary"]["total_value"] += value
+                    # 问题1修复：缓存数据也要提示用户
+                    if error_msg and "使用缓存数据" in error_msg:
+                        stale_funds.append(code)
+                        log(f"  ⚠ 基金 {code} 使用缓存数据（实时数据获取失败）")
                 else:
                     failed_funds.append(code)
                     if error_msg and "使用缓存数据" in error_msg:
@@ -1233,8 +1243,10 @@ def main():
     realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
     log(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
     log(f"  总盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    if stale_funds:
+        log(f"\n  [Warning] 以下基金使用缓存数据（非实时）: {', '.join(stale_funds)}")
     if failed_funds:
-        log(f"\n  [Warning] 以下基金使用缓存数据或跳过: {', '.join(failed_funds)}")
+        log(f"\n  [ERROR] 以下基金处理失败: {', '.join(failed_funds)}")
     log("="*60)
 
     # 若指定 --skip-summary，恢复旧汇总

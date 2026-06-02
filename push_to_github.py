@@ -173,7 +173,12 @@ def main():
     success_count = 0
     for i, file_path in enumerate(files_to_push):
         if os.path.exists(file_path):
-            if push_file(file_path, "更新 " + file_path, owner, repo, token):
+            # 提交信息包含时间戳，便于追溯（使用北京时间）
+            commit_msg = "更新 {} ({})".format(
+                file_path,
+                time.strftime("%Y-%m-%d %H:%M", time.gmtime(time.time() + 8 * 3600))
+            )
+            if push_file(file_path, commit_msg, owner, repo, token):
                 success_count += 1
         else:
             log("[Warning] 文件不存在: " + file_path, "warning")

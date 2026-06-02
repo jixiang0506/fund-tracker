@@ -22,10 +22,16 @@ def setup_encoding():
     强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错。
     在脚本开头调用一次即可。
     """
+    if getattr(sys.stdout, '_encoding_setup_done', False):
+        return
     if hasattr(sys.stdout, "buffer"):
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stdout._encoding_setup_done = True
+    if getattr(sys.stderr, '_encoding_setup_done', False):
+        return
     if hasattr(sys.stderr, "buffer"):
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+        sys.stderr._encoding_setup_done = True
 
 
 def setup_logger(name='fund_tracker', log_level=logging.INFO):

@@ -5,10 +5,10 @@
 从天天基金网获取基金数据，读取持仓记录，计算实际收益
 
 更新说明 (2026-05-13):
-1. 优化效率：每只基金只获取一次历史数据，避免重复API调用
-2. 改进错误处理：增加重试机制和详细日志
-3. 自动创建模板文件：如果不存在持仓记录文件，自动创建模板
-4. 支持手动输入净值：如果无法获取历史净值，允许手动输入
+1. 优化效率:每只基金只获取一次历史数据，避免重复API调用
+2. 改进错误处理:增加重试机制和详细日志
+3. 自动创建模板文件:如果不存在持仓记录文件，自动创建模板
+4. 支持手动输入净值:如果无法获取历史净值，允许手动输入
 """
 
 import sys
@@ -25,9 +25,9 @@ import argparse
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-# 线程锁：保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
+# 线程锁:保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
 history_cache_lock = threading.Lock()
-# 时区支持：优先使用 zoneinfo (Python 3.9+)，回退到 pytz
+# 时区支持:优先使用 zoneinfo (Python 3.9+)，回退到 pytz
 try:
     from zoneinfo import ZoneInfo
     _BEIJING_TZ = ZoneInfo("Asia/Shanghai")
@@ -43,7 +43,6 @@ except ImportError:
 def get_beijing_time():
     """获取当前北京时间"""
     return datetime.now(_BEIJING_TZ)
-
 
 def safe_float(val, default=0.0):
     """
@@ -75,7 +74,7 @@ HISTORY_CACHE_FILE = os.path.join(BASE_DIR, "data", "history_cache.json")
 
 
 def load_fund_config():
-    """加载基金配置文件（唯一数据源：fund_config.json）"""
+    """加载基金配置文件（唯一数据源:fund_config.json）"""
     config_file = os.path.join(BASE_DIR, "fund_config.json")
 
     if not os.path.exists(config_file):
@@ -87,7 +86,7 @@ def load_fund_config():
         with open(config_file, 'r', encoding='utf-8') as f:
             config = json.load(f)
 
-        # 兼容两种格式：{"funds": {"支付宝": [...]}} 或 {"支付宝": [...]}
+        # 兼容两种格式:{"funds": {"支付宝": [...]}} 或 {"支付宝": [...]}
         funds_source = config.get("funds", config)
         if not isinstance(funds_source, dict):
             funds_source = {}
@@ -155,7 +154,7 @@ def save_history_cache(cache_data):
 
 
 def merge_history(existing, new_entries):
-    """合并历史数据：新条目覆盖同日期旧条目，按日期升序排序。
+    """合并历史数据:新条目覆盖同日期旧条目，按日期升序排序。
 
     Args:
         existing: 缓存中的历史数据 list[dict]，按日期升序
@@ -215,14 +214,14 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             response = session.get(url, timeout=10)
             response.raise_for_status()
 
-            # 解析JSONP响应：用正则匹配最外层 () 包裹的 JSON，避免字符串值内含 ) 导致截断
+            # 解析JSONP响应:找最外层括号 () 包裹的 JSON，避免匹配字符串值中的 {}
             text = response.text
-            import re as _re
-            jsonp_match = _re.search(r'\((.*)\)\s*$', text, _re.DOTALL)
-            if not jsonp_match:
+            json_start = text.find('(') + 1
+            json_end = text.rfind(')')
+            if json_start <= 0 or json_end <= json_start:
                 log(f"  ⚠ 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
                 return _fallback()
-            json_str = jsonp_match.group(1).strip()
+            json_str = text[json_start:json_end].strip()
 
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
@@ -278,7 +277,8 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         response.raise_for_status()
         result = response.json()
 
-        items = result.get("Data", {}).get("LSJZList", [])
+        data_obj = result.get("Data") or {}
+        items = data_obj.get("LSJZList", []) if isinstance(data_obj, dict) else []
         if not items:
             log(f"  ❌ 基金 {fund_code} 历史数据也为空")
             raise RuntimeError(f"基金 {fund_code} 历史数据为空")
@@ -288,7 +288,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         nav_date = latest.get("FSRQ", "")
         change_percent = safe_float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
 
-        # 净值状态：由 main() 根据历史数据最新日期统一修正
+        # 净值状态:由 main() 根据历史数据最新日期统一修正
         # 此处先设为 confirmed，main() 会覆盖为 confirmed_today / delayed / confirmed
         nav_status = "confirmed"
 
@@ -355,7 +355,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, sessio
     if session is None:
         session = _create_session()
     try:
-        # 增量模式：从缓存最新日期往前7天开始获取（重叠窗口捕获NAV纠正）
+        # 增量模式:从缓存最新日期往前7天开始获取（重叠窗口捕获NAV纠正）
         effective_start = start_date
         if incremental_from:
             # 往前7天重叠，确保近期的NAV纠正能被捕获（约5个交易日，1个API页）
@@ -413,32 +413,33 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, sessio
 def get_nav_from_history(history, target_date, before_15=True):
     """从历史数据中查找指定日期的净值。
 
-    基金交易规则：
+    基金交易规则:
     - 工作日15点前提交 → 按当天净值确认 (before_15=True)
     - 工作日15点后或周末提交 → 按下一个工作日净值确认 (before_15=False)
 
-    参数：
+    参数:
         history: 历史净值列表（按日期升序）
         target_date: 交易日期（"YYYY-MM-DD"）
         before_15: 是否为15点前提交（默认True，即按当天净值）
 
-    返回值：
+    返回值:
         dict: {"nav": float, "nav_source": str} 或 None
-        nav_source 取值：
+        nav_source 取值:
         - "exact": 精确匹配到目标日期（before_15=True 且精确匹配）
         - "next_trading_day": 使用下一交易日净值（before_15=False 或周末/节假日）
     """
     if before_15:
-        # 15点前：先尝试精确匹配
+        # 15点前:先尝试精确匹配
         for record in reversed(history):
-            if record["date"] == target_date:
-                return {"nav": record["nav"], "nav_source": "exact"}
+            if record.get("date", "") == target_date:
+                return {"nav": record.get("nav", 0), "nav_source": "exact"}
 
-    # 15点后或精确匹配失败：找最近的后一个交易日
+    # 15点后或精确匹配失败:找最近的后一个交易日
     for record in history:
-        if record["date"] > target_date:
-            log(f"  注意：{target_date} 非交易日或15点后提交，使用下一交易日 {record['date']} 的净值: {record['nav']}")
-            return {"nav": record["nav"], "nav_source": "next_trading_day"}
+        if record.get("date", "") > target_date:
+            nav_val = record.get("nav", 0)
+            log(f"  注意:{target_date} 非交易日或15点后提交，使用下一交易日 {record.get('date', '')} 的净值: {nav_val}")
+            return {"nav": nav_val, "nav_source": "next_trading_day"}
 
     return None
 
@@ -572,7 +573,7 @@ def load_purchase_records():
 
 def calculate_holdings(purchases, current_nav, history, fund_code=""):
     """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）
-    参数：
+    参数:
         purchases: 该基金的全部交易记录列表（已按平台区分，不含其他平台同名基金）
         current_nav: 当前净值
         history: 历史净值列表
@@ -589,7 +590,7 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
             "realized_profit_loss": 0
         }
 
-    # FIFO队列：{date, amount, shares, nav, remaining_shares}
+    # FIFO队列:{date, amount, shares, nav, remaining_shares}
     buy_queue = []
     realized_profit_loss = 0  # 已实现盈亏（卖出时确认）
     purchase_details = []
@@ -600,7 +601,7 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
     for purchase in sorted_purchases:
         date = purchase["date"]
         amount = purchase["amount"]
-        trans_type = purchase.get("type", "buy").lower()
+        trans_type = purchase.get("type", "buy")
 
         # 从历史数据中查找交易日的净值
         # before_15: 是否为15点前提交（默认True，即按当天净值确认）
@@ -615,7 +616,7 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
         nav_source = nav_result.get("nav_source", "exact")
 
         if trans_type == "sell":
-            # 卖出记录：按FIFO法从最早买入抵扣
+            # 卖出记录:按FIFO法从最早买入抵扣
             sell_shares = amount / nav_on_date
             remaining_sell_shares = sell_shares
             sell_realized_profit = 0  # 本笔卖出实现的盈亏
@@ -664,11 +665,11 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
                 "type": "sell",
                 "realized_profit": round(sell_realized_profit, 2),  # 本笔卖出的盈亏
                 "fifo_cost": round(total_fifo_cost, 2),  # 本笔卖出的FIFO总成本
-                "nav_source": nav_source  # 净值来源：exact / next_trading_day
+                "nav_source": nav_source  # 净值来源:exact / next_trading_day
             })
 
         else:
-            # 买入记录：加入FIFO队列
+            # 买入记录:加入FIFO队列
             shares = amount / nav_on_date
             buy_queue.append({
                 "date": date,
@@ -684,7 +685,7 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
                 "nav": round(nav_on_date, 4),
                 "shares": round(shares, 2),
                 "type": "buy",
-                "nav_source": nav_source  # 净值来源：exact / next_trading_day
+                "nav_source": nav_source  # 净值来源:exact / next_trading_day
             })
 
             log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
@@ -714,17 +715,17 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
         "profit_loss": round(unrealized_profit, 2),
         "profit_loss_percent": round(profit_loss_percent, 2),
         "purchases": purchase_details,
-        "realized_profit_loss": round(realized_profit_loss, 2),  # 新增：已实现盈亏
-        "avg_cost_nav": round(avg_cost_nav, 4)  # 新增：平均持仓成本
+        "realized_profit_loss": round(realized_profit_loss, 2),  # 新增:已实现盈亏
+        "avg_cost_nav": round(avg_cost_nav, 4)  # 新增:平均持仓成本
     }
 
 def calculate_cumulative_returns(history, purchases, original_purchases=None, history_for_nav=None):
     """为历史数据中每一天预计算累计收益率，使用与 calculate_holdings() 一致的 FIFO 逻辑。
 
-    优化：增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)，
+    优化:增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)，
     其中 H=历史天数，P=交易笔数。
 
-    参数：
+    参数:
         history: 历史净值列表（按日期升序）
         purchases: calculate_holdings() 返回的 purchase_details（含 fifo_cost）
         original_purchases: 原始交易记录（含 before_15 字段），用于精确 FIFO 模拟
@@ -738,10 +739,10 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
     n = len(sorted_history)
     return_rates = [None] * n
 
-    # ── 路径1：精确 FIFO 模拟（提供原始交易记录时）──
+    # ── 路径1:精确 FIFO 模拟（提供原始交易记录时）──
     if original_purchases and history_for_nav:
         sorted_purchases = sorted(original_purchases, key=lambda p: p["date"])
-        buy_queue = []          # FIFO 队列：[{date, nav, remaining_shares}]
+        buy_queue = []          # FIFO 队列:[{date, nav, remaining_shares}]
         purchase_idx = 0
         num_purchases = len(sorted_purchases)
 
@@ -750,12 +751,12 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
         queue_cost = 0.0
 
         for h_idx, h in enumerate(sorted_history):
-            # 增量推进：处理所有在该历史时点之前（含当日）的交易
+            # 增量推进:处理所有在该历史时点之前（含当日）的交易
             while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
                 p = sorted_purchases[purchase_idx]
                 purchase_idx += 1
 
-                trans_type = p.get("type", "buy").lower()
+                trans_type = p.get("type", "buy")
                 before_15 = p.get("before_15", True)
 
                 nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
@@ -776,11 +777,7 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                         deducted_cost += deduct * buy["nav"]
                         buy["remaining_shares"] -= deduct
                         remaining_sell -= deduct
-                    if remaining_sell > 0.0001:
-                        actual_sold = sell_shares - remaining_sell
-                        log(f"  ⚠ 警告: 累计收益率计算中基金卖出份额超过持仓。尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sold:.2f} 份")
-                        sell_shares = actual_sold
-                    queue_shares -= sell_shares
+                    queue_shares -= (sell_shares - remaining_sell)
                     queue_cost -= deducted_cost
                 else:
                     shares = p["amount"] / nav_on_date
@@ -807,7 +804,7 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
                             history_cache, history_cache_lock):
     """
     获取基金历史数据，与缓存合并，更新内存缓存。
-    线程安全：使用 history_cache_lock 保护缓存读写。
+    线程安全:使用 history_cache_lock 保护缓存读写。
 
     返回: (history_list, error_message_or_None)
     """
@@ -816,7 +813,7 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
             cached_history = list(history_cache.get(code, []))
 
         if cached_history:
-            last_cached_date = cached_history[-1]["date"]
+            last_cached_date = cached_history[-1].get("date", "")
             if cached_history[0]["date"] > fund_start_date:
                 full_history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
                 history = merge_history(cached_history, full_history)
@@ -827,15 +824,14 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
         else:
             history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
 
+        with history_cache_lock:
+            history_cache[code] = history
+
         if not history:
             if cached_history:
                 history = cached_history
             else:
                 return (None, "历史数据为空，且无缓存")
-
-        with history_cache_lock:
-            if history:
-                history_cache[code] = history
 
         return (history, None)
     except Exception as e:
@@ -848,7 +844,7 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
     直接修改 realtime dict（in-place），无需返回值。
     """
     if history and history[-1].get("date"):
-        history_latest_date = history[-1]["date"]
+        history_latest_date = history[-1].get("date", "")
         realtime_date = realtime.get("nav_date", "")[:10]
         should_use_history = (
             history_latest_date > realtime_date or
@@ -856,7 +852,7 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
         )
         if should_use_history:
             log(f"  基金 {code}: 历史确认净值({history_latest_date} {history[-1]['nav']})优先于实时估算({realtime_date} {realtime['nav']})")
-            realtime["nav"] = history[-1]["nav"]
+            realtime["nav"] = history[-1].get("nav", 0)
             realtime["nav_date"] = history_latest_date
             realtime["change_percent"] = history[-1].get("change_percent", 0)
 
@@ -864,7 +860,7 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
     beijing_now = get_beijing_time()
     is_after_15 = 15 <= beijing_now.hour <= 23
     if history:
-        latest_nav_date = history[-1]["date"]
+        latest_nav_date = history[-1].get("date", "")
         if latest_nav_date == today and is_after_15:
             realtime["nav_status"] = "confirmed_today"
         elif code in qdii_codes:
@@ -873,73 +869,73 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
             realtime["nav_status"] = "confirmed"
 
 
-def _calculate_yesterday_metrics(history, holdings, today):
+def _calculate_latest_trading_day_metrics(history, holdings, today):
     """
     根据历史数据计算昨日净值、昨日收益率、昨日收益、
     前日收益率、前日收益。
 
     返回: dict with keys:
-        yesterday_nav, yesterday_nav_date, yesterday_return,
-        yesterday_profit, day_before_yesterday_return,
-        day_before_yesterday_profit
+        latest_trading_day_nav, latest_trading_day_nav_date, latest_trading_day_return,
+        latest_trading_day_profit, day_before_latest_trading_day_return,
+        day_before_latest_trading_day_profit
     """
     result = {
-        "yesterday_nav": 0,
-        "yesterday_nav_date": "",
-        "yesterday_return": 0,
-        "yesterday_profit": 0,
-        "day_before_yesterday_return": 0,
-        "day_before_yesterday_profit": 0,
+        "latest_trading_day_nav": 0,
+        "latest_trading_day_nav_date": "",
+        "latest_trading_day_return": 0,
+        "latest_trading_day_profit": 0,
+        "day_before_latest_trading_day_return": 0,
+        "day_before_latest_trading_day_profit": 0,
     }
 
     if not history or len(history) < 2:
         return result
 
-    if history[-1]["date"] == today:
-        yesterday_nav = history[-2]["nav"]
-        yesterday_nav_date = history[-2]["date"]
-        prev_nav = history[-3]["nav"] if len(history) >= 3 else yesterday_nav
+    if history[-1].get("date", "") == today:
+        latest_trading_day_nav = history[-2].get("nav", 0)
+        latest_trading_day_nav_date = history[-2].get("date", "")
+        prev_nav = history[-3].get("nav", 0) if len(history) >= 3 else latest_trading_day_nav
         if len(history) >= 4:
-            day_before_yesterday_nav = history[-3]["nav"]
-            day_before_yesterday_prev_nav = history[-4]["nav"]
+            day_before_latest_trading_day_nav = history[-3].get("nav", 0)
+            prev_trading_day_prev_nav = history[-4].get("nav", 0)
         else:
-            day_before_yesterday_nav = yesterday_nav
-            day_before_yesterday_prev_nav = yesterday_nav
+            day_before_latest_trading_day_nav = latest_trading_day_nav
+            prev_trading_day_prev_nav = latest_trading_day_nav
     else:
-        yesterday_nav = history[-1]["nav"]
-        yesterday_nav_date = history[-1]["date"]
-        prev_nav = history[-2]["nav"]
+        latest_trading_day_nav = history[-1].get("nav", 0)
+        latest_trading_day_nav_date = history[-1].get("date", "")
+        prev_nav = history[-2].get("nav", 0)
         if len(history) >= 3:
-            day_before_yesterday_nav = history[-2]["nav"]
-            day_before_yesterday_prev_nav = history[-3]["nav"]
+            day_before_latest_trading_day_nav = history[-2].get("nav", 0)
+            prev_trading_day_prev_nav = history[-3].get("nav", 0)
         else:
-            day_before_yesterday_nav = yesterday_nav
-            day_before_yesterday_prev_nav = yesterday_nav
+            day_before_latest_trading_day_nav = latest_trading_day_nav
+            prev_trading_day_prev_nav = latest_trading_day_nav
 
     if prev_nav > 0:
-        yesterday_return = (yesterday_nav - prev_nav) / prev_nav * 100
+        latest_trading_day_return = (latest_trading_day_nav - prev_nav) / prev_nav * 100
     else:
-        yesterday_return = 0
+        latest_trading_day_return = 0
 
-    if day_before_yesterday_prev_nav > 0:
-        day_before_yesterday_return = (day_before_yesterday_nav - day_before_yesterday_prev_nav) / day_before_yesterday_prev_nav * 100
+    if prev_trading_day_prev_nav > 0:
+        day_before_latest_trading_day_return = (day_before_latest_trading_day_nav - prev_trading_day_prev_nav) / prev_trading_day_prev_nav * 100
     else:
-        day_before_yesterday_return = 0
+        day_before_latest_trading_day_return = 0
 
     total_shares = holdings.get("total_shares", 0)
     if total_shares > 0:
-        yesterday_profit = round(total_shares * (yesterday_nav - prev_nav), 2)
-        day_before_yesterday_profit = round(total_shares * (day_before_yesterday_nav - day_before_yesterday_prev_nav), 2)
+        latest_trading_day_profit = round(total_shares * (latest_trading_day_nav - prev_nav), 2)
+        day_before_latest_trading_day_profit = round(total_shares * (day_before_latest_trading_day_nav - prev_trading_day_prev_nav), 2)
     else:
-        yesterday_profit = 0
-        day_before_yesterday_profit = 0
+        latest_trading_day_profit = 0
+        day_before_latest_trading_day_profit = 0
 
-    result["yesterday_nav"] = yesterday_nav
-    result["yesterday_nav_date"] = yesterday_nav_date
-    result["yesterday_return"] = yesterday_return
-    result["yesterday_profit"] = yesterday_profit
-    result["day_before_yesterday_return"] = day_before_yesterday_return
-    result["day_before_yesterday_profit"] = day_before_yesterday_profit
+    result["latest_trading_day_nav"] = latest_trading_day_nav
+    result["latest_trading_day_nav_date"] = latest_trading_day_nav_date
+    result["latest_trading_day_return"] = latest_trading_day_return
+    result["latest_trading_day_profit"] = latest_trading_day_profit
+    result["day_before_latest_trading_day_return"] = day_before_latest_trading_day_return
+    result["day_before_latest_trading_day_profit"] = day_before_latest_trading_day_profit
     return result
 
 
@@ -947,14 +943,14 @@ def process_fund(platform, code, fund_start_date, http_session,
                   purchase_records, qdii_codes, fund_names,
                   prev_fund_map, today, history_cache):
     """
-    处理单只基金：获取历史数据、实时数据，计算持仓和收益。
-    线程安全：使用 history_cache_lock 保护缓存读写。
+    处理单只基金:获取历史数据、实时数据，计算持仓和收益。
+    线程安全:使用 history_cache_lock 保护缓存读写。
 
     返回: (fund_data_dict, total_invested, total_value) 成功
            (None, 0, 0, error_message) 失败
     """
     try:
-        # --- 第1步：获取历史数据（与实时数据解耦） ---
+        # --- 第1步:获取历史数据（与实时数据解耦） ---
         history, err = _fetch_and_merge_history(
             code, fund_start_date, http_session,
             history_cache, history_cache_lock
@@ -962,7 +958,7 @@ def process_fund(platform, code, fund_start_date, http_session,
         if err:
             return (None, 0, 0, err)
 
-        # --- 第2步：获取实时数据 ---
+        # --- 第2步:获取实时数据 ---
         realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
         if not realtime:
             if code in prev_fund_map:
@@ -974,7 +970,7 @@ def process_fund(platform, code, fund_start_date, http_session,
 
         _apply_nav_correction(code, history, realtime, today, qdii_codes)
 
-        # --- 第3步：计算持仓和收益 ---
+        # --- 第3步:计算持仓和收益 ---
         purchases = purchase_records.get(platform, {}).get(code, [])
         if not history:
             return (None, 0, 0, "历史数据为空，无法计算持仓")
@@ -987,10 +983,10 @@ def process_fund(platform, code, fund_start_date, http_session,
         )
 
         # 计算昨日净值、昨日收益率、昨日收益
-        m = _calculate_yesterday_metrics(history, holdings, today)
+        m = _calculate_latest_trading_day_metrics(history, holdings, today)
 
         # 组织数据
-        latest_history_date = history[-1]["date"] if history else ""
+        latest_history_date = history[-1].get("date", "") if history else ""
         fund_data = {
             "code": code,
             "name": realtime["name"],
@@ -1000,12 +996,12 @@ def process_fund(platform, code, fund_start_date, http_session,
             "daily_return": realtime["change_percent"],
             "nav_status": realtime.get("nav_status", "confirmed"),
             "latest_history_date": latest_history_date,
-            "yesterday_nav": round(m["yesterday_nav"], 4),
-            "yesterday_nav_date": m["yesterday_nav_date"],
-            "yesterday_return": round(m["yesterday_return"], 2),
-            "yesterday_profit": m["yesterday_profit"],
-            "day_before_yesterday_return": round(m["day_before_yesterday_return"], 2),
-            "day_before_yesterday_profit": m["day_before_yesterday_profit"],
+            "latest_trading_day_nav": round(m["latest_trading_day_nav"], 4),
+            "latest_trading_day_nav_date": m["latest_trading_day_nav_date"],
+            "latest_trading_day_return": round(m["latest_trading_day_return"], 2),
+            "latest_trading_day_profit": m["latest_trading_day_profit"],
+            "day_before_latest_trading_day_return": round(m["day_before_latest_trading_day_return"], 2),
+            "day_before_latest_trading_day_profit": m["day_before_latest_trading_day_profit"],
             "holdings": holdings,
             "history": [{"date": h["date"], "nav": h["nav"], "return_rate": cumulative_returns[i]} for i, h in enumerate(history)]
         }
@@ -1029,7 +1025,7 @@ def main():
     # 解析命令行参数
     parser = argparse.ArgumentParser()
     parser.add_argument('--skip-summary', action='store_true', help='跳过汇总更新（仅更新基金数据）')
-    parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式：忽略历史缓存，全量获取')
+    parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式:忽略历史缓存，全量获取')
     args = parser.parse_args()
 
     # 自动判断是否需要跳过汇总更新
@@ -1133,7 +1129,7 @@ def main():
         else:
             log("ℹ️ 无历史缓存，将全量获取")
 
-    # 并行处理所有基金（瓶颈3修复：ThreadPoolExecutor）
+    # 并行处理所有基金（瓶颈3修复:ThreadPoolExecutor）
     log(f"\n[3/4] 并行获取基金数据（线程池 max_workers=3）...")
 
     # 收集所有待处理基金
@@ -1172,7 +1168,7 @@ def main():
                     all_data["funds"][platform].append(fund_data)
                     all_data["summary"]["total_invested"] += invested
                     all_data["summary"]["total_value"] += value
-                    # 问题1修复：缓存数据也要提示用户
+                    # 问题1修复:缓存数据也要提示用户
                     if error_msg and "使用缓存数据" in error_msg:
                         stale_funds.append(code)
                         log(f"  ⚠ 基金 {code} 使用缓存数据（实时数据获取失败）")
@@ -1200,38 +1196,38 @@ def main():
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
     
     # 计算昨日盈亏（累加各基金已计算的昨日收益）
-    yesterday_profit = 0
-    day_before_yesterday_profit = 0
+    latest_trading_day_profit = 0
+    day_before_latest_trading_day_profit = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
-            yesterday_profit += fund.get("yesterday_profit", 0)
-            day_before_yesterday_profit += fund.get("day_before_yesterday_profit", 0)
+            latest_trading_day_profit += fund.get("latest_trading_day_profit", 0)
+            day_before_latest_trading_day_profit += fund.get("day_before_latest_trading_day_profit", 0)
     
-    summary["yesterday_profit_loss"] = round(yesterday_profit, 2)
-    summary["yesterday_profit_loss_percent"] = round((yesterday_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
+    summary["latest_trading_day_profit_loss"] = round(latest_trading_day_profit, 2)
+    summary["latest_trading_day_profit_loss_percent"] = round((latest_trading_day_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
     
     # 计算昨日变化差（与前一交易日对比）
-    summary["yesterday_profit_loss_diff"] = round(yesterday_profit - day_before_yesterday_profit, 2)
+    summary["latest_trading_day_profit_loss_diff"] = round(latest_trading_day_profit - day_before_latest_trading_day_profit, 2)
     
     # 计算昨日收益率变化差（加权平均）
     # 使用各基金昨日收益率和前日收益率，按市值加权计算
-    yesterday_return_weighted_sum = 0
-    day_before_yesterday_return_weighted_sum = 0
+    latest_trading_day_return_weighted_sum = 0
+    day_before_latest_trading_day_return_weighted_sum = 0
     total_weight = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
             weight = fund.get("holdings", {}).get("current_value", 0)
             if weight > 0:
-                yesterday_return_weighted_sum += fund.get("yesterday_return", 0) * weight
-                day_before_yesterday_return_weighted_sum += fund.get("day_before_yesterday_return", 0) * weight
+                latest_trading_day_return_weighted_sum += fund.get("latest_trading_day_return", 0) * weight
+                day_before_latest_trading_day_return_weighted_sum += fund.get("day_before_latest_trading_day_return", 0) * weight
                 total_weight += weight
     
     if total_weight > 0:
-        yesterday_return_avg = yesterday_return_weighted_sum / total_weight
-        day_before_yesterday_return_avg = day_before_yesterday_return_weighted_sum / total_weight
-        summary["yesterday_profit_loss_percent_diff"] = round(yesterday_return_avg - day_before_yesterday_return_avg, 2)
+        latest_trading_day_return_avg = latest_trading_day_return_weighted_sum / total_weight
+        day_before_latest_trading_day_return_avg = day_before_latest_trading_day_return_weighted_sum / total_weight
+        summary["latest_trading_day_profit_loss_percent_diff"] = round(latest_trading_day_return_avg - day_before_latest_trading_day_return_avg, 2)
     else:
-        summary["yesterday_profit_loss_percent_diff"] = 0
+        summary["latest_trading_day_profit_loss_percent_diff"] = 0
     
     # 累计算已实现盈亏
     total_realized_profit = 0
@@ -1249,8 +1245,8 @@ def main():
     log(f"  当前市值: ¥{summary['total_value']:.2f}")
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
     log(f"  未实现盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
-    yesterday_sign = "+" if summary["yesterday_profit_loss"] >= 0 else ""
-    log(f"  昨日盈亏: {yesterday_sign}¥{summary['yesterday_profit_loss']:.2f} ({yesterday_sign}{summary['yesterday_profit_loss_percent']:.2f}%)")
+    yesterday_sign = "+" if summary["latest_trading_day_profit_loss"] >= 0 else ""
+    log(f"  昨日盈亏: {yesterday_sign}¥{summary['latest_trading_day_profit_loss']:.2f} ({yesterday_sign}{summary['latest_trading_day_profit_loss_percent']:.2f}%)")
     realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
     log(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
     log(f"  总盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
@@ -1267,14 +1263,10 @@ def main():
     elif args.skip_summary:
         log("⏭ 无旧汇总数据，仍更新汇总")
 
-    # 保存数据（加异常保护）
+    # 保存数据
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
-    try:
-        with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, ensure_ascii=False, indent=2)
-    except (IOError, OSError) as e:
-        log(f"[ERROR] 保存 funds_data.json 失败: {e}", "error")
-        sys.exit(1)
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(all_data, f, ensure_ascii=False, indent=2)
 
     log(f"\n✓ 数据已保存到 {output_file}")
     log(f"  更新时间: {all_data['update_time']}")
@@ -1310,7 +1302,7 @@ def fetch_fund_info_from_web(code, session=None):
                 name = data.get("name", "")
 
                 # 启发式判断是否为 QDII
-                qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"]
+                qdii_keywords = ["纳斯达克", "标普", "美股", "QDII", "海外", "国际"]
                 is_qdii = any(kw in name for kw in qdii_keywords)
 
                 benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"
@@ -1363,9 +1355,9 @@ def auto_detect_new_funds():
     else:
         config = {"funds": {}}
 
-    # 兼容两种格式：统一归一化为 {"funds": {"平台": [...]}}
+    # 兼容两种格式:统一归一化为 {"funds": {"平台": [...]}}
     if "funds" not in config:
-        # 旧格式：{"支付宝": [...], ...} → 转换为新格式
+        # 旧格式:{"支付宝": [...], ...} → 转换为新格式
         log("[WARN] fund_config.json 是旧格式（无 'funds' 键），正在转换...", "warning")
         config = {"funds": {k: v for k, v in config.items() if isinstance(v, list)}}
 

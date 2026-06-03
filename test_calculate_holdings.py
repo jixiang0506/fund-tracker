@@ -8,9 +8,13 @@ from fetch_fund_data import calculate_holdings, get_nav_from_history
 
 
 def make_purchase(code, date, shares, nav, amount=None, before_15=True):
+    """
+    构造买入记录，字段与生产环境 purchase_records.json 保持一致：
+    只包含 code, date, amount, before_15，不包含 shares 和 nav。
+    shares/nav 仅用于计算 amount，不参与实际持仓计算。
+    """
     a = amount if amount is not None else round(shares * nav, 2)
-    return {"code": code, "date": date, "shares": shares,
-            "nav": nav, "amount": a, "before_15": before_15}
+    return {"code": code, "date": date, "amount": a, "before_15": before_15}
 
 
 def make_history(nav_map):

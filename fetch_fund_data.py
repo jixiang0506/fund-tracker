@@ -1154,18 +1154,6 @@ def main():
             args.skip_summary = True
             log(f"⏭ 当前为 {beijing_now.strftime('%H:%M')} 北京时间，自动跳过汇总更新")
 
-    # 备份旧汇总（用于 --skip-summary 模式）
-    old_summary = None
-    output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
-    if os.path.exists(output_file):
-        try:
-            with open(output_file, "r", encoding="utf-8") as f:
-                old_data = json.load(f)
-                old_summary = old_data.get("summary")
-            log(f"✓ 已备份旧汇总数据")
-        except Exception as e:
-            log(f"⚠️ 备份旧汇总失败: {e}", "warning")
-
     # 自动检测新基金（在加载配置之前执行）
     auto_detect_new_funds()
 
@@ -1394,13 +1382,6 @@ def main():
     if failed_funds:
         log(f"\n  [ERROR] 以下基金处理失败: {', '.join(failed_funds)}")
     log("="*60)
-
-    # 若指定 --skip-summary，恢复旧汇总
-    if args.skip_summary and old_summary is not None:
-        all_data["summary"] = old_summary
-        log("⏭ 跳过汇总更新（使用上次数据）")
-    elif args.skip_summary:
-        log("⏭ 无旧汇总数据，仍更新汇总")
 
     # 保存数据
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")

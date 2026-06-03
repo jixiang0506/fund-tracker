@@ -1292,6 +1292,12 @@ def main():
     else:
         summary["latest_trading_day_profit_loss_percent_diff"] = 0
 
+    # 兼容字段别名（前端使用 yesterday_xxx）
+    summary["yesterday_profit_loss"] = summary["latest_trading_day_profit_loss"]
+    summary["yesterday_profit_loss_percent"] = summary["latest_trading_day_profit_loss_percent"]
+    summary["yesterday_profit_loss_diff"] = summary["latest_trading_day_profit_loss_diff"]
+    summary["yesterday_profit_loss_percent_diff"] = summary["latest_trading_day_profit_loss_percent_diff"]
+
     # 计算本年数据（YTD）
     ytd_profit_sum = 0
     ytd_return_weighted_sum = 0

@@ -72,6 +72,13 @@ except ImportError:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HISTORY_CACHE_FILE = os.path.join(BASE_DIR, "data", "history_cache.json")
 
+# 基准指数数据
+INDEX_CACHE_FILE = os.path.join(BASE_DIR, "data", "benchmark_index_data.json")
+BENCHMARK_INDICES = {
+    "sh000688": {"name": "科创50", "secid": "1.000688"},
+    "us.NDX": {"name": "纳斯达克100指数", "secid": "100.NDX"},
+}
+
 
 def load_fund_config():
     """加载基金配置文件（唯一数据源:fund_config.json）"""
@@ -1351,6 +1358,78 @@ def main():
         generate_holdings_snapshot()
     except Exception as e:
         log("[Warning] 持仓快照生成失败: {}".format(e))
+
+    # 更新基准指数数据（东财 K线 API）
+    log("\n更新基准指数数据...")
+    try:
+        update_benchmark_index_data()
+    except Exception as e:
+        log("[Warning] 基准指数数据更新失败: {}".format(e))
+
+
+def update_benchmark_index_data():
+    """从东方财富 API 更新基准指数数据（科创50 sh000688, 纳斯达克100 us.NDX）"""
+    url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+    params_template = {
+        "fields1": "f1,f2,f3",
+        "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
+        "klt": "101",
+        "fqt": "1",
+        "end": "20500101",
+        "lmt": "2000",
+    }
+    existing = {}
+    if os.path.exists(INDEX_CACHE_FILE):
+        try:
+            with open(INDEX_CACHE_FILE, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+            log(f"✓ 已加载旧基准指数数据: {list(existing.keys())}")
+        except Exception as e:
+            log(f"⚠️ 加载旧基准指数数据失败: {e}", "warning")
+            existing = {}
+    session = _create_session()
+    updated = False
+    for code, info in BENCHMARK_INDICES.items():
+        try:
+            params = dict(params_template, secid=info["secid"])
+            resp = session.get(url, params=params, timeout=15)
+            resp.raise_for_status()
+            result = resp.json()
+            klines = result.get("data", {}).get("klines", [])
+            if not klines:
+                log(f"  ⚠ {code} ({info['name']}) 未获取到数据")
+                continue
+            new_data = {}
+            for kline in klines:
+                parts = kline.split(",")
+                if len(parts) >= 3:
+                    new_data[parts[0]] = float(parts[2])
+            if not new_data:
+                log(f"  ⚠ {code} ({info['name']}) 解析数据为空")
+                continue
+            old_data = existing.get(code, {}).get("data", {})
+            old_data.update(new_data)
+            existing[code] = {"name": info["name"], "data": old_data}
+            log(f"  ✓ {code} ({info['name']}): {len(klines)} 条K线, 最新 {list(new_data.keys())[-1]} 收盘 {list(new_data.values())[-1]}")
+            updated = True
+        except Exception as e:
+            log(f"  ⚠ {code} ({info['name']}) 获取失败: {e}", "warning")
+    if updated:
+        import tempfile
+        fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(INDEX_CACHE_FILE), suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
+            os.replace(tmp_path, INDEX_CACHE_FILE)
+            total_entries = sum(len(v.get("data", {})) for v in existing.values())
+            log(f"✓ 基准指数数据已保存: {len(existing)} 个指数, {total_entries} 条记录")
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            raise
+    else:
+        log("ℹ 基准指数数据无更新")
+
 
 def fetch_fund_info_from_web(code, session=None):
     """

@@ -66,10 +66,11 @@ jobs:
           mkdir -p site/data
           cp index.html site/
           cp fund_config.json site/
-          # 只部署必要的数据文件（不包含原始交易记录）
+          # 部署必要的数据文件（含交易记录）
           cp data/funds_data.json site/data/
           cp data/holdings_snapshot.json site/data/
           cp data/benchmark_index_data.json site/data/
+          cp data/purchase_records.json site/data/
           touch site/.nojekyll
 
       - name: 上传 Pages 产物

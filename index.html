@@ -4546,6 +4546,12 @@
                     const data = await response.json();
                     const content = decodeUtf8Base64(data.content);
                     applyPurchaseRecords(JSON.parse(content));
+                    // 持久化到 localStorage，避免刷新后数据丢失
+                    try {
+                        localStorage.setItem('purchase_records', JSON.stringify(state.purchaseRecords));
+                    } catch (e) {
+                        console.warn('保存交易记录到 localStorage 失败:', e);
+                    }
                     showMessage('交易记录加载成功', 'success');
                 } else if (response.status === 404) {
                     applyPurchaseRecords({});

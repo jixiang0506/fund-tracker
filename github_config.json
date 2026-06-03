@@ -1,22 +1,20 @@
 {
     "owner": "jixiang0506",
     "repo": "fund-tracker",
+    "branch": "main",
     "files": [
         "index.html",
         "fetch_fund_data.py",
         "generate_holdings.py",
+        "push_to_github.py",
+        "logger_config.py",
+        "requirements.txt",
         "data/purchase_records.json",
         "data/funds_data.json",
         "data/holdings_snapshot.json",
         "data/history_cache.json",
         "fund_config.json",
-        "push_to_github.py",
-        "logger_config.py",
-        "add_tabular.py",
-        "replace_transition.py",
-        "replace_transition_v2.py",
-        "fix_transition.py",
-        "init_git.py"
+        ".gitignore"
     ],
     "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件"
 }

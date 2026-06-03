@@ -39,7 +39,7 @@ def get_file_sha(file_path, owner, repo, token):
         return "__ERROR__"
 
 
-def push_file(file_path, message, owner, repo, token, max_retries=3):
+def push_file(file_path, message, owner, repo, token, branch='main', max_retries=3):
     """推送单个文件到 GitHub，自动处理 409 冲突并重试"""
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
     headers = {
@@ -67,7 +67,7 @@ def push_file(file_path, message, owner, repo, token, max_retries=3):
         data = {
             'message': message,
             'content': content_b64,
-            'branch': 'main'
+            'branch': branch
         }
         if sha:
             data['sha'] = sha
@@ -150,6 +150,7 @@ def main():
 
     owner = config.get('owner', '')
     repo = config.get('repo', '')
+    branch = config.get('branch', 'main')
 
     # 确定要推送的文件列表
     if args.files:
@@ -178,7 +179,7 @@ def main():
                 file_path,
                 time.strftime("%Y-%m-%d %H:%M", time.gmtime(time.time() + 8 * 3600))
             )
-            if push_file(file_path, commit_msg, owner, repo, token):
+            if push_file(file_path, commit_msg, owner, repo, token, branch):
                 success_count += 1
         else:
             log("[Warning] 文件不存在: " + file_path, "warning")

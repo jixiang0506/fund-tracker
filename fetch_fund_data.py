@@ -14,6 +14,7 @@
 import sys
 import io
 import requests
+import copy
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import json
@@ -1056,9 +1057,26 @@ def process_fund(platform, code, fund_start_date, http_session,
         realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
         if not realtime:
             if code in prev_fund_map:
-                old_fund = prev_fund_map[code]
+                # 用深拷贝避免修改 prev_fund_map 中的原始数据
+                old_fund = copy.deepcopy(prev_fund_map[code])
+                old_nav = old_fund.get("current_nav", 0)
+                # 用新的 purchase_records 重新计算 holdings，保留旧 NAV
+                purchases = purchase_records.get(platform, {}).get(code, [])
+                if history and purchases:
+                    new_holdings = calculate_holdings(purchases, old_nav, history, fund_code=code)
+                    old_fund["holdings"] = new_holdings
+                    old_fund["holdings"]["current_value"] = new_holdings["total_shares"] * old_nav
+                    # 重新计算累计收益率（使用路径2近似计算）
+                    old_fund["return_rates"] = calculate_cumulative_returns(
+                        history, new_holdings["purchases"]
+                    )
+                    # 更新昨日收益指标（使用旧 NAV）
+                    m = _calculate_latest_trading_day_metrics(history, new_holdings, today)
+                    old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
+                    old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
+                    old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
                 return (old_fund, old_fund["holdings"]["total_invested"],
-                        old_fund["holdings"]["current_value"], "使用缓存数据")
+                        old_fund["holdings"]["current_value"], "使用缓存数据(已用新交易记录重新计算)")
             else:
                 return (None, 0, 0, "无法获取实时数据且无缓存")
 

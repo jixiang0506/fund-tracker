@@ -5784,7 +5784,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             filterFunds();
             // 按平台更新顶部统计卡片（总投入、总市值、昨日收益率、昨日盈亏等8项）
             const platformSummary = computePlatformSummary(platform);
-            const statsGrid = document.querySelector('.stats-grid');
+            const statsGrid = document.querySelector('#mainContent .stats-grid');
             if (statsGrid) {
                 statsGrid.outerHTML = renderSummary(platformSummary);
             }

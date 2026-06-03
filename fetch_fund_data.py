@@ -804,6 +804,43 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
 
         return return_rates
 
+    # ── 路径2:近似回退（仅提供 purchase_details 时）──
+    # ⚠️ 注意：purchase_details 的 shares 已被 FIFO 抵扣，无法精确模拟。
+    # 此处使用近似算法：
+    #   - 累计份额 acc_shares：买入+，卖出-（使用 detail.shares）
+    #   - 累计投入 acc_invested：买入+amount，卖出-nav_p*sh（近似成本）
+    #   - 收益率 = (nav * acc_shares - acc_invested) / acc_invested
+    # 精度低于路径1（无法精确 FIFO 抵扣），但比全 None 更有意义。
+    if purchases:
+        sorted_p = sorted(purchases, key=lambda p: p["date"])
+        p_idx = 0
+        num_p = len(sorted_p)
+        acc_invested = 0.0   # 截止当天的累计投入
+        acc_shares = 0.0     # 截止当天的累计份额
+
+        for h_idx, h in enumerate(sorted_history):
+            # 滚动推进:处理所有 <= 当天的交易，更新累计值
+            while p_idx < num_p and sorted_p[p_idx]["date"] <= h["date"]:
+                p = sorted_p[p_idx]
+                p_idx += 1
+                nav_p = p.get("nav", 0)
+                if nav_p <= 0:
+                    continue
+                amt = p.get("amount", 0)
+                sh = p.get("shares", 0)
+                if p.get("type") == "sell":
+                    # 卖出:份额减少，投入按 nav * sh 近似扣除
+                    acc_shares -= sh
+                    acc_invested -= nav_p * sh
+                else:
+                    acc_shares += sh
+                    acc_invested += amt
+
+            if acc_invested > 0 and acc_shares > 0:
+                value = h["nav"] * acc_shares
+                profit = value - acc_invested
+                return_rates[h_idx] = round((profit / acc_invested) * 100, 2)
+
     return return_rates
 
 

@@ -14,7 +14,8 @@
         "data/holdings_snapshot.json",
         "data/history_cache.json",
         "fund_config.json",
-        ".gitignore"
+        ".gitignore",
+        ".github/workflows/update.yml"
     ],
     "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件"
 }

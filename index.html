@@ -3629,9 +3629,17 @@
                     }
 
                     // 创建与labels相同长度的数组
+                    // 找不到基准数据时，使用上一个有效值（向前填充），避免 Chart.js 尾部 null 渲染异常
+                    let lastValidBenchmarkValue = null;
                     benchmarkDataPoints = labels.map(date => {
                         if (indexData[date] !== undefined) {
-                            return (indexData[date] / baseIndexPrice - 1) * 100;
+                            lastValidBenchmarkValue = (indexData[date] / baseIndexPrice - 1) * 100;
+                            return lastValidBenchmarkValue;
+                        }
+                        // 对于基金日期中存在但基准数据缺失的日期（节假日或数据尚未更新），
+                        // 使用最近的有效值向前填充，避免 Chart.js 渲染 null 时出现"暴跌"假象
+                        if (lastValidBenchmarkValue !== null) {
+                            return lastValidBenchmarkValue;
                         }
                         return null;
                     });

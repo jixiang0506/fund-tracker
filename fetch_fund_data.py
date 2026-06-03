@@ -937,25 +937,33 @@ def _calculate_latest_trading_day_metrics(history, holdings, today):
         return result
 
     if history[-1].get("date", "") == today:
+        # history[-1] 是今天，history[-2] 是最近交易日
         latest_trading_day_nav = history[-2].get("nav", 0)
         latest_trading_day_nav_date = history[-2].get("date", "")
-        prev_nav = history[-3].get("nav", 0) if len(history) >= 3 else latest_trading_day_nav
+        # prev_nav: 最近交易日的前一日净值，用于计算最近交易日收益率
+        # 数据不足时置 0，后续 if prev_nav > 0 检查会正确返回 0
+        prev_nav = history[-3].get("nav", 0) if len(history) >= 3 else 0
+        # day_before_latest_trading_day: 倒数第3个交易日（用于"前日收益率"）
         if len(history) >= 4:
             day_before_latest_trading_day_nav = history[-3].get("nav", 0)
             prev_trading_day_prev_nav = history[-4].get("nav", 0)
         else:
-            day_before_latest_trading_day_nav = latest_trading_day_nav
-            prev_trading_day_prev_nav = latest_trading_day_nav
+            # 数据不足，无法计算"前日收益率"，相关字段置 0
+            day_before_latest_trading_day_nav = 0
+            prev_trading_day_prev_nav = 0
     else:
         latest_trading_day_nav = history[-1].get("nav", 0)
         latest_trading_day_nav_date = history[-1].get("date", "")
+        # prev_nav: 最近交易日前一日的净值
         prev_nav = history[-2].get("nav", 0)
+        # day_before_latest_trading_day: 倒数第2个交易日（用于"前日收益率"）
         if len(history) >= 3:
             day_before_latest_trading_day_nav = history[-2].get("nav", 0)
             prev_trading_day_prev_nav = history[-3].get("nav", 0)
         else:
-            day_before_latest_trading_day_nav = latest_trading_day_nav
-            prev_trading_day_prev_nav = latest_trading_day_nav
+            # 数据不足，无法计算"前日收益率"，相关字段置 0
+            day_before_latest_trading_day_nav = 0
+            prev_trading_day_prev_nav = 0
 
     if prev_nav > 0:
         latest_trading_day_return = (latest_trading_day_nav - prev_nav) / prev_nav * 100
@@ -1041,8 +1049,8 @@ def process_fund(platform, code, fund_start_date, http_session,
     处理单只基金:获取历史数据、实时数据，计算持仓和收益。
     线程安全:使用 history_cache_lock 保护缓存读写。
 
-    返回: (fund_data_dict, total_invested, total_value) 成功
-           (None, 0, 0, error_message) 失败
+    返回: (fund_data_dict, total_invested, total_value, error_msg) 成功时 error_msg=None
+           (None, 0, 0, error_message) 失败时 error_message 为错误描述
     """
     try:
         # --- 第1步:获取历史数据（与实时数据解耦） ---

@@ -831,14 +831,14 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
         else:
             history = fetch_fund_history(code, start_date=fund_start_date, session=http_session)
 
-        with history_cache_lock:
-            history_cache[code] = history
-
         if not history:
             if cached_history:
                 history = cached_history
             else:
                 return (None, "历史数据为空，且无缓存")
+
+        with history_cache_lock:
+            history_cache[code] = history
 
         return (history, None)
     except Exception as e:

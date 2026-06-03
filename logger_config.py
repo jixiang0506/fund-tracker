@@ -28,8 +28,8 @@ def setup_encoding():
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stdout._encoding_setup_done = True
     if getattr(sys.stderr, '_encoding_setup_done', False):
-        return
-    if hasattr(sys.stderr, "buffer"):
+        pass
+    elif hasattr(sys.stderr, "buffer"):
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
         sys.stderr._encoding_setup_done = True
 

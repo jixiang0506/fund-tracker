@@ -5723,12 +5723,71 @@ function deletePurchaseRecord(platform, fundCode, index) {
             });
         }
 
+        // 按平台计算汇总数据（用于平台切换时更新统计卡片）
+        function computePlatformSummary(platform) {
+            if (platform === '全部') {
+                return state.fundsData.summary;
+            }
+            const funds = state.fundsData.funds[platform];
+            if (!funds || funds.length === 0) {
+                return {
+                    total_invested: 0, total_value: 0, total_profit_loss: 0,
+                    total_profit_loss_percent: 0, yesterday_profit_loss: 0,
+                    yesterday_profit_loss_percent: 0, yesterday_profit_loss_diff: 0,
+                    yesterday_profit_loss_percent_diff: 0, ytd_profit_loss: 0,
+                    ytd_profit_loss_percent: 0
+                };
+            }
+            let totalInvested = 0, totalValue = 0, totalProfit = 0;
+            let yestProfit = 0, dayBeforeYestProfit = 0;
+            let ytdProfit = 0;
+            let ytdReturnWeighted = 0, ytdWeight = 0;
+            let yestReturnWeighted = 0, dayBeforeYestReturnWeighted = 0;
+
+            for (const fund of funds) {
+                const h = fund.holdings || {};
+                const inv = h.total_invested || 0;
+                const val = h.current_value || 0;
+                totalInvested += inv;
+                totalValue += val;
+                totalProfit += h.profit_loss || 0;
+                yestProfit += fund.latest_trading_day_profit || 0;
+                dayBeforeYestProfit += fund.day_before_latest_trading_day_profit || 0;
+                ytdProfit += fund.ytd_profit || 0;
+                if (val > 0) {
+                    ytdReturnWeighted += (fund.ytd_return || 0) * val;
+                    yestReturnWeighted += (fund.latest_trading_day_return || 0) * val;
+                    dayBeforeYestReturnWeighted += (fund.day_before_latest_trading_day_return || 0) * val;
+                    ytdWeight += val;
+                }
+            }
+
+            return {
+                total_invested: totalInvested,
+                total_value: totalValue,
+                total_profit_loss: totalProfit,
+                total_profit_loss_percent: totalInvested > 0 ? totalProfit / totalInvested * 100 : 0,
+                yesterday_profit_loss: yestProfit,
+                yesterday_profit_loss_percent: totalValue > 0 ? yestProfit / totalValue * 100 : 0,
+                yesterday_profit_loss_diff: yestProfit - dayBeforeYestProfit,
+                yesterday_profit_loss_percent_diff: ytdWeight > 0 ? (yestReturnWeighted - dayBeforeYestReturnWeighted) / ytdWeight : 0,
+                ytd_profit_loss: ytdProfit,
+                ytd_profit_loss_percent: ytdWeight > 0 ? ytdReturnWeighted / ytdWeight : 0
+            };
+        }
+
         function filterByPlatform(platform, btn) {
             state.filter.platform = platform;
             // 更新按钮高亮
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
             filterFunds();
+            // 按平台更新顶部统计卡片（总投入、总市值、昨日收益率、昨日盈亏等8项）
+            const platformSummary = computePlatformSummary(platform);
+            const statsGrid = document.querySelector('.stats-grid');
+            if (statsGrid) {
+                statsGrid.outerHTML = renderSummary(platformSummary);
+            }
         }
 
         // 点击Modal外部关闭

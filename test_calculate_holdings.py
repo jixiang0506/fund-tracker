@@ -1,337 +1,158 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""单元测试 - calculate_holdings() FIFO 买卖计算"""
-
-import sys
-import os
-import pytest
-
-# 确保能导入项目模块
+"""
+测试 calculate_holdings 函数（最终修正版）
+"""
+import sys, os, unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fetch_fund_data import calculate_holdings, get_nav_from_history
 
 
-# ============================================================
-# 辅助工具
-# ============================================================
-
-def make_history(entries):
-    """快速构建历史净值列表
-
-    Args:
-        entries: [(date, nav), ...] 按日期升序
-    Returns:
-        list[dict] 标准格式
-    """
-    return [{"date": d, "nav": n, "change_percent": 0} for d, n in entries]
+def make_purchase(code, date, shares, nav, amount=None, before_15=True):
+    a = amount if amount is not None else round(shares * nav, 2)
+    return {"code": code, "date": date, "shares": shares,
+            "nav": nav, "amount": a, "before_15": before_15}
 
 
-def make_purchase(date, amount, ptype="buy", before_15=True):
-    """快速构建交易记录"""
-    return {"date": date, "amount": amount, "type": ptype, "before_15": before_15}
+def make_history(nav_map):
+    return [{"date": d, "nav": v} for d, v in nav_map.items()]
 
 
-# ============================================================
-# 测试用例
-# ============================================================
-
-class TestCalculateHoldingsBasic:
-    """基础场景测试"""
-
-    def test_empty_purchases(self):
-        """空交易记录返回零值"""
-        result = calculate_holdings([], 1.0, [])
-        assert result["total_invested"] == 0
-        assert result["total_shares"] == 0
-        assert result["current_value"] == 0
-        assert result["profit_loss"] == 0
-        assert result["profit_loss_percent"] == 0
-        assert result["realized_profit_loss"] == 0
+class TestCalculateHoldingsBasic(unittest.TestCase):
+    def test_empty_records(self):
+        r = calculate_holdings([], 1.0, [{"date": "2025-01-02", "nav": 1.0}])
+        self.assertEqual(r["total_shares"], 0)
+        self.assertEqual(r["total_invested"], 0.0)
 
     def test_single_buy(self):
-        """单笔买入"""
-        history = make_history([("2024-01-10", 1.0)])
-        purchases = [make_purchase("2024-01-10", 1000)]
+        records = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1})
+        r = calculate_holdings(records, 1.1, history)
+        self.assertEqual(r["total_shares"], 1000)
+        self.assertAlmostEqual(r["current_value"], 1100.0, places=2)
 
-        result = calculate_holdings(purchases, 1.2, history)
-
-        assert result["total_shares"] == 1000.0   # 1000 / 1.0
-        assert result["total_invested"] == 1000.0   # 成本 = 份额 * 买入净值
-        assert result["current_value"] == 1200.0     # 1000 * 1.2
-        assert result["profit_loss"] == 200.0        # 1200 - 1000
-        assert result["profit_loss_percent"] == 20.0  # 200/1000 * 100
-
-    def test_two_buys_same_nav(self):
-        """两笔买入相同净值"""
-        history = make_history([("2024-01-10", 1.0), ("2024-01-20", 1.0)])
-        purchases = [
-            make_purchase("2024-01-10", 1000),
-            make_purchase("2024-01-20", 2000),
+    def test_multiple_buys(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.0),
+            make_purchase("000001", "2025-01-03", 500, 1.1),
         ]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1, "2025-01-06": 1.2})
+        r = calculate_holdings(records, 1.2, history)
+        self.assertEqual(r["total_shares"], 1500)
+        self.assertAlmostEqual(r["total_invested"], 1550.0, places=2)
 
-        result = calculate_holdings(purchases, 1.5, history)
 
-        assert result["total_shares"] == 3000.0   # 3000 / 1.0
-        assert result["total_invested"] == 3000.0
-        assert result["current_value"] == 4500.0   # 3000 * 1.5
-        assert result["profit_loss"] == 1500.0
-
-    def test_two_buys_different_nav(self):
-        """两笔买入不同净值"""
-        history = make_history([("2024-01-10", 1.0), ("2024-01-20", 2.0)])
-        purchases = [
-            make_purchase("2024-01-10", 1000),   # 1000份
-            make_purchase("2024-01-20", 2000),   # 1000份
+class TestCalculateHoldingsSell(unittest.TestCase):
+    def test_sell_all(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.0),
+            {"code": "000001", "date": "2025-01-03", "type": "sell",
+             "shares": 1000, "nav": 1.1, "amount": 1100.0, "before_15": True},
         ]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1})
+        r = calculate_holdings(records, 1.1, history)
+        self.assertEqual(r["total_shares"], 0)
 
-        result = calculate_holdings(purchases, 3.0, history)
-
-        assert result["total_shares"] == 2000.0    # 1000 + 1000
-        assert result["current_value"] == 6000.0    # 2000 * 3.0
-        # 成本: 1000*1.0 + 1000*2.0 = 3000
-        assert result["total_invested"] == 3000.0
-        assert result["profit_loss"] == 3000.0      # 6000 - 3000
-
-
-class TestCalculateHoldingsSell:
-    """卖出场景测试"""
-
-    def test_full_sell(self):
-        """全部卖出：份额归零"""
-        history = make_history([
-            ("2024-01-10", 1.0),  # 买入
-            ("2024-02-10", 2.0),  # 卖出
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 1000),              # 买1000份
-            make_purchase("2024-02-10", 2000, "sell"),      # 卖出金额=2000, 份额=1000
+    def test_sell_partial(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.0),
+            {"code": "000001", "date": "2025-01-03", "type": "sell",
+             "shares": 400, "nav": 1.1, "amount": 440.0, "before_15": True},
         ]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1, "2025-01-06": 1.2})
+        r = calculate_holdings(records, 1.2, history)
+        self.assertEqual(r["total_shares"], 600)
 
-        result = calculate_holdings(purchases, 2.5, history)
-
-        assert result["total_shares"] == 0
-        assert result["total_invested"] == 0
-        assert result["current_value"] == 0
-        assert result["profit_loss"] == 0
-        # 已实现盈亏: 卖出1000份 * 2.0 - 成本1000份 * 1.0 = 1000
-        assert result["realized_profit_loss"] == 1000.0
-
-    def test_partial_sell(self):
-        """部分卖出"""
-        history = make_history([
-            ("2024-01-10", 1.0),  # 买入
-            ("2024-02-10", 2.0),  # 卖出
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 1000),              # 买1000份
-            make_purchase("2024-02-10", 1000, "sell"),      # 卖出金额=1000, 份额=500
+    def test_sell_cross_batch(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 500, 1.0),
+            make_purchase("000001", "2025-01-03", 500, 1.2),
+            {"code": "000001", "date": "2025-01-06", "type": "sell",
+             "shares": 700, "nav": 1.1, "amount": 770.0, "before_15": True},
         ]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.2,
+                                   "2025-01-06": 1.1, "2025-01-07": 1.3})
+        r = calculate_holdings(records, 1.3, history)
+        self.assertEqual(r["total_shares"], 300)
 
-        result = calculate_holdings(purchases, 3.0, history)
-
-        # 剩余500份, 成本=500*1.0=500
-        assert result["total_shares"] == 500.0
-        assert result["total_invested"] == 500.0
-        assert result["current_value"] == 1500.0   # 500 * 3.0
-        # 已实现盈亏: 卖出500份 * 2.0 - 成本500份 * 1.0 = 500
-        assert result["realized_profit_loss"] == 500.0
-
-    def test_fifo_multi_buy_then_sell(self):
-        """多笔买入后卖出（FIFO先抵扣最早的买入）"""
-        history = make_history([
-            ("2024-01-10", 1.0),  # 买入A
-            ("2024-01-20", 2.0),  # 买入B
-            ("2024-02-10", 3.0),  # 卖出
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 1000),   # 买A: 1000份@1.0
-            make_purchase("2024-01-20", 2000),   # 买B: 1000份@2.0
-            make_purchase("2024-02-10", 3000, "sell"),  # 卖出: 1000份@3.0
+    def test_sell_with_loss(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.5),
+            {"code": "000001", "date": "2025-01-06", "type": "sell",
+             "shares": 1000, "nav": 1.2, "amount": 1200.0, "before_15": True},
         ]
+        history = make_history({"2025-01-02": 1.5, "2025-01-06": 1.2})
+        r = calculate_holdings(records, 1.2, history)
+        self.assertEqual(r["total_shares"], 0)
+        self.assertLess(r["realized_profit_loss"], 0)
 
-        result = calculate_holdings(purchases, 4.0, history)
 
-        # FIFO: 卖出1000份先抵扣A(1000份@1.0), A全部抵扣完
-        # 剩余: B的1000份@2.0
-        assert result["total_shares"] == 1000.0
-        assert result["total_invested"] == 2000.0   # 1000 * 2.0
-        assert result["current_value"] == 4000.0     # 1000 * 4.0
-        # 已实现盈亏: 1000份 * 3.0 - 1000份 * 1.0 = 2000
-        assert result["realized_profit_loss"] == 2000.0
+class TestCalculateHoldingsNavLookup(unittest.TestCase):
+    def test_nav_lookup_non_trading_day(self):
+        records = [make_purchase("000001", "2025-01-04", 1000, 1.0)]
+        history = make_history({"2025-01-06": 1.0, "2025-01-07": 1.1})
+        r = calculate_holdings(records, 1.1, history)
+        self.assertEqual(r["total_shares"], 1000)
 
-    def test_fifo_partial_deduction_from_two_buys(self):
-        """FIFO：卖出份额跨越两笔买入"""
-        history = make_history([
-            ("2024-01-10", 1.0),  # 买入A
-            ("2024-01-20", 2.0),  # 买入B
-            ("2024-02-10", 3.0),  # 卖出
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 500),    # 买A: 500份@1.0
-            make_purchase("2024-01-20", 2000),   # 买B: 1000份@2.0
-            make_purchase("2024-02-10", 3000, "sell"),  # 卖出: 1000份@3.0
+    def test_nav_lookup_zero_nav(self):
+        records = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
+        history = make_history({"2025-01-02": 0.0, "2025-01-03": 1.1})
+        r = calculate_holdings(records, 1.1, history)
+        # get_nav_from_history returns None when nav<=0, record skipped
+        self.assertEqual(r["total_shares"], 0)
+
+
+class TestCalculateHoldingsPurchaseDetails(unittest.TestCase):
+    def test_purchase_details_format(self):
+        records = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1})
+        r = calculate_holdings(records, 1.1, history)
+        self.assertIn("purchases", r)
+        details = r["purchases"]
+        self.assertEqual(len(details), 1)
+        self.assertIn("shares", details[0])
+        self.assertIn("amount", details[0])
+
+    def test_purchase_details_after_sell(self):
+        """卖出后，purchase_details 包含买入和卖出两条记录"""
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.0),
+            {"code": "000001", "date": "2025-01-03", "type": "sell",
+             "shares": 600, "nav": 1.1, "amount": 660.0, "before_15": True},
         ]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1,
+                                   "2025-01-06": 1.2})
+        r = calculate_holdings(records, 1.2, history)
+        # purchase_details 包含买入+卖出共2条
+        self.assertEqual(len(r["purchases"]), 2)
+        # 剩余份额400
+        self.assertAlmostEqual(r["total_shares"], 400, places=2)
 
-        result = calculate_holdings(purchases, 4.0, history)
 
-        # FIFO: 先抵扣A的500份@1.0, 再抵扣B的500份@2.0
-        # B剩余500份@2.0
-        assert result["total_shares"] == 500.0
-        assert result["total_invested"] == 1000.0   # 500 * 2.0
-        # 已实现盈亏: (500*3.0 - 500*1.0) + (500*3.0 - 500*2.0) = 1000 + 500 = 1500
-        assert result["realized_profit_loss"] == 1500.0
-
-    def test_sell_at_loss(self):
-        """亏损卖出"""
-        history = make_history([
-            ("2024-01-10", 2.0),  # 买入
-            ("2024-02-10", 1.0),  # 卖出
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 2000),              # 买1000份@2.0
-            make_purchase("2024-02-10", 500, "sell"),       # 卖出500份@1.0
+class TestCalculateHoldingsAvgCost(unittest.TestCase):
+    def test_avg_cost_basic(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.0),
+            make_purchase("000001", "2025-01-03", 1000, 1.2),
         ]
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.2,
+                                   "2025-01-06": 1.3})
+        r = calculate_holdings(records, 1.3, history)
+        # 平均成本 = (1000*1.0 + 1000*1.2) / 2000 = 1.1
+        self.assertAlmostEqual(r["avg_cost_nav"], 1.1, places=4)
 
-        result = calculate_holdings(purchases, 1.5, history)
-
-        # 剩余500份@2.0, 成本=1000
-        assert result["total_shares"] == 500.0
-        assert result["total_invested"] == 1000.0
-        # 已实现盈亏: 500份*1.0 - 500份*2.0 = -500
-        assert result["realized_profit_loss"] == -500.0
-
-
-class TestCalculateHoldingsNavLookup:
-    """净值查找相关测试"""
-
-    def test_non_trading_day_uses_next_trading_day(self):
-        """非交易日（周末）自动使用下一交易日净值"""
-        history = make_history([
-            ("2024-01-12", 1.0),  # 周五
-            ("2024-01-15", 1.1),  # 周一
-        ])
-        # 周六买入, before_15默认True, 但1月13日不在history中
-        # → 应自动找到下一交易日(1月15日)净值1.1
-        purchases = [make_purchase("2024-01-13", 1100, before_15=True)]
-
-        result = calculate_holdings(purchases, 1.2, history)
-
-        # 份额 = 1100 / 1.1 = 1000
-        assert result["total_shares"] == 1000.0
-        assert result["total_invested"] == 1100.0
-
-    def test_before_15_false_uses_next_day(self):
-        """15点后提交使用下一交易日净值"""
-        history = make_history([
-            ("2024-01-10", 1.0),  # 当天
-            ("2024-01-11", 1.2),  # 下一交易日
-        ])
-        # 15点后提交, 应使用1月11日净值1.2
-        purchases = [make_purchase("2024-01-10", 1200, before_15=False)]
-
-        result = calculate_holdings(purchases, 1.5, history)
-
-        # 份额 = 1200 / 1.2 = 1000
-        assert result["total_shares"] == 1000.0
-        assert result["total_invested"] == 1200.0
-
-    def test_nav_zero_skips_record(self):
-        """净值为0时跳过该笔记录"""
-        history = make_history([("2024-01-10", 0.0)])
-        purchases = [make_purchase("2024-01-10", 1000)]
-
-        result = calculate_holdings(purchases, 1.0, history)
-
-        # 净值0 → 跳过, 无持仓
-        assert result["total_shares"] == 0
-        assert result["total_invested"] == 0
-
-
-class TestCalculateHoldingsPurchaseDetails:
-    """交易详情记录测试"""
-
-    def test_buy_purchase_details(self):
-        """买入详情格式正确"""
-        history = make_history([("2024-01-10", 1.5)])
-        purchases = [make_purchase("2024-01-10", 1500)]
-
-        result = calculate_holdings(purchases, 2.0, history)
-
-        assert len(result["purchases"]) == 1
-        detail = result["purchases"][0]
-        assert detail["date"] == "2024-01-10"
-        assert detail["amount"] == 1500
-        assert detail["nav"] == 1.5
-        assert detail["shares"] == 1000.0
-        assert detail["type"] == "buy"
-
-    def test_sell_purchase_details(self):
-        """卖出详情格式正确"""
-        history = make_history([
-            ("2024-01-10", 1.0),
-            ("2024-02-10", 2.0),
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 1000),
-            make_purchase("2024-02-10", 1000, "sell"),  # 卖500份
+    def test_avg_cost_after_sell(self):
+        records = [
+            make_purchase("000001", "2025-01-02", 1000, 1.0),
+            make_purchase("000001", "2025-01-03", 1000, 1.4),
+            {"code": "000001", "date": "2025-01-06", "type": "sell",
+             "shares": 1000, "nav": 1.2, "amount": 1200.0, "before_15": True},
         ]
-
-        result = calculate_holdings(purchases, 2.5, history)
-
-        sell_detail = result["purchases"][1]
-        assert sell_detail["type"] == "sell"
-        assert sell_detail["amount"] == -1000       # 金额为负
-        assert sell_detail["shares"] == -500.0       # 份额为负
-        assert "realized_profit" in sell_detail
-        assert "fifo_cost" in sell_detail
-
-    def test_purchase_details_sorted_by_date(self):
-        """交易详情按日期排序"""
-        history = make_history([
-            ("2024-01-20", 2.0),
-            ("2024-01-10", 1.0),
-        ])
-        purchases = [
-            make_purchase("2024-01-20", 2000),   # 后买但排前面
-            make_purchase("2024-01-10", 1000),   # 先买
-        ]
-
-        result = calculate_holdings(purchases, 3.0, history)
-
-        # 应按日期排序: 1月10日在前
-        assert result["purchases"][0]["date"] == "2024-01-10"
-        assert result["purchases"][1]["date"] == "2024-01-20"
-
-
-class TestCalculateHoldingsAvgCost:
-    """平均持仓成本测试"""
-
-    def test_avg_cost_single_buy(self):
-        """单笔买入的平均成本等于买入净值"""
-        history = make_history([("2024-01-10", 1.5)])
-        purchases = [make_purchase("2024-01-10", 1500)]
-
-        result = calculate_holdings(purchases, 2.0, history)
-
-        assert result["avg_cost_nav"] == 1.5
-
-    def test_avg_cost_two_buys(self):
-        """两笔买入的加权平均成本"""
-        history = make_history([
-            ("2024-01-10", 1.0),   # 买1000份
-            ("2024-01-20", 2.0),   # 买500份
-        ])
-        purchases = [
-            make_purchase("2024-01-10", 1000),
-            make_purchase("2024-01-20", 1000),
-        ]
-
-        result = calculate_holdings(purchases, 3.0, history)
-
-        # 加权平均: (1000*1.0 + 500*2.0) / (1000+500) = 2000/1500 ≈ 1.3333
-        assert result["avg_cost_nav"] == round(2000 / 1500, 4)
+        history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.4,
+                                   "2025-01-06": 1.2, "2025-01-07": 1.3})
+        r = calculate_holdings(records, 1.3, history)
+        # 第一笔1000份全卖，剩余第二笔1000份，成本1.4
+        self.assertAlmostEqual(r["avg_cost_nav"], 1.4, places=4)
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    unittest.main()

@@ -138,7 +138,7 @@ def load_history_cache():
         # 去掉 _meta 等元数据键
         return {k: v for k, v in cache.items() if not k.startswith("_")}
     except Exception as e:
-        log(f"\u26a0\ufe0f 加载历史缓存失败，将全量获取: {e}", "warning")
+        log(f"⚠️ 加载历史缓存失败，将全量获取: {e}", "warning")
         return {}
 
 
@@ -158,7 +158,7 @@ def save_history_cache(cache_data):
             os.unlink(tmp_path)
         raise
     total_entries = sum(len(v) for v in cache_data.values())
-    log(f"\u2713 历史缓存已保存: {len(cache_data)} 只基金, {total_entries} 条记录")
+    log(f"✓ 历史缓存已保存: {len(cache_data)} 只基金, {total_entries} 条记录")
 
 
 def merge_history(existing, new_entries):
@@ -227,20 +227,20 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             json_start = text.find('(') + 1
             json_end = text.rfind(')')
             if json_start <= 0 or json_end <= json_start:
-                log(f"  \u26a0 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
+                log(f"  ⚠ 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
                 return _fallback()
             json_str = text[json_start:json_end].strip()
 
             # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
             if not json_str.strip():
-                log(f"  \u26a0 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
+                log(f"  ⚠ 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
                 return _fallback()
 
             data = json.loads(json_str)
 
             # 检查返回数据是否有效（有些基金不在交易时段会返回空内容）
             if not data.get("name") and not data.get("gsz"):
-                log(f"  \u26a0 基金 {fund_code} 实时估值无数据，尝试回退到历史数据API...")
+                log(f"  ⚠ 基金 {fund_code} 实时估值无数据，尝试回退到历史数据API...")
                 return _fallback()
 
             return {
@@ -253,14 +253,14 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             }
         except json.JSONDecodeError:
             # JSON解析失败 - 回退到历史数据
-            log(f"  \u26a0 基金 {fund_code} 实时估值JSON解析失败，尝试回退到历史数据API...")
+            log(f"  ⚠ 基金 {fund_code} 实时估值JSON解析失败，尝试回退到历史数据API...")
             return _fallback()
         except Exception as e:
             if attempt < max_retries:
-                log(f"  \u26a0 获取基金 {fund_code} 实时数据失败 (第{attempt}次), {max_retries - attempt}次重试机会剩余: {e}")
+                log(f"  ⚠ 获取基金 {fund_code} 实时数据失败 (第{attempt}次), {max_retries - attempt}次重试机会剩余: {e}")
                 time.sleep(2)
             else:
-                log(f"\u274c 获取基金 {fund_code} 实时数据失败 (已重试{max_retries}次): {e}")
+                log(f"❌ 获取基金 {fund_code} 实时数据失败 (已重试{max_retries}次): {e}")
                 # 最后一次也尝试回退
                 return _fallback()
 
@@ -288,7 +288,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         data_obj = result.get("Data") or {}
         items = data_obj.get("LSJZList", []) if isinstance(data_obj, dict) else []
         if not items:
-            log(f"  \u274c 基金 {fund_code} 历史数据也为空")
+            log(f"  ❌ 基金 {fund_code} 历史数据也为空")
             raise RuntimeError(f"基金 {fund_code} 历史数据为空")
 
         latest = items[0]
@@ -303,7 +303,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         # 从配置文件获取基金名称（回退方案）
         fund_name = _get_fund_name(fund_code, fund_names)
 
-        log(f"  \u2713 基金 {fund_code} 回退成功: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
+        log(f"  ✓ 基金 {fund_code} 回退成功: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
         return {
             "code": fund_code,
             "name": fund_name,
@@ -313,7 +313,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
             "nav_status": nav_status,
         }
     except Exception as e:
-        log(f"  \u274c 基金 {fund_code} 历史数据回退也失败: {e}")
+        log(f"  ❌ 基金 {fund_code} 历史数据回退也失败: {e}")
         return None
 
 def _get_fund_name(fund_code, fund_names=None):
@@ -412,18 +412,18 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, sessio
         # 按日期排序（从旧到新）
         all_history = sorted(all_history, key=lambda x: x["date"])
 
-        log(f"  \u2713 成功获取 {len(all_history)} 条历史记录")
+        log(f"  ✓ 成功获取 {len(all_history)} 条历史记录")
         return all_history
     except Exception as e:
-        log(f"\u274c 获取基金 {fund_code} 历史数据失败: {e}")
+        log(f"❌ 获取基金 {fund_code} 历史数据失败: {e}")
         return []
 
 def get_nav_from_history(history, target_date, before_15=True):
     """从历史数据中查找指定日期的净值。
 
     基金交易规则:
-    - 工作日15点前提交 \u2192 按当天净值确认 (before_15=True)
-    - 工作日15点后或周末提交 \u2192 按下一个工作日净值确认 (before_15=False)
+    - 工作日15点前提交 → 按当天净值确认 (before_15=True)
+    - 工作日15点后或周末提交 → 按下一个工作日净值确认 (before_15=False)
 
     参数:
         history: 历史净值列表（按日期升序）
@@ -473,7 +473,7 @@ def create_template_files(funds=None):
     else:
         # 无配置时创建空模板
         template_records = {
-            "\u793a\u4f8b\u5e73\u53f0": {
+            "示例平台": {
                 "000000": [
                     {"date": "2024-01-15", "amount": 1000.00}
                 ]
@@ -484,64 +484,64 @@ def create_template_files(funds=None):
     if not os.path.exists(template_path):
         with open(template_path, "w", encoding="utf-8") as f:
             json.dump(template_records, f, ensure_ascii=False, indent=2)
-        log(f"\u2713 \u5df2\u521b\u5efa\u6a21\u677f\u6301\u4ed3\u8bb0\u5f55\u6587\u4ef6: {template_path}")
-        log("  \u8bf7\u7f16\u8f91\u6b64\u6587\u4ef6\uff0c\u586b\u5165\u4f60\u7684\u5b9e\u9645\u4e70\u5165\u8bb0\u5f55")
-        log("  \u5356\u51fa\u8bb0\u5f55\u683c\u5f0f: {\"date\": \"2024-06-15\", \"amount\": 500.00, \"type\": \"sell\"}")
+        log(f"✓ 已创建模板持仓记录文件: {template_path}")
+        log("  请编辑此文件，填入你的实际买入记录")
+        log("  卖出记录格式: {\"date\": \"2024-06-15\", \"amount\": 500.00, \"type\": \"sell\"}")
         return False
 
     return True
 
 def validate_purchase_records(records):
     """
-    \u6821\u9a8c\u4ea4\u6613\u8bb0\u5f55 schema\uff0c\u63d0\u524d\u62e6\u622a\u810f\u6570\u636e
-    \u7ed3\u6784: {\u5e73\u53f0: {\u57fa\u91d1\u4ee3\u7801: [\u4ea4\u6613\u8bb0\u5f55]}}
-    \u8fd4\u56de: (is_valid, validated_records, errors)
+    校验交易记录 schema，提前拦截脏数据
+    结构: {平台: {基金代码: [交易记录]}}
+    返回: (is_valid, validated_records, errors)
     """
     if not isinstance(records, dict):
-        return False, None, ["\u9876\u5c42\u7ed3\u6784\u5fc5\u987b\u662f\u5bf9\u8c61\uff08\u5e73\u53f0\u2192\u57fa\u91d1\u4ee3\u7801\u2192\u4ea4\u6613\u5217\u8868\uff09"]
+        return False, None, ["顶层结构必须是对象（平台→基金代码→交易列表）"]
 
     validated = {}
     all_errors = []
 
     for platform, funds in records.items():
         if not isinstance(funds, dict):
-            all_errors.append(f"\u5e73\u53f0 '{platform}' \u7684\u503c\u5fc5\u987b\u662f\u5bf9\u8c61\uff08\u57fa\u91d1\u4ee3\u7801\u2192\u4ea4\u6613\u5217\u8868\uff09")
+            all_errors.append(f"平台 '{platform}' 的值必须是对象（基金代码→交易列表）")
             continue
 
         validated[platform] = {}
         for fund_code, trans_list in funds.items():
             if not isinstance(trans_list, list):
-                all_errors.append(f"\u5e73\u53f0 '{platform}' \u57fa\u91d1 '{fund_code}' \u7684\u4ea4\u6613\u8bb0\u5f55\u5fc5\u987b\u662f\u5217\u8868")
+                all_errors.append(f"平台 '{platform}' 基金 '{fund_code}' 的交易记录必须是列表")
                 continue
 
             validated[platform][fund_code] = []
             for i, rec in enumerate(trans_list):
                 prefix = f"{platform}.{fund_code}[{i}]"
                 if not isinstance(rec, dict):
-                    all_errors.append(f"{prefix}: \u5fc5\u987b\u662f\u5bf9\u8c61")
+                    all_errors.append(f"{prefix}: 必须是对象")
                     continue
 
-                # \u6821\u9a8c date
+                # 校验 date
                 if "date" not in rec:
-                    all_errors.append(f"{prefix}: \u7f3a\u5c11 'date' \u5b57\u6bb5")
+                    all_errors.append(f"{prefix}: 缺少 'date' 字段")
                     continue
                 date_val = rec["date"]
                 if not isinstance(date_val, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", date_val):
-                    all_errors.append(f"{prefix}: 'date' \u683c\u5f0f\u9519\u8bef\uff0c\u5e94\u4e3a YYYY-MM-DD")
+                    all_errors.append(f"{prefix}: 'date' 格式错误，应为 YYYY-MM-DD")
                     continue
 
-                # \u6821\u9a8c amount
+                # 校验 amount
                 if "amount" not in rec:
-                    all_errors.append(f"{prefix}: \u7f3a\u5c11 'amount' \u5b57\u6bb5")
+                    all_errors.append(f"{prefix}: 缺少 'amount' 字段")
                     continue
                 amount_val = rec["amount"]
                 if not isinstance(amount_val, (int, float)) or amount_val <= 0:
-                    all_errors.append(f"{prefix}: 'amount' \u5fc5\u987b\u662f\u6b63\u6570")
+                    all_errors.append(f"{prefix}: 'amount' 必须是正数")
                     continue
 
-                # \u6821\u9a8c type\uff08\u53ef\u9009\uff09
+                # 校验 type（可选）
                 if "type" in rec and not (isinstance(rec["type"], str) and rec["type"].lower() in ("buy", "sell")):
-                    all_errors.append(f"{prefix}: 'type' \u5fc5\u987b\u662f 'buy' \u6216 'sell'\uff08\u4e0d\u533a\u5206\u5927\u5c0f\u5199\uff09")
+                    all_errors.append(f"{prefix}: 'type' 必须是 'buy' 或 'sell'（不区分大小写）")
                     continue
 
                 validated[platform][fund_code].append(rec)
@@ -550,44 +550,44 @@ def validate_purchase_records(records):
 
 
 def load_purchase_records():
-    """\u52a0\u8f7d\u6301\u4ed3\u8bb0\u5f55\uff08\u4fdd\u7559\u5e73\u53f0\u5206\u5c42\u7ed3\u6784\uff0c\u4e0d\u505a\u6241\u5e73\u5316\uff09"""
+    """加载持仓记录（保留平台分层结构，不做扁平化）"""
     try:
         records_file = os.path.join(BASE_DIR, "data", "purchase_records.json")
 
-        # \u5982\u679c\u6587\u4ef6\u4e0d\u5b58\u5728\uff0c\u521b\u5efa\u6a21\u677f
+        # 如果文件不存在，创建模板
         if not os.path.exists(records_file):
-            log("\u672a\u627e\u5230\u6301\u4ed3\u8bb0\u5f55\u6587\u4ef6\uff0c\u6b63\u5728\u521b\u5efa\u7a7a\u6a21\u677f...")
+            log("未找到持仓记录文件，正在创建空模板...")
             create_template_files(None)
             return None
 
         with open(records_file, "r", encoding="utf-8") as f:
             raw_records = json.load(f)
 
-        # \u6821\u9a8c\u4ea4\u6613\u8bb0\u5f55\u683c\u5f0f
+        # 校验交易记录格式
         is_valid, validated, errors = validate_purchase_records(raw_records)
         if not is_valid:
-            log("[ERROR] \u4ea4\u6613\u8bb0\u5f55\u683c\u5f0f\u9519\u8bef:")
+            log("[ERROR] 交易记录格式错误:")
             for err in errors:
                 log("  - {}".format(err))
             return None
 
-        # \u7edf\u8ba1\u603b\u57fa\u91d1\u6570
+        # 统计总基金数
         fund_count = sum(len(funds) for funds in validated.values())
-        log(f"\u2713 \u6210\u529f\u52a0\u8f7d\u6301\u4ed3\u8bb0\u5f55: {fund_count} \u53ea\u57fa\u91d1\uff08\u4fdd\u7559\u5e73\u53f0\u4fe1\u606f\uff09")
+        log(f"✓ 成功加载持仓记录: {fund_count} 只基金（保留平台信息）")
         return validated
     except Exception as e:
-        log(f"\u274c \u52a0\u8f7d\u6301\u4ed3\u8bb0\u5f55\u5931\u8d25: {e}")
+        log(f"❌ 加载持仓记录失败: {e}")
         return None
 
 def calculate_holdings(purchases, current_nav, history, fund_code=""):
-    """\u8ba1\u7b97\u6301\u4ed3\u4fe1\u606f\u548c\u5b9e\u9645\u6536\u76ca\uff08\u652f\u6301\u4e70\u5165\u548c\u5356\u51fa\u8bb0\u5f55\uff0cFIFO\u6cd5\u81ea\u52a8\u62b5\u6263\uff09
-    \u53c2\u6570:
-        purchases: \u8be5\u57fa\u91d1\u7684\u5168\u90e8\u4ea4\u6613\u8bb0\u5f55\u5217\u8868\uff08\u5df2\u6309\u5e73\u53f0\u533a\u5206\uff0c\u4e0d\u542b\u5176\u4ed6\u5e73\u53f0\u540c\u540d\u57fa\u91d1\uff09
-        current_nav: \u5f53\u524d\u51c0\u503c
-        history: \u5386\u53f2\u51c0\u503c\u5217\u8868
-        fund_code: \u57fa\u91d1\u4ee3\u7801\uff08\u7528\u4e8e\u65e5\u5fd7\u8f93\u51fa\uff09
+    """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）
+    参数:
+        purchases: 该基金的全部交易记录列表（已按平台区分，不含其他平台同名基金）
+        current_nav: 当前净值
+        history: 历史净值列表
+        fund_code: 基金代码（用于日志输出）
     """
-    if not purchases or len(purchases) == 0:
+    if not purchases:
         return {
             "total_invested": 0,
             "total_shares": 0,
@@ -598,12 +598,12 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
             "realized_profit_loss": 0
         }
 
-    # FIFO\u961f\u5217:{date, amount, shares, nav, remaining_shares}
+    # FIFO队列:{date, amount, shares, nav, remaining_shares}
     buy_queue = []
-    realized_profit_loss = 0  # \u5df2\u5b9e\u73b0\u76c8\u4e8f\uff08\u5356\u51fa\u65f6\u786e\u8ba4\uff09
+    realized_profit_loss = 0  # 已实现盈亏（卖出时确认）
     purchase_details = []
 
-    # \u6309\u65e5\u671f\u6392\u5e8f\uff08\u786e\u4fddFIFO\u987a\u5e8f\uff09
+    # 按日期排序（确保FIFO顺序）
     sorted_purchases = sorted(purchases, key=lambda x: x["date"])
 
     for purchase in sorted_purchases:
@@ -611,28 +611,28 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
         amount = purchase["amount"]
         trans_type = purchase.get("type", "buy")
 
-        # \u4ece\u5386\u53f2\u6570\u636e\u4e2d\u67e5\u627e\u4ea4\u6613\u65e5\u7684\u51c0\u503c
-        # before_15: \u662f\u5426\u4e3a15\u70b9\u524d\u63d0\u4ea4\uff08\u9ed8\u8ba4True\uff0c\u5373\u6309\u5f53\u5929\u51c0\u503c\u786e\u8ba4\uff09
+        # 从历史数据中查找交易日的净值
+        # before_15: 是否为15点前提交（默认True，即按当天净值确认）
         before_15 = purchase.get("before_15", True)
         nav_result = get_nav_from_history(history, date, before_15)
 
         if not nav_result or nav_result["nav"] <= 0:
-            log(f"  \u26a0 \u65e0\u6cd5\u83b7\u53d6 {date} \u7684\u51c0\u503c\uff0c\u8df3\u8fc7\u6b64\u7b14\u8bb0\u5f55")
+            log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔记录")
             continue
 
         nav_on_date = nav_result["nav"]
         nav_source = nav_result.get("nav_source", "exact")
 
         if trans_type == "sell":
-            # \u5356\u51fa\u8bb0\u5f55:\u6309FIFO\u6cd5\u4ece\u6700\u65e9\u4e70\u5165\u62b5\u6263
+            # 卖出记录:按FIFO法从最早买入抵扣
             sell_shares = amount / nav_on_date
             remaining_sell_shares = sell_shares
-            sell_realized_profit = 0  # \u672c\u7b14\u5356\u51fa\u5b9e\u73b0\u7684\u76c8\u4e8f
-            total_fifo_cost = 0  # \u672c\u7b14\u5356\u51fa\u7684FIFO\u603b\u6210\u672c
+            sell_realized_profit = 0  # 本笔卖出实现的盈亏
+            total_fifo_cost = 0  # 本笔卖出的FIFO总成本
 
-            log(f"  \u5356\u51fa\u8bb0\u5f55: {date}, \u91d1\u989d \u00a5{amount}, \u51c0\u503c {nav_on_date:.4f} (\u6765\u6e90: {nav_source}), \u4efd\u989d {sell_shares:.2f}")
+            log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f} (来源: {nav_source}), 份额 {sell_shares:.2f}")
 
-            # FIFO\u62b5\u6263
+            # FIFO抵扣
             for buy in buy_queue:
                 if remaining_sell_shares <= 0:
                     break
@@ -640,44 +640,44 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
                 if buy["remaining_shares"] <= 0:
                     continue
 
-                # \u672c\u6b21\u62b5\u6263\u7684\u4efd\u989d
+                # 本次抵扣的份额
                 deduct_shares = min(remaining_sell_shares, buy["remaining_shares"])
-                deduct_amount = deduct_shares * buy["nav"]  # \u6210\u672c\u91d1\u989d
-                total_fifo_cost += deduct_amount  # \u7d2f\u52a0FIFO\u6210\u672c
-                sell_value = deduct_shares * nav_on_date  # \u5356\u51fa\u91d1\u989d
+                deduct_amount = deduct_shares * buy["nav"]  # 成本金额
+                total_fifo_cost += deduct_amount  # 累加FIFO成本
+                sell_value = deduct_shares * nav_on_date  # 卖出金额
                 profit = sell_value - deduct_amount
 
-                # \u66f4\u65b0
+                # 更新
                 buy["remaining_shares"] -= deduct_shares
                 remaining_sell_shares -= deduct_shares
                 realized_profit_loss += profit
                 sell_realized_profit += profit
 
-                log(f"    FIFO\u62b5\u6263: \u4ece {buy['date']} \u4e70\u5165\u8bb0\u5f55\u62b5\u6263 {deduct_shares:.2f} \u4efd, \u6210\u672c \u00a5{deduct_amount:.2f}, \u5356\u51fa \u00a5{sell_value:.2f}, \u76c8\u4e8f \u00a5{profit:.2f}")
+                log(f"    FIFO抵扣: 从 {buy['date']} 买入记录抵扣 {deduct_shares:.2f} 份, 成本 ¥{deduct_amount:.2f}, 卖出 ¥{sell_value:.2f}, 盈亏 ¥{profit:.2f}")
 
-            # \u68c0\u67e5\u662f\u5426\u8d85\u5356\uff08\u5269\u4f59\u672a\u62b5\u6263\u4efd\u989d > 0\uff09
+            # 检查是否超卖（剩余未抵扣份额 > 0）
             if remaining_sell_shares > 0.0001:
                 actual_sell_shares = sell_shares - remaining_sell_shares
                 actual_amount = actual_sell_shares * nav_on_date
-                log(f"  \u26a0 \u8b66\u544a: \u57fa\u91d1 {fund_code} \u5356\u51fa\u4efd\u989d\u8d85\u8fc7\u6301\u4ed3\uff01\u5c1d\u8bd5\u5356\u51fa {sell_shares:.2f} \u4efd\uff0c\u5b9e\u9645\u53ef\u5356\u51fa {actual_sell_shares:.2f} \u4efd")
-                # \u4fee\u6b63\u4e3a\u5b9e\u9645\u53ef\u5356\u51fa\u7684\u4efd\u989d\u548c\u91d1\u989d
+                log(f"  ⚠ 警告: 基金 {fund_code} 卖出份额超过持仓！尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sell_shares:.2f} 份")
+                # 修正为实际可卖出的份额和金额
                 sell_shares = actual_sell_shares
                 amount = actual_amount
 
-            # \u8bb0\u5f55\u5356\u51fa\u8be6\u60c5\uff08\u4f7f\u7528\u672c\u7b14\u5356\u51fa\u7684\u5df2\u5b9e\u73b0\u76c8\u4e8f\uff09
+            # 记录卖出详情（使用本笔卖出的已实现盈亏）
             purchase_details.append({
                 "date": date,
                 "amount": -round(amount, 2),
                 "nav": round(nav_on_date, 4),
                 "shares": -round(sell_shares, 2),
                 "type": "sell",
-                "realized_profit": round(sell_realized_profit, 2),  # \u672c\u7b14\u5356\u51fa\u7684\u76c8\u4e8f
-                "fifo_cost": round(total_fifo_cost, 2),  # \u672c\u7b14\u5356\u51fa\u7684FIFO\u603b\u6210\u672c
-                "nav_source": nav_source  # \u51c0\u503c\u6765\u6e90:exact / next_trading_day
+                "realized_profit": round(sell_realized_profit, 2),  # 本笔卖出的盈亏
+                "fifo_cost": round(total_fifo_cost, 2),  # 本笔卖出的FIFO总成本
+                "nav_source": nav_source  # 净值来源:exact / next_trading_day
             })
 
         else:
-            # \u4e70\u5165\u8bb0\u5f55:\u52a0\u5165FIFO\u961f\u5217
+            # 买入记录:加入FIFO队列
             shares = amount / nav_on_date
             buy_queue.append({
                 "date": date,
@@ -693,28 +693,28 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
                 "nav": round(nav_on_date, 4),
                 "shares": round(shares, 2),
                 "type": "buy",
-                "nav_source": nav_source  # \u51c0\u503c\u6765\u6e90:exact / next_trading_day
+                "nav_source": nav_source  # 净值来源:exact / next_trading_day
             })
 
-            log(f"  \u4e70\u5165\u8bb0\u5f55: {date}, \u91d1\u989d \u00a5{amount}, \u51c0\u503c {nav_on_date:.4f}, \u4efd\u989d {shares:.2f}")
+            log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
 
-    # \u8ba1\u7b97\u5269\u4f59\u6301\u4ed3
+    # 计算剩余持仓
     remaining_shares = sum(b["remaining_shares"] for b in buy_queue)
     remaining_cost = sum(b["remaining_shares"] * b["nav"] for b in buy_queue)
 
-    # \u8ba1\u7b97\u5e73\u5747\u6301\u4ed3\u6210\u672c
+    # 计算平均持仓成本
     avg_cost_nav = remaining_cost / remaining_shares if remaining_shares > 0 else 0
 
-    # \u786e\u4fdd\u4efd\u989d\u548c\u6295\u5165\u4e0d\u4e3a\u8d1f\u6570
+    # 确保份额和投入不为负数
     remaining_shares = max(0, remaining_shares)
     remaining_cost = max(0, remaining_cost)
 
-    # \u8ba1\u7b97\u5f53\u524d\u5e02\u503c\u548c\u6536\u76ca
+    # 计算当前市值和收益
     current_value = remaining_shares * current_nav if current_nav > 0 else 0
     unrealized_profit = current_value - remaining_cost
     profit_loss_percent = (unrealized_profit / remaining_cost * 100) if remaining_cost > 0 else 0
 
-    log(f"  \u6301\u4ed3\u6c47\u603b: \u5269\u4f59\u4efd\u989d {remaining_shares:.2f}, \u5269\u4f59\u6210\u672c \u00a5{remaining_cost:.2f}, \u5df2\u5b9e\u73b0\u76c8\u4e8f \u00a5{realized_profit_loss:.2f}, \u5e73\u5747\u6210\u672c {avg_cost_nav:.4f}")
+    log(f"  持仓汇总: 剩余份额 {remaining_shares:.2f}, 剩余成本 ¥{remaining_cost:.2f}, 已实现盈亏 ¥{realized_profit_loss:.2f}, 平均成本 {avg_cost_nav:.4f}")
 
     return {
         "total_invested": round(remaining_cost, 2),
@@ -723,41 +723,43 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
         "profit_loss": round(unrealized_profit, 2),
         "profit_loss_percent": round(profit_loss_percent, 2),
         "purchases": purchase_details,
-        "realized_profit_loss": round(realized_profit_loss, 2),  # \u65b0\u589e:\u5df2\u5b9e\u73b0\u76c8\u4e8f
-        "avg_cost_nav": round(avg_cost_nav, 4)  # \u65b0\u589e:\u5e73\u5747\u6301\u4ed3\u6210\u672c
+        "realized_profit_loss": round(realized_profit_loss, 2),  # 新增:已实现盈亏
+        "avg_cost_nav": round(avg_cost_nav, 4)  # 新增:平均持仓成本
     }
 
 def calculate_cumulative_returns(history, purchases, original_purchases=None, history_for_nav=None):
-    """\u4e3a\u5386\u53f2\u6570\u636e\u4e2d\u6bcf\u4e00\u5929\u9884\u8ba1\u7b97\u7d2f\u8ba1\u6536\u76ca\u7387\uff0c\u4f7f\u7528\u4e0e calculate_holdings() \u4e00\u81f4\u7684 FIFO \u903b\u8f91\u3002\n
-    \u4f18\u5316:\u589e\u91cf\u7ef4\u62a4 FIFO \u961f\u5217\uff0c\u65f6\u95f4\u590d\u6742\u5ea6\u4ece O(H\u00d7P) \u964d\u81f3 O(H+P)\uff0c
-    \u5176\u4e2d H=\u5386\u53f2\u5929\u6570\uff0cP=\u4ea4\u6613\u7b14\u6570\u3002\n
-    \u53c2\u6570:
-        history: \u5386\u53f2\u51c0\u503c\u5217\u8868\uff08\u6309\u65e5\u671f\u5347\u5e8f\uff09
-        purchases: calculate_holdings() \u8fd4\u56de\u7684 purchase_details\uff08\u542b fifo_cost\uff09
-        original_purchases: \u539f\u59cb\u4ea4\u6613\u8bb0\u5f55\uff08\u542b before_15 \u5b57\u6bb5\uff09\uff0c\u7528\u4e8e\u7cbe\u786e FIFO \u6a21\u62df
-        history_for_nav: \u4e0e original_purchases \u914d\u5408\u7684\u5386\u53f2\u6570\u636e\uff0c\u7528\u4e8e\u67e5\u51c0\u503c
+    """为历史数据中每一天预计算累计收益率，使用与 calculate_holdings() 一致的 FIFO 逻辑。
+
+    优化:增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)，
+    其中 H=历史天数，P=交易笔数。
+
+    参数:
+        history: 历史净值列表（按日期升序）
+        purchases: calculate_holdings() 返回的 purchase_details（含 fifo_cost）
+        original_purchases: 原始交易记录（含 before_15 字段），用于精确 FIFO 模拟
+        history_for_nav: 与 original_purchases 配合的历史数据，用于查净值
     """
     if not history:
         return []
 
-    # \u786e\u4fdd history \u6309\u65e5\u671f\u5347\u5e8f\u6392\u5217
+    # 确保 history 按日期升序排列
     sorted_history = sorted(history, key=lambda h: h["date"])
     n = len(sorted_history)
     return_rates = [None] * n
 
-    # \u2500\u2500 \u8def\u5f841:\u7cbe\u786e FIFO \u6a21\u62df\uff08\u63d0\u4f9b\u539f\u59cb\u4ea4\u6613\u8bb0\u5f55\u65f6\uff09\u2500\u2500
+    # ── 路径1:精确 FIFO 模拟（提供原始交易记录时）──
     if original_purchases and history_for_nav:
         sorted_purchases = sorted(original_purchases, key=lambda p: p["date"])
-        buy_queue = []          # FIFO \u961f\u5217:[{date, nav, remaining_shares}]
+        buy_queue = []          # FIFO 队列:[{date, nav, remaining_shares}]
         purchase_idx = 0
         num_purchases = len(sorted_purchases)
 
-        # \u6eda\u52a8\u7ef4\u62a4\u6301\u4ed3\u4efd\u989d\u548c\u6210\u672c\uff08\u66ff\u4ee3\u5faa\u73af\u5185\u5168\u91cf sum\uff09
+        # 滚动维护持仓份额和成本（替代循环内全量 sum）
         queue_shares = 0.0
         queue_cost = 0.0
 
         for h_idx, h in enumerate(sorted_history):
-            # \u589e\u91cf\u63a8\u8fdb:\u5904\u7406\u6240\u6709\u5728\u8be5\u5386\u53f2\u65f6\u70b9\u4e4b\u524d\uff08\u542b\u5f53\u65e5\uff09\u7684\u4ea4\u6613
+            # 增量推进:处理所有在该历史时点之前（含当日）的交易
             while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
                 p = sorted_purchases[purchase_idx]
                 purchase_idx += 1
@@ -795,7 +797,7 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                     queue_shares += shares
                     queue_cost += shares * nav_on_date
 
-            # \u4f7f\u7528\u6eda\u52a8\u53d8\u91cf\uff0cO(1) \u8ba1\u7b97\uff08\u4e0d\u518d\u5168\u91cf sum\uff09
+            # 使用滚动变量，O(1) 计算（不再全量 sum）
             if queue_cost > 0 and queue_shares > 0:
                 value = h["nav"] * queue_shares
                 profit = value - queue_cost
@@ -803,22 +805,22 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
 
         return return_rates
 
-    # \u2500\u2500 \u8def\u5f842:\u8fd1\u4f3c\u56de\u9000\uff08\u4ec5\u63d0\u4f9b purchase_details \u65f6\uff09\u2500\u2500
-    # \u26a0\ufe0f \u6ce8\u610f\uff1apurchase_details \u7684 shares \u5df2\u88ab FIFO \u62b5\u6263\uff0c\u65e0\u6cd5\u7cbe\u786e\u6a21\u62df\u3002
-    # \u6b64\u5904\u4f7f\u7528\u8fd1\u4f3c\u7b97\u6cd5\uff1a
-    #   - \u7d2f\u8ba1\u4efd\u989d acc_shares\uff1a\u4e70\u5165+\uff0c\u5356\u51fa-\uff08\u4f7f\u7528 detail.shares\uff09
-    #   - \u7d2f\u8ba1\u6295\u5165 acc_invested\uff1a\u4e70\u5165+amount\uff0c\u5356\u51fa-nav_p*sh\uff08\u8fd1\u4f3c\u6210\u672c\uff09
-    #   - \u6536\u76ca\u7387 = (nav * acc_shares - acc_invested) / acc_invested
-    # \u7cbe\u5ea6\u4f4e\u4e8e\u8def\u5f841\uff08\u65e0\u6cd5\u7cbe\u786e FIFO \u62b5\u6263\uff09\uff0c\u4f46\u6bd4\u5168 None \u66f4\u6709\u610f\u4e49\u3002
+    # ── 路径2:近似回退（仅提供 purchase_details 时）──
+    # ⚠️ 注意：purchase_details 的 shares 已被 FIFO 抵扣，无法精确模拟。
+    # 此处使用近似算法：
+    #   - 累计份额 acc_shares：买入+，卖出-（使用 detail.shares）
+    #   - 累计投入 acc_invested：买入+amount，卖出-nav_p*sh（近似成本）
+    #   - 收益率 = (nav * acc_shares - acc_invested) / acc_invested
+    # 精度低于路径1（无法精确 FIFO 抵扣），但比全 None 更有意义。
     if purchases:
         sorted_p = sorted(purchases, key=lambda p: p["date"])
         p_idx = 0
         num_p = len(sorted_p)
-        acc_invested = 0.0   # \u622a\u6b62\u5f53\u5929\u7684\u7d2f\u8ba1\u6295\u5165
-        acc_shares = 0.0     # \u622a\u6b62\u5f53\u5929\u7684\u7d2f\u8ba1\u4efd\u989d
+        acc_invested = 0.0   # 截止当天的累计投入
+        acc_shares = 0.0     # 截止当天的累计份额
 
         for h_idx, h in enumerate(sorted_history):
-            # \u6eda\u52a8\u63a8\u8fdb:\u5904\u7406\u6240\u6709 <= \u5f53\u5929\u7684\u4ea4\u6613\uff0c\u66f4\u65b0\u7d2f\u8ba1\u503c
+            # 滚动推进:处理所有 <= 当天的交易，更新累计值
             while p_idx < num_p and sorted_p[p_idx]["date"] <= h["date"]:
                 p = sorted_p[p_idx]
                 p_idx += 1
@@ -828,7 +830,7 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
                 amt = p.get("amount", 0)
                 sh = p.get("shares", 0)
                 if p.get("type") == "sell":
-                    # \u5356\u51fa:\u4efd\u989d\u51cf\u5c11\uff0c\u6295\u5165\u6309 nav * sh \u8fd1\u4f3c\u6263\u9664
+                    # 卖出:份额减少，投入按 nav * sh 近似扣除
                     acc_shares -= sh
                     acc_invested -= nav_p * sh
                 else:
@@ -846,9 +848,10 @@ def calculate_cumulative_returns(history, purchases, original_purchases=None, hi
 def _fetch_and_merge_history(code, fund_start_date, http_session,
                             history_cache, history_cache_lock):
     """
-    \u83b7\u53d6\u57fa\u91d1\u5386\u53f2\u6570\u636e\uff0c\u4e0e\u7f13\u5b58\u5408\u5e76\uff0c\u66f4\u65b0\u5185\u5b58\u7f13\u5b58\u3002
-    \u7ebf\u7a0b\u5b89\u5168:\u4f7f\u7528 history_cache_lock \u4fdd\u62a4\u7f13\u5b58\u8bfb\u5199\u3002\n
-    \u8fd4\u56de: (history_list, error_message_or_None)
+    获取基金历史数据，与缓存合并，更新内存缓存。
+    线程安全:使用 history_cache_lock 保护缓存读写。
+
+    返回: (history_list, error_message_or_None)
     """
     try:
         with history_cache_lock:
@@ -870,7 +873,7 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
             if cached_history:
                 history = cached_history
             else:
-                return (None, "\u5386\u53f2\u6570\u636e\u4e3a\u7a7a\uff0c\u4e14\u65e0\u7f13\u5b58")
+                return (None, "历史数据为空，且无缓存")
 
         with history_cache_lock:
             history_cache[code] = history
@@ -882,8 +885,8 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
 
 def _apply_nav_correction(code, history, realtime, today, qdii_codes):
     """
-    \u7528\u5386\u53f2\u786e\u8ba4\u51c0\u503c\u4fee\u6b63\u5b9e\u65f6\u4f30\u7b97\u503c\uff0c\u5e76\u4fee\u6b63 nav_status\u3002
-    \u76f4\u63a5\u4fee\u6539 realtime dict\uff08in-place\uff09\uff0c\u65e0\u9700\u8fd4\u56de\u503c\u3002
+    用历史确认净值修正实时估算值，并修正 nav_status。
+    直接修改 realtime dict（in-place），无需返回值。
     """
     if history and history[-1].get("date"):
         history_latest_date = history[-1].get("date", "")
@@ -893,12 +896,12 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
             (history_latest_date == realtime_date and realtime.get("nav_status") == "estimated")
         )
         if should_use_history:
-            log(f"  \u57fa\u91d1 {code}: \u5386\u53f2\u786e\u8ba4\u51c0\u503c({history_latest_date} {history[-1]['nav']})\u4f18\u5148\u4e8e\u5b9e\u65f6\u4f30\u7b97({realtime_date} {realtime['nav']})")
+            log(f"  基金 {code}: 历史确认净值({history_latest_date} {history[-1]['nav']})优先于实时估算({realtime_date} {realtime['nav']})")
             realtime["nav"] = history[-1].get("nav", 0)
             realtime["nav_date"] = history_latest_date
             realtime["change_percent"] = history[-1].get("change_percent", 0)
 
-    # \u4fee\u6b63 nav_status
+    # 修正 nav_status
     beijing_now = get_beijing_time()
     is_after_15 = 15 <= beijing_now.hour <= 23
     if history:
@@ -913,9 +916,10 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
 
 def _calculate_latest_trading_day_metrics(history, holdings, today):
     """
-    \u6839\u636e\u5386\u53f2\u6570\u636e\u8ba1\u7b97\u6628\u65e5\u51c0\u503c\u3001\u6628\u65e5\u6536\u76ca\u7387\u3001\u6628\u65e5\u6536\u76ca\u3001
-    \u524d\u65e5\u6536\u76ca\u7387\u3001\u524d\u65e5\u6536\u76ca\u3002\n
-    \u8fd4\u56de: dict with keys:
+    根据历史数据计算昨日净值、昨日收益率、昨日收益、
+    前日收益率、前日收益。
+
+    返回: dict with keys:
         latest_trading_day_nav, latest_trading_day_nav_date, latest_trading_day_return,
         latest_trading_day_profit, day_before_latest_trading_day_return,
         day_before_latest_trading_day_profit
@@ -982,17 +986,18 @@ def _calculate_latest_trading_day_metrics(history, holdings, today):
 
 def _calculate_year_to_date_metrics(history, holdings, today):
     """
-    \u8ba1\u7b97\u672c\u5e74(YTD)\u6570\u636e\uff1a\u672c\u5e74\u6536\u76ca\u7387\u3001\u672c\u5e74\u76c8\u4e8f\n
-    \u4ee5\u672c\u5e74\u7b2c\u4e00\u6761\u5386\u53f2\u8bb0\u5f55\u7684\u51c0\u503c\u4f5c\u4e3a\u5e74\u521d\u57fa\u51c6\uff0c\u5f53\u524d\u51c0\u503c\u4e3a\u6700\u65b0\u503c\u3002
-    \u5355\u57fa\u91d1\u672c\u5e74\u6536\u76ca\u7387 = (current_nav - year_start_nav) / year_start_nav * 100
-    \u5355\u57fa\u91d1\u672c\u5e74\u76c8\u4e8f  = total_shares * (current_nav - year_start_nav)
+    计算本年(YTD)数据：本年收益率、本年盈亏
 
-    \u53c2\u6570:
-        history: \u5386\u53f2\u51c0\u503c\u6570\u7ec4\uff08\u5df2\u6309\u65e5\u671f\u6392\u5e8f\uff09
-        holdings: \u6301\u4ed3\u6570\u636e\uff08\u542b total_shares\uff09
-        today: \u5f53\u524d\u65e5\u671f\u5b57\u7b26\u4e32 "YYYY-MM-DD"
+    以本年第一条历史记录的净值作为年初基准，当前净值为最新值。
+    单基金本年收益率 = (current_nav - year_start_nav) / year_start_nav * 100
+    单基金本年盈亏  = total_shares * (current_nav - year_start_nav)
 
-    \u8fd4\u56de:
+    参数:
+        history: 历史净值数组（已按日期排序）
+        holdings: 持仓数据（含 total_shares）
+        today: 当前日期字符串 "YYYY-MM-DD"
+
+    返回:
         dict: {ytd_return, ytd_profit, ytd_start_nav}
     """
     if not history:
@@ -1000,7 +1005,7 @@ def _calculate_year_to_date_metrics(history, holdings, today):
 
     current_year = datetime.strptime(today, "%Y-%m-%d").year
 
-    # \u627e\u5230\u672c\u5e74\u7b2c\u4e00\u6761\u5386\u53f2\u8bb0\u5f55\uff08\u82e5\u57fa\u91d1\u5e74\u4e2d\u624d\u4e70\u5165\uff0c\u5219\u4ece\u7b2c\u4e00\u6761\u8bb0\u5f55\u7b97\u8d77\uff09
+    # 找到本年第一条历史记录（若基金年中才买入，则从第一条记录算起）
     year_start_nav = None
     for h in history:
         h_date = h.get("date", "")
@@ -1008,7 +1013,7 @@ def _calculate_year_to_date_metrics(history, holdings, today):
             year_start_nav = h.get("nav", 0)
             break
 
-    # \u82e5 history \u4e2d\u65e0\u672c\u5e74\u6570\u636e\uff08\u7406\u8bba\u4e0a\u4e0d\u4f1a\u53d1\u751f\uff09\uff0c\u9000\u5230\u7b2c\u4e00\u6761\u8bb0\u5f55
+    # 若 history 中无本年数据（理论上不会发生），退到第一条记录
     if year_start_nav is None:
         year_start_nav = history[0].get("nav", 0)
 
@@ -1033,13 +1038,14 @@ def process_fund(platform, code, fund_start_date, http_session,
                   purchase_records, qdii_codes, fund_names,
                   prev_fund_map, today, history_cache):
     """
-    \u5904\u7406\u5355\u53ea\u57fa\u91d1:\u83b7\u53d6\u5386\u53f2\u6570\u636e\u3001\u5b9e\u65f6\u6570\u636e\uff0c\u8ba1\u7b97\u6301\u4ed3\u548c\u6536\u76ca\u3002
-    \u7ebf\u7a0b\u5b89\u5168:\u4f7f\u7528 history_cache_lock \u4fdd\u62a4\u7f13\u5b58\u8bfb\u5199\u3002\n
-    \u8fd4\u56de: (fund_data_dict, total_invested, total_value) \u6210\u529f
-          (None, 0, 0, error_message) \u5931\u8d25
+    处理单只基金:获取历史数据、实时数据，计算持仓和收益。
+    线程安全:使用 history_cache_lock 保护缓存读写。
+
+    返回: (fund_data_dict, total_invested, total_value) 成功
+           (None, 0, 0, error_message) 失败
     """
     try:
-        # --- \u7b2c1\u6b65:\u83b7\u53d6\u5386\u53f2\u6570\u636e\uff08\u4e0e\u5b9e\u65f6\u6570\u636e\u89e3\u8026\uff09 ---
+        # --- 第1步:获取历史数据（与实时数据解耦） ---
         history, err = _fetch_and_merge_history(
             code, fund_start_date, http_session,
             history_cache, history_cache_lock
@@ -1047,39 +1053,39 @@ def process_fund(platform, code, fund_start_date, http_session,
         if err:
             return (None, 0, 0, err)
 
-        # --- \u7b2c2\u6b65:\u83b7\u53d6\u5b9e\u65f6\u6570\u636e ---
+        # --- 第2步:获取实时数据 ---
         realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
         if not realtime:
             if code in prev_fund_map:
-                # \u7528\u6df1\u62f7\u8d1d\u907f\u514d\u4fee\u6539 prev_fund_map \u4e2d\u7684\u539f\u59cb\u6570\u636e
+                # 用深拷贝避免修改 prev_fund_map 中的原始数据
                 old_fund = copy.deepcopy(prev_fund_map[code])
                 old_nav = old_fund.get("current_nav", 0)
-                # \u7528\u65b0\u7684 purchase_records \u91cd\u65b0\u8ba1\u7b97 holdings\uff0c\u4fdd\u7559\u65e7 NAV
+                # 用新的 purchase_records 重新计算 holdings，保留旧 NAV
                 purchases = purchase_records.get(platform, {}).get(code, [])
                 if history and purchases:
                     new_holdings = calculate_holdings(purchases, old_nav, history, fund_code=code)
                     old_fund["holdings"] = new_holdings
                     old_fund["holdings"]["current_value"] = new_holdings["total_shares"] * old_nav
-                    # \u91cd\u65b0\u8ba1\u7b97\u7d2f\u8ba1\u6536\u76ca\u7387\uff08\u4f7f\u7528\u8def\u5f842\u8fd1\u4f3c\u8ba1\u7b97\uff09
+                    # 重新计算累计收益率（使用路径2近似计算）
                     old_fund["return_rates"] = calculate_cumulative_returns(
                         history, new_holdings["purchases"]
                     )
-                    # \u66f4\u65b0\u6628\u65e5\u6536\u76ca\u6307\u6807\uff08\u4f7f\u7528\u65e7 NAV\uff09
+                    # 更新昨日收益指标（使用旧 NAV）
                     m = _calculate_latest_trading_day_metrics(history, new_holdings, today)
                     old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
                     old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
                     old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
                 return (old_fund, old_fund["holdings"]["total_invested"],
-                        old_fund["holdings"]["current_value"], "\u4f7f\u7528\u7f13\u5b58\u6570\u636e(\u5df2\u7528\u65b0\u4ea4\u6613\u8bb0\u5f55\u91cd\u65b0\u8ba1\u7b97)")
+                        old_fund["holdings"]["current_value"], "使用缓存数据(已用新交易记录重新计算)")
             else:
-                return (None, 0, 0, "\u65e0\u6cd5\u83b7\u53d6\u5b9e\u65f6\u6570\u636e\u4e14\u65e0\u7f13\u5b58")
+                return (None, 0, 0, "无法获取实时数据且无缓存")
 
         _apply_nav_correction(code, history, realtime, today, qdii_codes)
 
-        # --- \u7b2c3\u6b65:\u8ba1\u7b97\u6301\u4ed3\u548c\u6536\u76ca ---
+        # --- 第3步:计算持仓和收益 ---
         purchases = purchase_records.get(platform, {}).get(code, [])
         if not history:
-            return (None, 0, 0, "\u5386\u53f2\u6570\u636e\u4e3a\u7a7a\uff0c\u65e0\u6cd5\u8ba1\u7b97\u6301\u4ed3")
+            return (None, 0, 0, "历史数据为空，无法计算持仓")
 
         holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
 
@@ -1088,13 +1094,13 @@ def process_fund(platform, code, fund_start_date, http_session,
             original_purchases=purchases, history_for_nav=history
         )
 
-        # \u8ba1\u7b97\u6628\u65e5\u51c0\u503c\u3001\u6628\u65e5\u6536\u76ca\u7387\u3001\u6628\u65e5\u6536\u76ca
+        # 计算昨日净值、昨日收益率、昨日收益
         m = _calculate_latest_trading_day_metrics(history, holdings, today)
 
-        # \u8ba1\u7b97\u672c\u5e74(YTD)\u6570\u636e
+        # 计算本年(YTD)数据
         ytd = _calculate_year_to_date_metrics(history, holdings, today)
 
-        # \u7ec4\u7ec7\u6570\u636e
+        # 组织数据
         latest_history_date = history[-1].get("date", "") if history else ""
         fund_data = {
             "code": code,
@@ -1121,59 +1127,59 @@ def process_fund(platform, code, fund_start_date, http_session,
         return (fund_data, holdings["total_invested"], holdings["current_value"], None)
 
     except Exception as e:
-        log("\u274c \u57fa\u91d1 {} \u5904\u7406\u5931\u8d25: {}".format(code, e))
+        log("❌ 基金 {} 处理失败: {}".format(code, e))
         import traceback
         log(traceback.format_exc())
         return (None, 0, 0, str(e))
 
 
 def main():
-    """\u4e3b\u51fd\u6570"""
+    """主函数"""
     log("="*60)
-    log(f"\u57fa\u91d1\u6536\u76ca\u8ffd\u8e2a\u7cfb\u7edf - \u6570\u636e\u6293\u53d6")
-    log(f"\u5f00\u59cb\u65f6\u95f4: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
+    log(f"基金收益追踪系统 - 数据抓取")
+    log(f"开始时间: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
     log("="*60)
 
-    # \u89e3\u6790\u547d\u4ee4\u884c\u53c2\u6570
+    # 解析命令行参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--skip-summary', action='store_true', help='\u8df3\u8fc7\u6c47\u603b\u66f4\u65b0\uff08\u4ec5\u66f4\u65b0\u57fa\u91d1\u6570\u636e\uff09')
-    parser.add_argument('--force-refresh', action='store_true', help='\u5f3a\u5236\u5237\u65b0\u6a21\u5f0f:\u5ffd\u7565\u5386\u53f2\u7f13\u5b58\uff0c\u5168\u91cf\u83b7\u53d6')
+    parser.add_argument('--skip-summary', action='store_true', help='跳过汇总更新（仅更新基金数据）')
+    parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式:忽略历史缓存，全量获取')
     args = parser.parse_args()
 
-    # \u81ea\u52a8\u5224\u65ad\u662f\u5426\u9700\u8981\u8df3\u8fc7\u6c47\u603b\u66f4\u65b0
-    # \u5317\u4eac\u65f6\u95f4 20:00-23:59 \u7684\u66f4\u65b0\u4e0d\u66f4\u65b0\u6c47\u603b
+    # 自动判断是否需要跳过汇总更新
+    # 北京时间 20:00-23:59 的更新不更新汇总
     beijing_now = get_beijing_time()
     if 20 <= beijing_now.hour <= 23:
         if not args.skip_summary:
             args.skip_summary = True
-            log(f"\u23ed \u5f53\u524d\u4e3a {beijing_now.strftime('%H:%M')} \u5317\u4eac\u65f6\u95f4\uff0c\u81ea\u52a8\u8df3\u8fc7\u6c47\u603b\u66f4\u65b0")
+            log(f"⏭ 当前为 {beijing_now.strftime('%H:%M')} 北京时间，自动跳过汇总更新")
 
-    # \u81ea\u52a8\u68c0\u6d4b\u65b0\u57fa\u91d1\uff08\u5728\u52a0\u8f7d\u914d\u7f6e\u4e4b\u524d\u6267\u884c\uff09
+    # 自动检测新基金（在加载配置之前执行）
     auto_detect_new_funds()
 
-    # \u52a0\u8f7d\u57fa\u91d1\u914d\u7f6e
-    log("\n[0/4] \u52a0\u8f7d\u57fa\u91d1\u914d\u7f6e...")
+    # 加载基金配置
+    log("\n[0/4] 加载基金配置...")
     funds, qdii_codes, fund_names = load_fund_config()
 
     if not funds:
-        log("\u274c \u65e0\u6cd5\u52a0\u8f7d\u57fa\u91d1\u914d\u7f6e\uff0c\u9000\u51fa")
+        log("❌ 无法加载基金配置，退出")
         return
     
-    # \u68c0\u67e5/\u521b\u5efa\u6a21\u677f\u6587\u4ef6
-    log("\n[1/4] \u68c0\u67e5\u5fc5\u8981\u6587\u4ef6...")
+    # 检查/创建模板文件
+    log("\n[1/4] 检查必要文件...")
     has_records = create_template_files(funds)
     if not has_records:
-        log("\n\u26a0\ufe0f  \u8bf7\u5148\u7f16\u8f91 data/purchase_records.json \u6587\u4ef6\uff0c\u586b\u5165\u4f60\u7684\u5b9e\u9645\u4e70\u5165\u8bb0\u5f55")
-        log("   \u6a21\u677f\u6587\u4ef6\u5df2\u521b\u5efa\uff0c\u4f60\u53ef\u4ee5\u53c2\u8003\u5176\u4e2d\u7684\u683c\u5f0f")
+        log("\n⚠️  请先编辑 data/purchase_records.json 文件，填入你的实际买入记录")
+        log("   模板文件已创建，你可以参考其中的格式")
         return
 
-    # \u52a0\u8f7d\u6301\u4ed3\u8bb0\u5f55
-    log("\n[2/4] \u52a0\u8f7d\u6301\u4ed3\u8bb0\u5f55...")
+    # 加载持仓记录
+    log("\n[2/4] 加载持仓记录...")
     purchase_records = load_purchase_records()
     if purchase_records is None:
         return
 
-    # \u521d\u59cb\u5316\u8f93\u51fa\u6570\u636e
+    # 初始化输出数据
     all_data = {
         "update_time": get_beijing_time().strftime("%Y-%m-%d %H:%M:%S"),
         "funds": {},
@@ -1185,54 +1191,54 @@ def main():
         }
     }
 
-    # \u52a0\u8f7d\u4e0a\u6b21\u6570\u636e\uff08\u7528\u4e8eAPI\u5931\u8d25\u65f6\u4fdd\u7559\u65e7\u6570\u636e\uff09
+    # 加载上次数据（用于API失败时保留旧数据）
     previous_data = None
     previous_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     if os.path.exists(previous_file):
         try:
             with open(previous_file, "r", encoding="utf-8") as f:
                 previous_data = json.load(f)
-            update_time_str = previous_data.get('update_time', '\u672a\u77e5')
-            log(f"\u2713 \u5df2\u52a0\u8f7d\u4e0a\u6b21\u6570\u636e\u4f5c\u4e3a\u5907\u4efd\uff08\u66f4\u65b0\u65f6\u95f4: {update_time_str}")
+            update_time_str = previous_data.get('update_time', '未知')
+            log(f"✓ 已加载上次数据作为备份（更新时间: {update_time_str}）")
         except Exception as e:
-            log(f"\u26a0\ufe0f \u52a0\u8f7d\u4e0a\u6b21\u6570\u636e\u5931\u8d25: {e}")
-            # \u7ee7\u7eed\u6267\u884c\uff0c\u4e0d\u5f71\u54cd\u4e3b\u6d41\u7a0b
+            log(f"⚠️ 加载上次数据失败: {e}")
+            # 继续执行，不影响主流程
 
-    # \u6784\u5efa\u4e0a\u6b21\u6570\u636e\u7684\u5feb\u901f\u67e5\u627e\u8868: {fund_code: fund_data}
+    # 构建上次数据的快速查找表: {fund_code: fund_data}
     prev_fund_map = {}
     if previous_data:
         for platform_name, fund_list in previous_data.get("funds", {}).items():
             for fund_item in fund_list:
                 prev_fund_map[fund_item["code"]] = fund_item
 
-    # \u5904\u7406\u6240\u6709\u57fa\u91d1
-    log("\n[3/4] \u83b7\u53d6\u57fa\u91d1\u6570\u636e...")
+    # 处理所有基金
+    log("\n[3/4] 获取基金数据...")
 
-    # \u521b\u5efa\u5171\u4eab HTTP Session\uff08\u7edf\u4e00\u91cd\u8bd5\u7b56\u7565\uff09
+    # 创建共享 HTTP Session（统一重试策略）
     http_session = _create_session()
-    log("\u2713 HTTP Session \u5df2\u521b\u5efa\uff08\u81ea\u52a8\u91cd\u8bd5: 3\u6b21, \u9000\u907f: 1s\uff09")
+    log("✓ HTTP Session 已创建（自动重试: 3次, 退避: 1s）")
 
-    # \u8ba1\u7b97\u5386\u53f2\u6570\u636e\u8d77\u59cb\u65e5\u671f\uff08\u5168\u5c40\u515c\u5e95\uff0c\u6309\u57fa\u91d1\u7ef4\u5ea6\u4f18\u5148\uff09
+    # 计算历史数据起始日期（全局兜底，按基金维度优先）
     history_start_date = _get_earliest_purchase_date(purchase_records)
-    log(f"\u5386\u53f2\u6570\u636e\u5168\u5c40\u8d77\u59cb\u65e5\u671f\uff08\u515c\u5e95\uff09: {history_start_date}")
+    log(f"历史数据全局起始日期（兜底）: {history_start_date}")
 
-    # \u52a0\u8f7d\u5386\u53f2\u6570\u636e\u7f13\u5b58\uff08\u589e\u91cf\u62c9\u53d6\uff09
+    # 加载历史数据缓存（增量拉取）
     force_refresh = args.force_refresh or os.environ.get("FORCE_REFRESH", "").lower() == "true"
     if force_refresh:
-        log("\u26a1 \u5f3a\u5236\u5237\u65b0\u6a21\u5f0f: \u5ffd\u7565\u5386\u53f2\u7f13\u5b58\uff0c\u5168\u91cf\u83b7\u53d6")
+        log("⚡ 强制刷新模式: 忽略历史缓存，全量获取")
         history_cache = {}
     else:
         history_cache = load_history_cache()
         if history_cache:
             total_cached = sum(len(v) for v in history_cache.values())
-            log(f"\u2713 \u5df2\u52a0\u8f7d\u5386\u53f2\u7f13\u5b58: {len(history_cache)} \u53ea\u57fa\u91d1, {total_cached} \u6761\u8bb0\u5f55")
+            log(f"✓ 已加载历史缓存: {len(history_cache)} 只基金, {total_cached} 条记录")
         else:
-            log("\u2139\ufe0f \u65e0\u5386\u53f2\u7f13\u5b58\uff0c\u5c06\u5168\u91cf\u83b7\u53d6")
+            log("ℹ️ 无历史缓存，将全量获取")
 
-    # \u5e76\u884c\u5904\u7406\u6240\u6709\u57fa\u91d1\uff08\u74f6\u98883\u4fee\u590d:ThreadPoolExecutor\uff09
-    log(f"\n[3/4] \u5e76\u884c\u83b7\u53d6\u57fa\u91d1\u6570\u636e\uff08\u7ebf\u7a0b\u6c60 max_workers=3\uff09...")
+    # 并行处理所有基金（瓶颈3修复:ThreadPoolExecutor）
+    log(f"\n[3/4] 并行获取基金数据（线程池 max_workers=3）...")
 
-    # \u6536\u96c6\u6240\u6709\u5f85\u5904\u7406\u57fa\u91d1
+    # 收集所有待处理基金
     fund_tasks = []
     for platform, codes in funds.items():
         if platform not in all_data["funds"]:
@@ -1244,22 +1250,22 @@ def main():
             fund_tasks.append((platform, code, fund_start_date))
 
     failed_funds = []
-    stale_funds = []   # \u4f7f\u7528\u7f13\u5b58\u6570\u636e\u7684\u57fa\u91d1\uff08\u975e\u5931\u8d25\uff0c\u4f46\u6570\u636e\u53ef\u80fd\u8fc7\u671f\uff09
+    stale_funds = []   # 使用缓存数据的基金（非失败，但数据可能过期）
     today = get_beijing_time().strftime("%Y-%m-%d")
 
-    # \u4f7f\u7528\u7ebf\u7a0b\u6c60\u5e76\u884c\u5904\u7406
+    # 使用线程池并行处理
     with ThreadPoolExecutor(max_workers=3) as executor:
         future_to_fund = {}
         for platform, code, fund_start_date in fund_tasks:
             future = executor.submit(
                 process_fund, platform, code, fund_start_date,
-                http_session,  # \u4f20\u9012\u5171\u4eab session\uff0c\u907f\u514d\u6bcf\u53ea\u57fa\u91d1\u91cd\u590d\u521b\u5efa
+                http_session,  # 传递共享 session，避免每只基金重复创建
                 purchase_records, qdii_codes, fund_names,
                 prev_fund_map, today, history_cache
             )
             future_to_fund[future] = (platform, code)
 
-        # \u6309\u5b8c\u6210\u987a\u5e8f\u6536\u96c6\u7ed3\u679c
+        # 按完成顺序收集结果
         for future in as_completed(future_to_fund):
             platform, code = future_to_fund[future]
             try:
@@ -1268,34 +1274,34 @@ def main():
                     all_data["funds"][platform].append(fund_data)
                     all_data["summary"]["total_invested"] += invested
                     all_data["summary"]["total_value"] += value
-                    # \u95ee\u98981\u4fee\u590d:\u7f13\u5b58\u6570\u636e\u4e5f\u8981\u63d0\u793a\u7528\u6237
-                    if error_msg and "\u4f7f\u7528\u7f13\u5b58\u6570\u636e" in error_msg:
+                    # 问题1修复:缓存数据也要提示用户
+                    if error_msg and "使用缓存数据" in error_msg:
                         stale_funds.append(code)
-                        log(f"  \u26a0 \u57fa\u91d1 {code} \u4f7f\u7528\u7f13\u5b58\u6570\u636e\uff08\u5b9e\u65f6\u6570\u636e\u83b7\u53d6\u5931\u8d25\uff09")
+                        log(f"  ⚠ 基金 {code} 使用缓存数据（实时数据获取失败）")
                 else:
                     failed_funds.append(code)
-                    if error_msg and "\u4f7f\u7528\u7f13\u5b58\u6570\u636e" in error_msg:
-                        log(f"  \u26a0 \u57fa\u91d1 {code} \u4f7f\u7528\u7f13\u5b58\u6570\u636e")
+                    if error_msg and "使用缓存数据" in error_msg:
+                        log(f"  ⚠ 基金 {code} 使用缓存数据")
                     elif error_msg:
-                        log(f"  \u274c \u57fa\u91d1 {code} \u5904\u7406\u5931\u8d25: {error_msg}")
+                        log(f"  ❌ 基金 {code} 处理失败: {error_msg}")
             except Exception as e:
                 failed_funds.append(code)
-                log(f"  \u274c \u57fa\u91d1 {code} \u5904\u7406\u5f02\u5e38: {e}")
+                log(f"  ❌ 基金 {code} 处理异常: {e}")
 
-    # \u7edf\u4e00\u4fdd\u5b58\u5386\u53f2\u7f13\u5b58\uff08\u6240\u6709\u57fa\u91d1\u5904\u7406\u5b8c\u6210\u540e\u53ea\u5199\u4e00\u6b21\uff0c\u907f\u514d\u9010\u57fa\u91d1\u5199\u76d8\uff09
+    # 统一保存历史缓存（所有基金处理完成后只写一次，避免逐基金写盘）
     try:
         save_history_cache(history_cache)
     except Exception as cache_err:
-        log("\u26a0\ufe0f \u4fdd\u5b58\u5386\u53f2\u7f13\u5b58\u5931\u8d25: {}".format(cache_err), "warning")
+        log("⚠️ 保存历史缓存失败: {}".format(cache_err), "warning")
 
-    # \u8ba1\u7b97\u603b\u8ba1\u6536\u76ca
-    log("\n[4/4] \u8ba1\u7b97\u603b\u8ba1\u6536\u76ca...")
+    # 计算总计收益
+    log("\n[4/4] 计算总计收益...")
     summary = all_data["summary"]
     summary["total_profit_loss"] = round(summary["total_value"] - summary["total_invested"], 2)
     if summary["total_invested"] > 0:
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
     
-    # \u8ba1\u7b97\u6628\u65e5\u76c8\u4e8f\uff08\u7d2f\u52a0\u5404\u57fa\u91d1\u5df2\u8ba1\u7b97\u7684\u6628\u65e5\u6536\u76ca\uff09
+    # 计算昨日盈亏（累加各基金已计算的昨日收益）
     latest_trading_day_profit = 0
     day_before_latest_trading_day_profit = 0
     for platform_funds in all_data["funds"].values():
@@ -1306,11 +1312,11 @@ def main():
     summary["latest_trading_day_profit_loss"] = round(latest_trading_day_profit, 2)
     summary["latest_trading_day_profit_loss_percent"] = round((latest_trading_day_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
     
-    # \u8ba1\u7b97\u6628\u65e5\u53d8\u5316\u5dee\uff08\u4e0e\u524d\u4e00\u4ea4\u6613\u65e5\u5bf9\u6bd4\uff09
+    # 计算昨日变化差（与前一交易日对比）
     summary["latest_trading_day_profit_loss_diff"] = round(latest_trading_day_profit - day_before_latest_trading_day_profit, 2)
     
-    # \u8ba1\u7b97\u6628\u65e5\u6536\u76ca\u7387\u53d8\u5316\u5dee\uff08\u52a0\u6743\u5e73\u5747\uff09
-    # \u4f7f\u7528\u5404\u57fa\u91d1\u6628\u65e5\u6536\u76ca\u7387\u548c\u524d\u65e5\u6536\u76ca\u7387\uff0c\u6309\u5e02\u503c\u52a0\u6743\u8ba1\u7b97
+    # 计算昨日收益率变化差（加权平均）
+    # 使用各基金昨日收益率和前日收益率，按市值加权计算
     latest_trading_day_return_weighted_sum = 0
     day_before_latest_trading_day_return_weighted_sum = 0
     total_weight = 0
@@ -1329,13 +1335,13 @@ def main():
     else:
         summary["latest_trading_day_profit_loss_percent_diff"] = 0
 
-    # \u517c\u5bb9\u5b57\u6bb5\u522b\u540d\uff08\u524d\u7aef\u4f7f\u7528 yesterday_xxx\uff09
+    # 兼容字段别名（前端使用 yesterday_xxx）
     summary["yesterday_profit_loss"] = summary["latest_trading_day_profit_loss"]
     summary["yesterday_profit_loss_percent"] = summary["latest_trading_day_profit_loss_percent"]
     summary["yesterday_profit_loss_diff"] = summary["latest_trading_day_profit_loss_diff"]
     summary["yesterday_profit_loss_percent_diff"] = summary["latest_trading_day_profit_loss_percent_diff"]
 
-    # \u8ba1\u7b97\u672c\u5e74\u6570\u636e\uff08YTD\uff09
+    # 计算本年数据（YTD）
     ytd_profit_sum = 0
     ytd_return_weighted_sum = 0
     ytd_total_weight = 0
@@ -1350,7 +1356,7 @@ def main():
     summary["ytd_profit_loss"] = round(ytd_profit_sum, 2)
     summary["ytd_profit_loss_percent"] = round(ytd_return_weighted_sum / ytd_total_weight, 2) if ytd_total_weight > 0 else 0
 
-    # \u7d2f\u8ba1\u7b97\u5df2\u5b9e\u73b0\u76c8\u4e8f
+    # 累计算已实现盈亏
     total_realized_profit = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
@@ -1359,54 +1365,58 @@ def main():
     
     summary["total_realized_profit_loss"] = round(total_realized_profit, 2)
     
-    # \u6253\u5370\u6c47\u603b\u4fe1\u606f
+    # 打印汇总信息
     log("\n" + "="*60)
-    log("\u2713 \u6570\u636e\u6293\u53d6\u5b8c\u6210\uff01")
-    log(f"  \u603b\u6295\u5165: \u00a5{summary['total_invested']:.2f}")
-    log(f"  \u5f53\u524d\u5e02\u503c: \u00a5{summary['total_value']:.2f}")
+    log("✓ 数据抓取完成！")
+    log(f"  总投入: ¥{summary['total_invested']:.2f}")
+    log(f"  当前市值: ¥{summary['total_value']:.2f}")
     profit_sign = "+" if summary["total_profit_loss"] >= 0 else ""
-    log(f"  \u672a\u5b9e\u73b0\u76c8\u4e8f: {profit_sign}\u00a5{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    log(f"  未实现盈亏: {profit_sign}¥{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
     yesterday_sign = "+" if summary["latest_trading_day_profit_loss"] >= 0 else ""
-    log(f"  \u6628\u65e5\u76c8\u4e8f: {yesterday_sign}\u00a5{summary['latest_trading_day_profit_loss']:.2f} ({yesterday_sign}{summary['latest_trading_day_profit_loss_percent']:.2f}%)")
+    log(f"  昨日盈亏: {yesterday_sign}¥{summary['latest_trading_day_profit_loss']:.2f} ({yesterday_sign}{summary['latest_trading_day_profit_loss_percent']:.2f}%)")
     realized_sign = "+" if summary["total_realized_profit_loss"] >= 0 else ""
-    log(f"  \u5df2\u5b9e\u73b0\u76c8\u4e8f: {realized_sign}\u00a5{summary['total_realized_profit_loss']:.2f}")
-    log(f"  \u603b\u76c8\u4e8f: {profit_sign}\u00a5{summary['total_profit_loss']:.2f} ({profit_sign}{summary['total_profit_loss_percent']:.2f}%)")
+    log(f"  已实现盈亏: {realized_sign}¥{summary['total_realized_profit_loss']:.2f}")
+    total_profit_value = summary["total_profit_loss"] + summary["total_realized_profit_loss"]
+    total_profit_sign = "+" if total_profit_value >= 0 else ""
+    total_profit_percent = round(total_profit_value / summary["total_invested"] * 100, 2) if summary["total_invested"] > 0 else 0
+    total_profit_psign = "+" if total_profit_percent >= 0 else ""
+    log(f"  总盈亏: {total_profit_sign}¥{total_profit_value:.2f} ({total_profit_psign}{total_profit_percent:.2f}%)")
     if stale_funds:
-        log(f"\n  [Warning] \u4ee5\u4e0b\u57fa\u91d1\u4f7f\u7528\u7f13\u5b58\u6570\u636e\uff08\u975e\u5b9e\u65f6\uff09: {', '.join(stale_funds)}")
+        log(f"\n  [Warning] 以下基金使用缓存数据（非实时）: {', '.join(stale_funds)}")
     if failed_funds:
-        log(f"\n  [ERROR] \u4ee5\u4e0b\u57fa\u91d1\u5904\u7406\u5931\u8d25: {', '.join(failed_funds)}")
+        log(f"\n  [ERROR] 以下基金处理失败: {', '.join(failed_funds)}")
     log("="*60)
 
-    # \u4fdd\u5b58\u6570\u636e
+    # 保存数据
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     try:
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(all_data, f, ensure_ascii=False, indent=2)
-        log(f"\n\u2713 \u6570\u636e\u5df2\u4fdd\u5b58\u5230 {output_file}")
-        log(f"  \u66f4\u65b0\u65f6\u95f4: {all_data['update_time']}")
+        log(f"\n✓ 数据已保存到 {output_file}")
+        log(f"  更新时间: {all_data['update_time']}")
     except Exception as e:
-        log(f"[ERROR] \u4fdd\u5b58\u6570\u636e\u5230 {output_file} \u5931\u8d25: {e}")
+        log(f"[ERROR] 保存数据到 {output_file} 失败: {e}")
 
-    # \u5386\u53f2\u7f13\u5b58\u5df2\u5728 main() \u672b\u5c3e\u7edf\u4e00\u4fdd\u5b58\uff08\u7b2c1115-1119\u884c\uff09\uff0c\u6b64\u5904\u65e0\u9700\u91cd\u590d
+    # 历史缓存已在 main() 末尾统一保存（第1115-1119行），此处无需重复
 
-    # \u751f\u6210\u6301\u4ed3\u5feb\u7167
-    log("\n\u751f\u6210\u6301\u4ed3\u5feb\u7167...")
+    # 生成持仓快照
+    log("\n生成持仓快照...")
     try:
         from generate_holdings import generate_holdings_snapshot
         generate_holdings_snapshot()
     except Exception as e:
-        log("[Warning] \u6301\u4ed3\u5feb\u7167\u751f\u6210\u5931\u8d25: {}".format(e))
+        log("[Warning] 持仓快照生成失败: {}".format(e))
 
-    # \u66f4\u65b0\u57fa\u51c6\u6307\u6570\u6570\u636e\uff08\u4e1c\u8d22 K\u7ebf API\uff09
-    log("\n\u66f4\u65b0\u57fa\u51c6\u6307\u6570\u6570\u636e...")
+    # 更新基准指数数据（东财 K线 API）
+    log("\n更新基准指数数据...")
     try:
         update_benchmark_index_data()
     except Exception as e:
-        log("[Warning] \u57fa\u51c6\u6307\u6570\u6570\u636e\u66f4\u65b0\u5931\u8d25: {}".format(e))
+        log("[Warning] 基准指数数据更新失败: {}".format(e))
 
 
 def update_benchmark_index_data():
-    """\u4ece\u4e1c\u65b9\u8d22\u5bcc API \u66f4\u65b0\u57fa\u51c6\u6307\u6570\u6570\u636e\uff08\u79d1\u521b50 sh000688, \u7eb3\u65af\u8fbe\u514b100 us.NDX\uff09"""
+    """从东方财富 API 更新基准指数数据（科创50 sh000688, 纳斯达克100 us.NDX）"""
     url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
     params_template = {
         "fields1": "f1,f2,f3",
@@ -1421,9 +1431,9 @@ def update_benchmark_index_data():
         try:
             with open(INDEX_CACHE_FILE, "r", encoding="utf-8") as f:
                 existing = json.load(f)
-            log(f"\u2713 \u5df2\u52a0\u8f7d\u65e7\u57fa\u51c6\u6307\u6570\u6570\u636e: {list(existing.keys())}")
+            log(f"✓ 已加载旧基准指数数据: {list(existing.keys())}")
         except Exception as e:
-            log(f"\u26a0\ufe0f \u52a0\u8f7d\u65e7\u57fa\u51c6\u6307\u6570\u6570\u636e\u5931\u8d25: {e}", "warning")
+            log(f"⚠️ 加载旧基准指数数据失败: {e}", "warning")
             existing = {}
     session = _create_session()
     updated = False
@@ -1435,7 +1445,7 @@ def update_benchmark_index_data():
             result = resp.json()
             klines = result.get("data", {}).get("klines", [])
             if not klines:
-                log(f"  \u26a0 {code} ({info['name']}) \u672a\u83b7\u53d6\u5230\u6570\u636e")
+                log(f"  ⚠ {code} ({info['name']}) 未获取到数据")
                 continue
             new_data = {}
             for kline in klines:
@@ -1443,15 +1453,15 @@ def update_benchmark_index_data():
                 if len(parts) >= 3:
                     new_data[parts[0]] = float(parts[2])
             if not new_data:
-                log(f"  \u26a0 {code} ({info['name']}) \u89e3\u6790\u6570\u636e\u4e3a\u7a7a")
+                log(f"  ⚠ {code} ({info['name']}) 解析数据为空")
                 continue
             old_data = existing.get(code, {}).get("data", {})
             old_data.update(new_data)
             existing[code] = {"name": info["name"], "data": old_data}
-            log(f"  \u2713 {code} ({info['name']}): {len(klines)} \u6761K\u7ebf, \u6700\u65b0 {list(new_data.keys())[-1]} \u6536\u76d8 {list(new_data.values())[-1]}")
+            log(f"  ✓ {code} ({info['name']}): {len(klines)} 条K线, 最新 {list(new_data.keys())[-1]} 收盘 {list(new_data.values())[-1]}")
             updated = True
         except Exception as e:
-            log(f"  \u26a0 {code} ({info['name']}) \u83b7\u53d6\u5931\u8d25: {e}", "warning")
+            log(f"  ⚠ {code} ({info['name']}) 获取失败: {e}", "warning")
     if updated:
         import tempfile
         fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(INDEX_CACHE_FILE), suffix=".tmp")
@@ -1460,19 +1470,19 @@ def update_benchmark_index_data():
                 json.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
             os.replace(tmp_path, INDEX_CACHE_FILE)
             total_entries = sum(len(v.get("data", {})) for v in existing.values())
-            log(f"\u2713 \u57fa\u51c6\u6307\u6570\u6570\u636e\u5df2\u4fdd\u5b58: {len(existing)} \u4e2a\u6307\u6570, {total_entries} \u6761\u8bb0\u5f55")
+            log(f"✓ 基准指数数据已保存: {len(existing)} 个指数, {total_entries} 条记录")
         except Exception:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise
     else:
-        log("\u2139 \u57fa\u51c6\u6307\u6570\u6570\u636e\u65e0\u66f4\u65b0")
+        log("ℹ 基准指数数据无更新")
 
 
 def fetch_fund_info_from_web(code, session=None):
     """
-    \u4ece\u5929\u5929\u57fa\u91d1\u7f51\u83b7\u53d6\u57fa\u91d1\u57fa\u672c\u4fe1\u606f\uff08\u57fa\u91d1\u540d\u79f0\u3001\u7c7b\u578b\uff09
-    \u8fd4\u56de: {"name": "\u57fa\u91d1\u540d\u79f0", "is_qdii": True/False, "benchmark": "..."} \u6216 None
+    从天天基金网获取基金基本信息（基金名称、类型）
+    返回: {"name": "基金名称", "is_qdii": True/False, "benchmark": "..."} 或 None
     """
 
     url = "https://fundgz.1234567.com.cn/js/{}.js".format(code)
@@ -1483,19 +1493,19 @@ def fetch_fund_info_from_web(code, session=None):
 
         resp = session.get(url, timeout=10)
         if resp.status_code == 200:
-            # \u89e3\u6790 JSONP: jsonpgz({...});
+            # 解析 JSONP: jsonpgz({...});
             match = re.search(r'jsonpgz\((.*?)\);?\s*$', resp.text, re.DOTALL)
             if match:
                 data = json.loads(match.group(1))
                 name = data.get("name", "")
 
-                # \u542f\u53d1\u5f0f\u5224\u65ad\u662f\u5426\u4e3a QDII
-                qdii_keywords = ["\u7eb3\u65af\u8fbe\u514b", "\u6807\u666e", "\u7f8e\u80a1", "QDII", "\u6d77\u5916", "\u56fd\u9645"]
+                # 启发式判断是否为 QDII
+                qdii_keywords = ["纳斯达克", "标普", "美股", "QDII", "海外", "国际"]
                 is_qdii = any(kw in name for kw in qdii_keywords)
 
-                benchmark = "\u7eb3\u65af\u8fbe\u514b100\u6307\u6570" if is_qdii else "\u79d1\u521b50\u6307\u6570"
+                benchmark = "纳斯达克100指数" if is_qdii else "科创50指数"
 
-                log("  \u2713 \u57fa\u91d1 {}: {} ({}\uff0c\u57fa\u51c6: {})".format(code, name, "QDII" if is_qdii else "\u56fd\u5185", benchmark))
+                log("  ✓ 基金 {}: {} ({}，基准: {})".format(code, name, "QDII" if is_qdii else "国内", benchmark))
 
                 return {
                     "name": name,
@@ -1503,27 +1513,27 @@ def fetch_fund_info_from_web(code, session=None):
                     "benchmark": benchmark
                 }
     except Exception as e:
-        log("\u26a0\ufe0f \u83b7\u53d6\u57fa\u91d1 {} \u4fe1\u606f\u5931\u8d25: {}".format(code, e), "warning")
+        log("⚠️ 获取基金 {} 信息失败: {}".format(code, e), "warning")
 
     return None
 
 
 def auto_detect_new_funds():
     """
-    \u81ea\u52a8\u68c0\u6d4b purchase_records.json \u4e2d\u7684\u65b0\u57fa\u91d1\uff0c\u5e76\u6dfb\u52a0\u5230 fund_config.json
+    自动检测 purchase_records.json 中的新基金，并添加到 fund_config.json
     """
-    log("\n[0.5/4] \u81ea\u52a8\u68c0\u6d4b\u65b0\u57fa\u91d1...")
+    log("\n[0.5/4] 自动检测新基金...")
 
     records_file = os.path.join(BASE_DIR, "data", "purchase_records.json")
     if not os.path.exists(records_file):
-        log("\u2139\ufe0f \u4ea4\u6613\u8bb0\u5f55\u6587\u4ef6\u4e0d\u5b58\u5728\uff0c\u8df3\u8fc7\u65b0\u57fa\u91d1\u68c0\u6d4b")
+        log("ℹ️ 交易记录文件不存在，跳过新基金检测")
         return
 
     try:
         with open(records_file, "r", encoding="utf-8") as f:
             purchase_records = json.load(f)
     except Exception as e:
-        log("\u26a0\ufe0f \u52a0\u8f7d\u4ea4\u6613\u8bb0\u5f55\u5931\u8d25: {}".format(e), "warning")
+        log("⚠️ 加载交易记录失败: {}".format(e), "warning")
         return
 
     all_fund_codes = set()
@@ -1533,7 +1543,7 @@ def auto_detect_new_funds():
                 all_fund_codes.add(code)
 
     if not all_fund_codes:
-        log("\u2139\ufe0f \u4ea4\u6613\u8bb0\u5f55\u4e2d\u6ca1\u6709\u57fa\u91d1\u4ee3\u7801")
+        log("ℹ️ 交易记录中没有基金代码")
         return
 
     config_file = os.path.join(BASE_DIR, "fund_config.json")
@@ -1543,10 +1553,10 @@ def auto_detect_new_funds():
     else:
         config = {"funds": {}}
 
-    # \u517c\u5bb9\u4e24\u79cd\u683c\u5f0f:\u7edf\u4e00\u5f52\u4e00\u5316\u4e3a {"funds": {"\u5e73\u53f0": [...]}}
+    # 兼容两种格式:统一归一化为 {"funds": {"平台": [...]}}
     if "funds" not in config:
-        # \u65e7\u683c\u5f0f:{"\u652f\u4ed8\u5b9d": [...], ...} \u2192 \u8f6c\u6362\u4e3a\u65b0\u683c\u5f0f
-        log("[WARN] fund_config.json \u662f\u65e7\u683c\u5f0f\uff08\u65e0 'funds' \u952e\uff09\uff0c\u6b63\u5728\u8f6c\u6362...", "warning")
+        # 旧格式:{"支付宝": [...], ...} → 转换为新格式
+        log("[WARN] fund_config.json 是旧格式（无 'funds' 键），正在转换...", "warning")
         config = {"funds": {k: v for k, v in config.items() if isinstance(v, list)}}
 
     existing_codes = set()
@@ -1556,18 +1566,18 @@ def auto_detect_new_funds():
 
     new_codes = all_fund_codes - existing_codes
     if not new_codes:
-        log("\u2713 \u65e0\u65b0\u57fa\u91d1\u9700\u8981\u6dfb\u52a0")
+        log("✓ 无新基金需要添加")
         return
 
-    log("\ud83d\udd0d \u53d1\u73b0 {} \u53ea\u65b0\u57fa\u91d1: {}".format(len(new_codes), ", ".join(sorted(new_codes))))
+    log("🔍 发现 {} 只新基金: {}".format(len(new_codes), ", ".join(sorted(new_codes))))
 
     session = _create_session()
     for code in sorted(new_codes):
-        log("  \u6b63\u5728\u83b7\u53d6\u57fa\u91d1 {} \u7684\u4fe1\u606f...".format(code))
+        log("  正在获取基金 {} 的信息...".format(code))
         fund_info = fetch_fund_info_from_web(code, session)
 
         if fund_info is None:
-            log("  \u26a0\ufe0f \u65e0\u6cd5\u83b7\u53d6\u57fa\u91d1 {} \u7684\u4fe1\u606f\uff0c\u8df3\u8fc7".format(code), "warning")
+            log("  ⚠️ 无法获取基金 {} 的信息，跳过".format(code), "warning")
             continue
 
         platform = None
@@ -1577,7 +1587,7 @@ def auto_detect_new_funds():
                 break
 
         if platform is None:
-            log("  \u26a0\ufe0f \u65e0\u6cd5\u786e\u5b9a\u57fa\u91d1 {} \u7684\u5e73\u53f0\uff0c\u8df3\u8fc7".format(code), "warning")
+            log("  ⚠️ 无法确定基金 {} 的平台，跳过".format(code), "warning")
             continue
 
         if platform not in config["funds"]:
@@ -1590,14 +1600,14 @@ def auto_detect_new_funds():
             "benchmark": fund_info["benchmark"]
         })
 
-        log("  \u2713 \u5df2\u6dfb\u52a0\u57fa\u91d1 {} ({}) \u5230 {}".format(code, fund_info["name"], platform))
+        log("  ✓ 已添加基金 {} ({}) 到 {}".format(code, fund_info["name"], platform))
 
     try:
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
-        log("\u2713 \u5df2\u66f4\u65b0 fund_config.json")
+        log("✓ 已更新 fund_config.json")
     except Exception as e:
-        log("\u274c \u4fdd\u5b58 fund_config.json \u5931\u8d25: {}".format(e), "error")
+        log("❌ 保存 fund_config.json 失败: {}".format(e), "error")
 
 
 if __name__ == "__main__":

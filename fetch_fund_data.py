@@ -24,7 +24,7 @@ import argparse
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from logger_config import get_beijing_time, safe_load_json
+from logger_config import get_beijing_time, safe_load_json, log, setup_encoding
 
 # 线程锁:保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
 history_cache_lock = threading.Lock()
@@ -39,14 +39,8 @@ def safe_float(val, default=0.0):
     except (ValueError, TypeError):
         return default
 
-# 导入日志模块
-try:
-    from logger_config import log, setup_encoding
-    setup_encoding()
-except ImportError:
-    # 防御回退：logger_config 不存在时使用简单日志
-    def log(message, level='info'):
-        print(message)
+# 初始化日志编码（import 已保证 logger_config 存在，无需 try/except）
+setup_encoding()
 
 
 def _parse_jsonpgz(text):
@@ -297,8 +291,8 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         # 此处先设为 confirmed，main() 会覆盖为 confirmed_today / delayed / confirmed
         nav_status = "confirmed"
 
-        # 从配置文件获取基金名称（回退方案）
-        fund_name = _get_fund_name(fund_code, fund_names)
+        # 从配置文件获取基金名称（内联 _get_fund_name）
+        fund_name = fund_names.get(fund_code, fund_code) if fund_names else fund_code
 
         log(f"  ✓ 基金 {fund_code} 回退成功: 净值 {nav} ({nav_date}), 涨跌 {change_percent}%")
         return {
@@ -312,12 +306,6 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
     except Exception as e:
         log(f"  ❌ 基金 {fund_code} 历史数据回退也失败: {e}")
         return None
-
-def _get_fund_name(fund_code, fund_names=None):
-    """从配置文件获取基金名称（回退方案使用），不再硬编码"""
-    if fund_names and fund_code in fund_names:
-        return fund_names[fund_code]
-    return fund_code
 
 def _get_fund_earliest_purchase_date(purchase_records, platform, fund_code):
     """获取指定基金的最早交易日期，往前推7天作为历史数据起始日期"""
@@ -334,18 +322,6 @@ def _get_fund_earliest_purchase_date(purchase_records, platform, fund_code):
         return dt.strftime("%Y-%m-%d")
     return None
 
-
-def _get_earliest_purchase_date(nested_records):
-    """从持仓记录中找出最早的交易日期，往前推7天作为历史数据起始日期。
-    内部调用 _get_fund_earliest_purchase_date，避免逻辑重复。
-    """
-    earliest = None
-    for platform, funds in nested_records.items():
-        for fund_code in funds:
-            fund_start = _get_fund_earliest_purchase_date(nested_records, platform, fund_code)
-            if fund_start and (earliest is None or fund_start < earliest):
-                earliest = fund_start
-    return earliest if earliest else "2020-01-01"
 
 def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, session=None, incremental_from=None):
     """获取基金历史净值数据。
@@ -1138,7 +1114,13 @@ def main():
     log("✓ HTTP Session 已创建（自动重试: 3次, 退避: 1s）")
 
     # 计算历史数据起始日期（全局兜底，按基金维度优先）
-    history_start_date = _get_earliest_purchase_date(purchase_records)
+    earliest = None
+    for _pltf, _codes in purchase_records.items():
+        for _code in _codes:
+            _start = _get_fund_earliest_purchase_date(purchase_records, _pltf, _code)
+            if _start and (earliest is None or _start < earliest):
+                earliest = _start
+    history_start_date = earliest if earliest else "2020-01-01"
     log(f"历史数据全局起始日期（兜底）: {history_start_date}")
 
     # 加载历史数据缓存（增量拉取）
@@ -1218,21 +1200,32 @@ def main():
     if summary["total_invested"] > 0:
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
 
-    _latest_profit = 0
-    _day_before_profit = 0
+    # 汇总计算（用 sum() 替代简单累加）
+    _latest_profit = sum(
+        f.get("latest_trading_day_profit", 0)
+        for fs in all_data["funds"].values() for f in fs
+    )
+    _day_before_profit = sum(
+        f.get("day_before_latest_trading_day_profit", 0)
+        for fs in all_data["funds"].values() for f in fs
+    )
+    _ytd_profit = sum(
+        f.get("ytd_profit", 0)
+        for fs in all_data["funds"].values() for f in fs
+    )
+    _realized = sum(
+        f.get("holdings", {}).get("realized_profit_loss", 0)
+        for fs in all_data["funds"].values() for f in fs
+    )
+
+    # 加权平均需要逐基金计算，保留循环
     _return_weighted = 0
     _return_day_before_weighted = 0
     _total_weight = 0
-    _ytd_profit = 0
     _ytd_return_weighted = 0
     _ytd_weight = 0
-    _realized = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
-            _latest_profit += fund.get("latest_trading_day_profit", 0)
-            _day_before_profit += fund.get("day_before_latest_trading_day_profit", 0)
-            _ytd_profit += fund.get("ytd_profit", 0)
-            _realized += fund.get("holdings", {}).get("realized_profit_loss", 0)
             weight = fund.get("holdings", {}).get("current_value", 0)
             if weight > 0:
                 _return_weighted += fund.get("latest_trading_day_return", 0) * weight

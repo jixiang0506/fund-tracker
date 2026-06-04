@@ -157,14 +157,14 @@ def generate_holdings_snapshot():
             json.dump(snapshot, f, ensure_ascii=False, indent=2)
         
         # 使用 log() 替代 print()，保持一致性
-        log(f"[OK] 持仓快照已生成: {OUTPUT_FILE}", "info")
-        log(f"[OK] 持仓基金数: {funds_count}", "info")
-        log(f"[OK] 总市值: {total_holdings_value:,.2f}", "info")
-        
-        log(f"[OK] 累计盈亏: {total_profit_loss:,.2f} ({snapshot['summary']['total_profit_loss_percent']:.2f}%)", "info")
-        log(f"[OK] 已实现盈亏: {total_realized_profit:,.2f}", "info")
+        log(f"✓ 持仓快照已生成: {OUTPUT_FILE}", "info")
+        log(f"✓ 持仓基金数: {funds_count}", "info")
+        log(f"✓ 总市值: {total_holdings_value:,.2f}", "info")
+
+        log(f"✓ 累计盈亏: {total_profit_loss:,.2f} ({snapshot['summary']['total_profit_loss_percent']:.2f}%)", "info")
+        log(f"✓ 已实现盈亏: {total_realized_profit:,.2f}", "info")
     except Exception as e:
-        log(f"[Error] 保存持仓快照失败: {e}", "error")
+        log(f"❌ 保存持仓快照失败: {e}", "error")
         return
 
 

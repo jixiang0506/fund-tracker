@@ -103,9 +103,21 @@ def load_fund_config():
         funds_dict = {}  # 初始化平台->基金代码列表的字典
 
         for platform, fund_list in funds_source.items():
+            # 防御校验：确保 fund_list 是列表且每项包含 "code" 字段
+            if not isinstance(fund_list, list):
+                log(f"[WARNING] 平台 {platform} 的配置不是列表，跳过", "warning")
+                continue
             log(f"[DEBUG] 平台: {platform}, 基金数: {len(fund_list)}", "info")
-            funds_dict[platform] = [f["code"] for f in fund_list]
+            valid_funds = []
             for fund in fund_list:
+                if not isinstance(fund, dict) or "code" not in fund:
+                    log(f"[WARNING] 平台 {platform} 中存在无效基金条目（缺少 code 字段），已跳过: {fund}", "warning")
+                    continue
+                valid_funds.append(fund["code"])
+            funds_dict[platform] = valid_funds
+            for fund in fund_list:
+                if not isinstance(fund, dict) or "code" not in fund:
+                    continue
                 if fund.get("is_qdii", False):
                     qdii_codes.add(fund["code"])
                 if fund.get("name"):
@@ -1067,14 +1079,17 @@ def process_fund(platform, code, fund_start_date, http_session,
                     old_fund["holdings"] = new_holdings
                     old_fund["holdings"]["current_value"] = new_holdings["total_shares"] * old_nav
                     # 重新计算累计收益率（使用路径2近似计算）
+                    # 也传入原始交易记录和完整历史，使用精确FIFO模拟（路径1）
                     old_fund["return_rates"] = calculate_cumulative_returns(
-                        history, new_holdings["purchases"]
+                        history, new_holdings["purchases"],
+                        original_purchases=purchases, history_for_nav=history
                     )
                     # 更新昨日收益指标（使用旧 NAV）
                     m = _calculate_latest_trading_day_metrics(history, new_holdings, today)
                     old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
                     old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
                     old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
+                old_fund["data_source"] = "cached"
                 return (old_fund, old_fund["holdings"]["total_invested"],
                         old_fund["holdings"]["current_value"], "使用缓存数据(已用新交易记录重新计算)")
             else:
@@ -1110,6 +1125,7 @@ def process_fund(platform, code, fund_start_date, http_session,
             "nav_date": realtime["nav_date"],
             "daily_return": realtime["change_percent"],
             "nav_status": realtime.get("nav_status", "confirmed"),
+            "data_source": "live",
             "latest_history_date": latest_history_date,
             "latest_trading_day_nav": round(m["latest_trading_day_nav"], 4),
             "latest_trading_day_nav_date": m["latest_trading_day_nav_date"],

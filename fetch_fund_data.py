@@ -12,7 +12,6 @@
 """
 
 import sys
-import io
 import requests
 import copy
 from requests.adapters import HTTPAdapter
@@ -60,15 +59,48 @@ try:
     from logger_config import log, setup_encoding
     setup_encoding()
 except ImportError:
-    # 如果 logger_config 不存在，使用简单的 log 函数和编码设置
+    # 防御回退：logger_config 不存在时使用简单日志
     def log(message, level='info'):
         print(message)
-    def setup_encoding():
-        if hasattr(sys.stdout, "buffer"):
-            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-        if hasattr(sys.stderr, "buffer"):
-            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
-    setup_encoding()
+
+
+def _parse_jsonpgz(text):
+    """解析天天基金 JSONP 响应 (jsonpgz({...}) 格式)。
+
+    兼容两种场景:
+    - 精确模式: jsonpgz({"fundcode":"...",...}) 或 jsonpgz({"fundcode":...});
+    - 回退模式: 手动取最外层 () 包裹的内容（兼容轻微格式变化）
+
+    Returns:
+        dict 或 None（解析失败）
+    """
+    if not text:
+        return None
+    # 方式1：正则匹配 jsonpgz(...) 精确格式
+    match = re.search(r'jsonpgz\((.*)\);?\s*$', text, re.DOTALL)
+    if match:
+        return json.loads(match.group(1))
+    # 方式2：手动找最外层括号（兼容无 jsonpgz 前缀等格式）
+    start = text.find('(') + 1
+    end = text.rfind(')')
+    if 0 < start < end:
+        return json.loads(text[start:end].strip())
+    return None
+
+
+def _atomic_write_json(path, data):
+    """原子写入 JSON 文件（tempfile.mkstemp + os.replace 防止中断损坏）。"""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HISTORY_CACHE_FILE = os.path.join(BASE_DIR, "data", "history_cache.json")
@@ -114,14 +146,12 @@ def load_fund_config():
                     log(f"[WARNING] 平台 {platform} 中存在无效基金条目（缺少 code 字段），已跳过: {fund}", "warning")
                     continue
                 valid_funds.append(fund["code"])
-            funds_dict[platform] = valid_funds
-            for fund in fund_list:
-                if not isinstance(fund, dict) or "code" not in fund:
-                    continue
                 if fund.get("is_qdii", False):
                     qdii_codes.add(fund["code"])
                 if fund.get("name"):
                     fund_names[fund["code"]] = fund["name"]
+            funds_dict[platform] = valid_funds
+            # QDII标记和基金名称已在第一次循环中一并提取
 
         log("[OK] 成功加载基金配置: {} 只QDII基金, {} 只基金名称".format(len(qdii_codes), len(fund_names)), "info")
         log(f"[DEBUG] funds_dict 平台数: {len(funds_dict)}, 平台列表: {list(funds_dict.keys())}", "info")
@@ -156,19 +186,8 @@ def load_history_cache():
 
 def save_history_cache(cache_data):
     """保存历史数据缓存到磁盘（原子写入，防止中断导致文件损坏）。"""
-    os.makedirs(os.path.dirname(HISTORY_CACHE_FILE), exist_ok=True)
     output = {"_meta": {"version": 1}, **cache_data}
-    fd, tmp_path = tempfile.mkstemp(
-        dir=os.path.dirname(HISTORY_CACHE_FILE), suffix=".tmp"
-    )
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
-        os.replace(tmp_path, HISTORY_CACHE_FILE)  # 原子替换
-    except Exception:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
-        raise
+    _atomic_write_json(HISTORY_CACHE_FILE, output)
     total_entries = sum(len(v) for v in cache_data.values())
     log(f"✓ 历史缓存已保存: {len(cache_data)} 只基金, {total_entries} 条记录")
 
@@ -234,21 +253,11 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
             response = session.get(url, timeout=10)
             response.raise_for_status()
 
-            # 解析JSONP响应:找最外层括号 () 包裹的 JSON，避免匹配字符串值中的 {}
-            text = response.text
-            json_start = text.find('(') + 1
-            json_end = text.rfind(')')
-            if json_start <= 0 or json_end <= json_start:
+            # 解析JSONP响应
+            data = _parse_jsonpgz(response.text)
+            if data is None:
                 log(f"  ⚠ 基金 {fund_code} 实时估值JSONP格式异常，尝试回退到历史数据API...")
                 return _fallback()
-            json_str = text[json_start:json_end].strip()
-
-            # 空JSON（如 jsonpgz(); 的情况）- 回退到历史数据
-            if not json_str.strip():
-                log(f"  ⚠ 基金 {fund_code} 实时估值API返回空数据，尝试回退到历史数据API...")
-                return _fallback()
-
-            data = json.loads(json_str)
 
             # 检查返回数据是否有效（有些基金不在交易时段会返回空内容）
             if not data.get("name") and not data.get("gsz"):
@@ -306,7 +315,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         latest = items[0]
         nav = safe_float(latest.get("DWJZ", 0))
         nav_date = latest.get("FSRQ", "")
-        change_percent = safe_float(latest.get("JZZZL", 0)) if latest.get("JZZZL") else 0
+        change_percent = safe_float(latest.get("JZZZL"))
 
         # 净值状态:由 main() 根据历史数据最新日期统一修正
         # 此处先设为 confirmed，main() 会覆盖为 confirmed_today / delayed / confirmed
@@ -741,118 +750,63 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
 
 def calculate_cumulative_returns(history, purchases, original_purchases=None, history_for_nav=None):
     """为历史数据中每一天预计算累计收益率，使用与 calculate_holdings() 一致的 FIFO 逻辑。
-
-    优化:增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)，
-    其中 H=历史天数，P=交易笔数。
-
-    参数:
-        history: 历史净值列表（按日期升序）
-        purchases: calculate_holdings() 返回的 purchase_details（含 fifo_cost）
-        original_purchases: 原始交易记录（含 before_15 字段），用于精确 FIFO 模拟
-        history_for_nav: 与 original_purchases 配合的历史数据，用于查净值
+    优化:增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)。
     """
     if not history:
         return []
 
-    # 确保 history 按日期升序排列
     sorted_history = sorted(history, key=lambda h: h["date"])
     n = len(sorted_history)
     return_rates = [None] * n
 
-    # ── 路径1:精确 FIFO 模拟（提供原始交易记录时）──
-    if original_purchases and history_for_nav:
-        sorted_purchases = sorted(original_purchases, key=lambda p: p["date"])
-        buy_queue = []          # FIFO 队列:[{date, nav, remaining_shares}]
-        purchase_idx = 0
-        num_purchases = len(sorted_purchases)
-
-        # 滚动维护持仓份额和成本（替代循环内全量 sum）
-        queue_shares = 0.0
-        queue_cost = 0.0
-
-        for h_idx, h in enumerate(sorted_history):
-            # 增量推进:处理所有在该历史时点之前（含当日）的交易
-            while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
-                p = sorted_purchases[purchase_idx]
-                purchase_idx += 1
-
-                trans_type = p.get("type", "buy")
-                before_15 = p.get("before_15", True)
-
-                nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
-                if not nav_result or nav_result["nav"] <= 0:
-                    continue
-                nav_on_date = nav_result["nav"]
-
-                if trans_type == "sell":
-                    sell_shares = p["amount"] / nav_on_date
-                    remaining_sell = sell_shares
-                    deducted_cost = 0.0
-                    for buy in buy_queue:
-                        if remaining_sell <= 0:
-                            break
-                        if buy["remaining_shares"] <= 0:
-                            continue
-                        deduct = min(remaining_sell, buy["remaining_shares"])
-                        deducted_cost += deduct * buy["nav"]
-                        buy["remaining_shares"] -= deduct
-                        remaining_sell -= deduct
-                    queue_shares -= (sell_shares - remaining_sell)
-                    queue_cost -= deducted_cost
-                else:
-                    shares = p["amount"] / nav_on_date
-                    buy_queue.append({
-                        "date": p["date"],
-                        "nav": nav_on_date,
-                        "remaining_shares": shares
-                    })
-                    queue_shares += shares
-                    queue_cost += shares * nav_on_date
-
-            # 使用滚动变量，O(1) 计算（不再全量 sum）
-            if queue_cost > 0 and queue_shares > 0:
-                value = h["nav"] * queue_shares
-                profit = value - queue_cost
-                return_rates[h_idx] = round((profit / queue_cost) * 100, 2)
-
+    # 仅支持精确 FIFO 模拟（必须提供原始交易记录）
+    if not original_purchases or not history_for_nav:
         return return_rates
 
-    # ── 路径2:近似回退（仅提供 purchase_details 时）──
-    # ⚠️ 注意：purchase_details 的 shares 已被 FIFO 抵扣，无法精确模拟。
-    # 此处使用近似算法：
-    #   - 累计份额 acc_shares：买入+，卖出-（使用 detail.shares）
-    #   - 累计投入 acc_invested：买入+amount，卖出-nav_p*sh（近似成本）
-    #   - 收益率 = (nav * acc_shares - acc_invested) / acc_invested
-    # 精度低于路径1（无法精确 FIFO 抵扣），但比全 None 更有意义。
-    if purchases:
-        sorted_p = sorted(purchases, key=lambda p: p["date"])
-        p_idx = 0
-        num_p = len(sorted_p)
-        acc_invested = 0.0   # 截止当天的累计投入
-        acc_shares = 0.0     # 截止当天的累计份额
+    sorted_purchases = sorted(original_purchases, key=lambda p: p["date"])
+    buy_queue = []
+    purchase_idx = 0
+    num_purchases = len(sorted_purchases)
+    queue_shares = 0.0
+    queue_cost = 0.0
 
-        for h_idx, h in enumerate(sorted_history):
-            # 滚动推进:处理所有 <= 当天的交易，更新累计值
-            while p_idx < num_p and sorted_p[p_idx]["date"] <= h["date"]:
-                p = sorted_p[p_idx]
-                p_idx += 1
-                nav_p = p.get("nav", 0)
-                if nav_p <= 0:
-                    continue
-                amt = p.get("amount", 0)
-                sh = p.get("shares", 0)
-                if p.get("type") == "sell":
-                    # 卖出:份额减少，投入按 nav * sh 近似扣除
-                    acc_shares -= sh
-                    acc_invested -= nav_p * sh
-                else:
-                    acc_shares += sh
-                    acc_invested += amt
+    for h_idx, h in enumerate(sorted_history):
+        while purchase_idx < num_purchases and sorted_purchases[purchase_idx]["date"] <= h["date"]:
+            p = sorted_purchases[purchase_idx]
+            purchase_idx += 1
 
-            if acc_invested > 0 and acc_shares > 0:
-                value = h["nav"] * acc_shares
-                profit = value - acc_invested
-                return_rates[h_idx] = round((profit / acc_invested) * 100, 2)
+            trans_type = p.get("type", "buy")
+            before_15 = p.get("before_15", True)
+            nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
+            if not nav_result or nav_result["nav"] <= 0:
+                continue
+            nav_on_date = nav_result["nav"]
+
+            if trans_type == "sell":
+                sell_shares = p["amount"] / nav_on_date
+                remaining_sell = sell_shares
+                deducted_cost = 0.0
+                for buy in buy_queue:
+                    if remaining_sell <= 0:
+                        break
+                    if buy["remaining_shares"] <= 0:
+                        continue
+                    deduct = min(remaining_sell, buy["remaining_shares"])
+                    deducted_cost += deduct * buy["nav"]
+                    buy["remaining_shares"] -= deduct
+                    remaining_sell -= deduct
+                queue_shares -= (sell_shares - remaining_sell)
+                queue_cost -= deducted_cost
+            else:
+                shares = p["amount"] / nav_on_date
+                buy_queue.append({"date": p["date"], "nav": nav_on_date, "remaining_shares": shares})
+                queue_shares += shares
+                queue_cost += shares * nav_on_date
+
+        if queue_cost > 0 and queue_shares > 0:
+            value = h["nav"] * queue_shares
+            profit = value - queue_cost
+            return_rates[h_idx] = round((profit / queue_cost) * 100, 2)
 
     return return_rates
 
@@ -927,73 +881,48 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
 
 
 def _calculate_latest_trading_day_metrics(history, holdings, today):
-    """
-    根据历史数据计算昨日净值、昨日收益率、昨日收益、
-    前日收益率、前日收益。
-
-    返回: dict with keys:
-        latest_trading_day_nav, latest_trading_day_nav_date, latest_trading_day_return,
-        latest_trading_day_profit, day_before_latest_trading_day_return,
-        day_before_latest_trading_day_profit
-    """
-    result = {
-        "latest_trading_day_nav": 0,
-        "latest_trading_day_nav_date": "",
-        "latest_trading_day_return": 0,
-        "latest_trading_day_profit": 0,
-        "day_before_latest_trading_day_return": 0,
-        "day_before_latest_trading_day_profit": 0,
-    }
-
     if not history or len(history) < 2:
-        return result
+        return {"latest_trading_day_nav": 0, "latest_trading_day_nav_date": "",
+                "latest_trading_day_return": 0, "latest_trading_day_profit": 0,
+                "day_before_latest_trading_day_return": 0,
+                "day_before_latest_trading_day_profit": 0}
 
-    if history[-1].get("date", "") == today:
-        latest_trading_day_nav = history[-2].get("nav", 0)
-        latest_trading_day_nav_date = history[-2].get("date", "")
-        prev_nav = history[-3].get("nav", 0) if len(history) >= 3 else latest_trading_day_nav
-        if len(history) >= 4:
-            day_before_latest_trading_day_nav = history[-3].get("nav", 0)
-            prev_trading_day_prev_nav = history[-4].get("nav", 0)
-        else:
-            day_before_latest_trading_day_nav = latest_trading_day_nav
-            prev_trading_day_prev_nav = latest_trading_day_nav
-    else:
-        latest_trading_day_nav = history[-1].get("nav", 0)
-        latest_trading_day_nav_date = history[-1].get("date", "")
-        prev_nav = history[-2].get("nav", 0)
-        if len(history) >= 3:
-            day_before_latest_trading_day_nav = history[-2].get("nav", 0)
-            prev_trading_day_prev_nav = history[-3].get("nav", 0)
-        else:
-            day_before_latest_trading_day_nav = latest_trading_day_nav
-            prev_trading_day_prev_nav = latest_trading_day_nav
+    # offset=1: latest history date != today → use history[-1] as latest trading day
+    # offset=2: latest history date == today → use history[-2] (yesterday) as latest
+    offset = 2 if history[-1].get("date", "") == today else 1
+    idx = -offset
 
-    if prev_nav > 0:
-        latest_trading_day_return = (latest_trading_day_nav - prev_nav) / prev_nav * 100
-    else:
-        latest_trading_day_return = 0
+    latest_nav = history[idx].get("nav", 0)
+    latest_date = history[idx].get("date", "")
+    prev_nav = history[idx - 1].get("nav", 0) if len(history) >= -idx + 1 else latest_nav
 
-    if prev_trading_day_prev_nav > 0:
-        day_before_latest_trading_day_return = (day_before_latest_trading_day_nav - prev_trading_day_prev_nav) / prev_trading_day_prev_nav * 100
-    else:
-        day_before_latest_trading_day_return = 0
+    # day_before uses offset+1
+    day_before_idx = idx - 1
+    day_before_nav = history[day_before_idx].get("nav", 0) if len(history) >= -day_before_idx + 1 else latest_nav
+    day_before_prev_nav = history[day_before_idx - 1].get("nav", 0) if len(history) >= -day_before_idx + 2 else latest_nav
+
+    def _calc_return(current, previous):
+        return (current - previous) / previous * 100 if previous > 0 else 0
+
+    latest_return = _calc_return(latest_nav, prev_nav)
+    day_before_return = _calc_return(day_before_nav, day_before_prev_nav)
 
     total_shares = holdings.get("total_shares", 0)
     if total_shares > 0:
-        latest_trading_day_profit = round(total_shares * (latest_trading_day_nav - prev_nav), 2)
-        day_before_latest_trading_day_profit = round(total_shares * (day_before_latest_trading_day_nav - prev_trading_day_prev_nav), 2)
+        latest_profit = round(total_shares * (latest_nav - prev_nav), 2)
+        day_before_profit = round(total_shares * (day_before_nav - day_before_prev_nav), 2)
     else:
-        latest_trading_day_profit = 0
-        day_before_latest_trading_day_profit = 0
+        latest_profit = 0
+        day_before_profit = 0
 
-    result["latest_trading_day_nav"] = latest_trading_day_nav
-    result["latest_trading_day_nav_date"] = latest_trading_day_nav_date
-    result["latest_trading_day_return"] = latest_trading_day_return
-    result["latest_trading_day_profit"] = latest_trading_day_profit
-    result["day_before_latest_trading_day_return"] = day_before_latest_trading_day_return
-    result["day_before_latest_trading_day_profit"] = day_before_latest_trading_day_profit
-    return result
+    return {
+        "latest_trading_day_nav": latest_nav,
+        "latest_trading_day_nav_date": latest_date,
+        "latest_trading_day_return": round(latest_return, 2),
+        "latest_trading_day_profit": latest_profit,
+        "day_before_latest_trading_day_return": round(day_before_return, 2),
+        "day_before_latest_trading_day_profit": day_before_profit,
+    }
 
 
 def _calculate_year_to_date_metrics(history, holdings, today):
@@ -1077,7 +1006,7 @@ def process_fund(platform, code, fund_start_date, http_session,
                 if history and purchases:
                     new_holdings = calculate_holdings(purchases, old_nav, history, fund_code=code)
                     old_fund["holdings"] = new_holdings
-                    old_fund["holdings"]["current_value"] = new_holdings["total_shares"] * old_nav
+                    # 注意：calculate_holdings() 内部已计算 current_value，无需重复计算
                     # 重新计算累计收益率（使用路径2近似计算）
                     # 也传入原始交易记录和完整历史，使用精确FIFO模拟（路径1）
                     old_fund["return_rates"] = calculate_cumulative_returns(
@@ -1296,9 +1225,7 @@ def main():
                         log(f"  ⚠ 基金 {code} 使用缓存数据（实时数据获取失败）")
                 else:
                     failed_funds.append(code)
-                    if error_msg and "使用缓存数据" in error_msg:
-                        log(f"  ⚠ 基金 {code} 使用缓存数据")
-                    elif error_msg:
+                    if error_msg:
                         log(f"  ❌ 基金 {code} 处理失败: {error_msg}")
             except Exception as e:
                 failed_funds.append(code)
@@ -1310,76 +1237,54 @@ def main():
     except Exception as cache_err:
         log("⚠️ 保存历史缓存失败: {}".format(cache_err), "warning")
 
-    # 计算总计收益
+    # 计算所有汇总指标（单次遍历，代替原来4次独立遍历）
     log("\n[4/4] 计算总计收益...")
     summary = all_data["summary"]
     summary["total_profit_loss"] = round(summary["total_value"] - summary["total_invested"], 2)
     if summary["total_invested"] > 0:
         summary["total_profit_loss_percent"] = round(summary["total_profit_loss"] / summary["total_invested"] * 100, 2)
-    
-    # 计算昨日盈亏（累加各基金已计算的昨日收益）
-    latest_trading_day_profit = 0
-    day_before_latest_trading_day_profit = 0
+
+    _latest_profit = 0
+    _day_before_profit = 0
+    _return_weighted = 0
+    _return_day_before_weighted = 0
+    _total_weight = 0
+    _ytd_profit = 0
+    _ytd_return_weighted = 0
+    _ytd_weight = 0
+    _realized = 0
     for platform_funds in all_data["funds"].values():
         for fund in platform_funds:
-            latest_trading_day_profit += fund.get("latest_trading_day_profit", 0)
-            day_before_latest_trading_day_profit += fund.get("day_before_latest_trading_day_profit", 0)
-    
-    summary["latest_trading_day_profit_loss"] = round(latest_trading_day_profit, 2)
-    summary["latest_trading_day_profit_loss_percent"] = round((latest_trading_day_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
-    
-    # 计算昨日变化差（与前一交易日对比）
-    summary["latest_trading_day_profit_loss_diff"] = round(latest_trading_day_profit - day_before_latest_trading_day_profit, 2)
-    
-    # 计算昨日收益率变化差（加权平均）
-    # 使用各基金昨日收益率和前日收益率，按市值加权计算
-    latest_trading_day_return_weighted_sum = 0
-    day_before_latest_trading_day_return_weighted_sum = 0
-    total_weight = 0
-    for platform_funds in all_data["funds"].values():
-        for fund in platform_funds:
+            _latest_profit += fund.get("latest_trading_day_profit", 0)
+            _day_before_profit += fund.get("day_before_latest_trading_day_profit", 0)
+            _ytd_profit += fund.get("ytd_profit", 0)
+            _realized += fund.get("holdings", {}).get("realized_profit_loss", 0)
             weight = fund.get("holdings", {}).get("current_value", 0)
             if weight > 0:
-                latest_trading_day_return_weighted_sum += fund.get("latest_trading_day_return", 0) * weight
-                day_before_latest_trading_day_return_weighted_sum += fund.get("day_before_latest_trading_day_return", 0) * weight
-                total_weight += weight
-    
-    if total_weight > 0:
-        latest_trading_day_return_avg = latest_trading_day_return_weighted_sum / total_weight
-        day_before_latest_trading_day_return_avg = day_before_latest_trading_day_return_weighted_sum / total_weight
-        summary["latest_trading_day_profit_loss_percent_diff"] = round(latest_trading_day_return_avg - day_before_latest_trading_day_return_avg, 2)
+                _return_weighted += fund.get("latest_trading_day_return", 0) * weight
+                _return_day_before_weighted += fund.get("day_before_latest_trading_day_return", 0) * weight
+                _ytd_return_weighted += fund.get("ytd_return", 0) * weight
+                _ytd_weight += weight
+            _total_weight += weight
+
+    summary["latest_trading_day_profit_loss"] = round(_latest_profit, 2)
+    summary["latest_trading_day_profit_loss_percent"] = round((_latest_profit / summary["total_value"] * 100), 2) if summary["total_value"] > 0 else 0
+    summary["latest_trading_day_profit_loss_diff"] = round(_latest_profit - _day_before_profit, 2)
+
+    if _total_weight > 0:
+        diff = (_return_weighted - _return_day_before_weighted) / _total_weight
+        summary["latest_trading_day_profit_loss_percent_diff"] = round(diff, 2)
     else:
         summary["latest_trading_day_profit_loss_percent_diff"] = 0
 
     # 兼容字段别名（前端使用 yesterday_xxx）
-    summary["yesterday_profit_loss"] = summary["latest_trading_day_profit_loss"]
-    summary["yesterday_profit_loss_percent"] = summary["latest_trading_day_profit_loss_percent"]
-    summary["yesterday_profit_loss_diff"] = summary["latest_trading_day_profit_loss_diff"]
-    summary["yesterday_profit_loss_percent_diff"] = summary["latest_trading_day_profit_loss_percent_diff"]
+    for alias in ("yesterday_profit_loss", "yesterday_profit_loss_percent",
+                  "yesterday_profit_loss_diff", "yesterday_profit_loss_percent_diff"):
+        summary[alias] = summary[alias.replace("yesterday_", "latest_trading_day_")]
 
-    # 计算本年数据（YTD）
-    ytd_profit_sum = 0
-    ytd_return_weighted_sum = 0
-    ytd_total_weight = 0
-    for platform_funds in all_data["funds"].values():
-        for fund in platform_funds:
-            ytd_profit_sum += fund.get("ytd_profit", 0)
-            weight = fund.get("holdings", {}).get("current_value", 0)
-            if weight > 0:
-                ytd_return_weighted_sum += fund.get("ytd_return", 0) * weight
-                ytd_total_weight += weight
-
-    summary["ytd_profit_loss"] = round(ytd_profit_sum, 2)
-    summary["ytd_profit_loss_percent"] = round(ytd_return_weighted_sum / ytd_total_weight, 2) if ytd_total_weight > 0 else 0
-
-    # 累计算已实现盈亏
-    total_realized_profit = 0
-    for platform_funds in all_data["funds"].values():
-        for fund in platform_funds:
-            if fund.get("holdings") and fund["holdings"].get("realized_profit_loss"):
-                total_realized_profit += fund["holdings"]["realized_profit_loss"]
-    
-    summary["total_realized_profit_loss"] = round(total_realized_profit, 2)
+    summary["ytd_profit_loss"] = round(_ytd_profit, 2)
+    summary["ytd_profit_loss_percent"] = round(_ytd_return_weighted / _ytd_weight, 2) if _ytd_weight > 0 else 0
+    summary["total_realized_profit_loss"] = round(_realized, 2)
     
     # 打印汇总信息
     log("\n" + "="*60)
@@ -1479,18 +1384,9 @@ def update_benchmark_index_data():
         except Exception as e:
             log(f"  ⚠ {code} ({info['name']}) 获取失败: {e}", "warning")
     if updated:
-        import tempfile
-        fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(INDEX_CACHE_FILE), suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
-            os.replace(tmp_path, INDEX_CACHE_FILE)
-            total_entries = sum(len(v.get("data", {})) for v in existing.values())
-            log(f"✓ 基准指数数据已保存: {len(existing)} 个指数, {total_entries} 条记录")
-        except Exception:
-            if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
-            raise
+        _atomic_write_json(INDEX_CACHE_FILE, existing)
+        total_entries = sum(len(v.get("data", {})) for v in existing.values())
+        log(f"✓ 基准指数数据已保存: {len(existing)} 个指数, {total_entries} 条记录")
     else:
         log("ℹ 基准指数数据无更新")
 
@@ -1509,10 +1405,9 @@ def fetch_fund_info_from_web(code, session=None):
 
         resp = session.get(url, timeout=10)
         if resp.status_code == 200:
-            # 解析 JSONP: jsonpgz({...});
-            match = re.search(r'jsonpgz\((.*?)\);?\s*$', resp.text, re.DOTALL)
-            if match:
-                data = json.loads(match.group(1))
+            # 解析 JSONP
+            data = _parse_jsonpgz(resp.text)
+            if data:
                 name = data.get("name", "")
 
                 # 启发式判断是否为 QDII

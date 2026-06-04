@@ -16,20 +16,29 @@ from datetime import datetime, timezone, timedelta
 LOG_FORMAT = '[%(asctime)s] %(levelname)s [%(filename)s:%(lineno)d] - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+# 北京时区（UTC+8），供全项目统一调用
+try:
+    from zoneinfo import ZoneInfo
+    _BEIJING_TZ = ZoneInfo("Asia/Shanghai")
+except ImportError:
+    try:
+        import pytz
+        _BEIJING_TZ = pytz.timezone("Asia/Shanghai")
+    except ImportError:
+        _BEIJING_TZ = timezone(timedelta(hours=8))
+
+
+def get_beijing_time():
+    """获取当前北京时间（供全项目统一调用）"""
+    return datetime.now(_BEIJING_TZ)
+
 
 def setup_encoding():
-    """
-    强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错。
-    在脚本开头调用一次即可。
-    """
-    if getattr(sys.stdout, '_encoding_setup_done', False):
-        pass
-    elif hasattr(sys.stdout, "buffer"):
+    """强制 UTF-8 stdout/stderr，避免 Windows 控制台 GBK 编码报错。"""
+    if not getattr(sys.stdout, '_encoding_setup_done', False) and hasattr(sys.stdout, "buffer"):
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stdout._encoding_setup_done = True
-    if getattr(sys.stderr, '_encoding_setup_done', False):
-        pass
-    elif hasattr(sys.stderr, "buffer"):
+    if not getattr(sys.stderr, '_encoding_setup_done', False) and hasattr(sys.stderr, "buffer"):
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
         sys.stderr._encoding_setup_done = True
 
@@ -58,8 +67,8 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
     os.makedirs(log_dir, exist_ok=True)
 
-    # 使用北京时间（UTC+8）与脚本其他部分保持一致
-    beijing_now = datetime.now(timezone(timedelta(hours=8)))
+    # 使用统一的北京时间函数
+    beijing_now = get_beijing_time()
     log_file = os.path.join(log_dir, f'fund_tracker_{beijing_now.strftime("%Y%m%d")}.log')
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
@@ -74,7 +83,7 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
 
 def _cleanup_old_logs(log_dir, days=30):
     """清理 logs/ 目录中超过 days 天的日志文件"""
-    cutoff = datetime.now(timezone(timedelta(hours=8))).timestamp() - days * 86400
+    cutoff = get_beijing_time().timestamp() - days * 86400
     for fname in os.listdir(log_dir):
         if fname.startswith("fund_tracker_") and fname.endswith(".log"):
             fpath = os.path.join(log_dir, fname)

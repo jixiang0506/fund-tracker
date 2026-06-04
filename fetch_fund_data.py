@@ -24,7 +24,7 @@ import argparse
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from logger_config import get_beijing_time
+from logger_config import get_beijing_time, safe_load_json
 
 # 线程锁:保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
 history_cache_lock = threading.Lock()
@@ -157,16 +157,8 @@ REALTIME_API = "https://fundgz.1234567.com.cn/js/{}.js"
 
 def load_history_cache():
     """加载历史数据缓存。返回 {fund_code: [entries]} 或 {} if not found."""
-    if not os.path.exists(HISTORY_CACHE_FILE):
-        return {}
-    try:
-        with open(HISTORY_CACHE_FILE, "r", encoding="utf-8") as f:
-            cache = json.load(f)
-        # 去掉 _meta 等元数据键
-        return {k: v for k, v in cache.items() if not k.startswith("_")}
-    except Exception as e:
-        log(f"⚠️ 加载历史缓存失败，将全量获取: {e}", "warning")
-        return {}
+    cache = safe_load_json(HISTORY_CACHE_FILE, default={}, filter_keys=lambda k: k.startswith("_"))
+    return cache if cache else {}
 
 
 def save_history_cache(cache_data):

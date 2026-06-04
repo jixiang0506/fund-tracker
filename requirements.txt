@@ -1,2 +1,1 @@
 requests>=2.31.0
-pytz>=2023.3  # 可选依赖：Python < 3.9 时的时区回退；Python >= 3.9 使用 zoneinfo

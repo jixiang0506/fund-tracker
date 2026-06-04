@@ -11,7 +11,6 @@
 4. 支持手动输入净值:如果无法获取历史净值，允许手动输入
 """
 
-import sys
 import requests
 import copy
 from requests.adapters import HTTPAdapter
@@ -25,24 +24,10 @@ import argparse
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from logger_config import get_beijing_time
+
 # 线程锁:保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
 history_cache_lock = threading.Lock()
-# 时区支持:优先使用 zoneinfo (Python 3.9+)，回退到 pytz
-try:
-    from zoneinfo import ZoneInfo
-    _BEIJING_TZ = ZoneInfo("Asia/Shanghai")
-except ImportError:
-    try:
-        import pytz
-        _BEIJING_TZ = pytz.timezone("Asia/Shanghai")
-    except ImportError:
-        # 如果都没有，使用固定偏移量（UTC+8）
-        from datetime import timezone
-        _BEIJING_TZ = timezone(timedelta(hours=8))
-
-def get_beijing_time():
-    """获取当前北京时间"""
-    return datetime.now(_BEIJING_TZ)
 
 def safe_float(val, default=0.0):
     """
@@ -293,7 +278,6 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
         session = _create_session()
     try:
         today = get_beijing_time().strftime("%Y-%m-%d")
-        is_qdii = qdii_codes and fund_code in qdii_codes
 
         params = {
             "fundCode": fund_code,

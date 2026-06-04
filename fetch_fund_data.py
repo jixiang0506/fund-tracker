@@ -1012,8 +1012,6 @@ def process_fund(platform, code, fund_start_date, http_session,
 
         # --- 第3步:计算持仓和收益 ---
         purchases = purchase_records.get(platform, {}).get(code, [])
-        if not history:
-            return (None, 0, 0, "历史数据为空，无法计算持仓")
 
         holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
 

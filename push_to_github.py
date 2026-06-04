@@ -14,6 +14,7 @@ import requests
 import sys
 import time
 import argparse
+from datetime import datetime, timezone, timedelta
 from logger_config import log, load_env_file
 
 
@@ -175,9 +176,10 @@ def main():
     for i, file_path in enumerate(files_to_push):
         if os.path.exists(file_path):
             # 提交信息包含时间戳，便于追溯（使用北京时间）
+            beijing_now = datetime.now(timezone(timedelta(hours=8)))
             commit_msg = "更新 {} ({})".format(
                 file_path,
-                time.strftime("%Y-%m-%d %H:%M", time.gmtime(time.time() + 8 * 3600))
+                beijing_now.strftime("%Y-%m-%d %H:%M")
             )
             if push_file(file_path, commit_msg, owner, repo, token, branch):
                 success_count += 1

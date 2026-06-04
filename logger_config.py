@@ -66,7 +66,23 @@ def setup_logger(name='fund_tracker', log_level=logging.INFO):
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
+    # 清理30天前的旧日志文件
+    _cleanup_old_logs(log_dir, days=30)
+
     return logger
+
+
+def _cleanup_old_logs(log_dir, days=30):
+    """清理 logs/ 目录中超过 days 天的日志文件"""
+    cutoff = datetime.now(timezone(timedelta(hours=8))).timestamp() - days * 86400
+    for fname in os.listdir(log_dir):
+        if fname.startswith("fund_tracker_") and fname.endswith(".log"):
+            fpath = os.path.join(log_dir, fname)
+            try:
+                if os.path.getmtime(fpath) < cutoff:
+                    os.unlink(fpath)
+            except OSError:
+                pass  # 清理失败不阻塞主流程
 
 
 # 创建默认 logger

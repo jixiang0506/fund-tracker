@@ -11,7 +11,7 @@
 import json
 import os
 from datetime import datetime
-from logger_config import log, get_beijing_time
+from logger_config import log, get_beijing_time, safe_load_json
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 PURCHASE_FILE = os.path.join(DATA_DIR, 'purchase_records.json')
@@ -19,23 +19,10 @@ FUNDS_DATA_FILE = os.path.join(DATA_DIR, 'funds_data.json')
 OUTPUT_FILE = os.path.join(DATA_DIR, 'holdings_snapshot.json')
 
 
-def load_json(filepath):
-    """安全加载 JSON 文件"""
-    if not os.path.exists(filepath):
-        log(f"[Warning] 文件不存在: {filepath}", "warning")
-        return None
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        log(f"[Error] 读取失败 {filepath}: {e}", "error")
-        return None
-
-
 def generate_holdings_snapshot():
     """生成持仓快照"""
-    purchase_records = load_json(PURCHASE_FILE)
-    funds_data = load_json(FUNDS_DATA_FILE)
+    purchase_records = safe_load_json(PURCHASE_FILE)
+    funds_data = safe_load_json(FUNDS_DATA_FILE)
 
     if purchase_records is None or funds_data is None:
         log("[Error] 无法读取必要数据，退出", "error")

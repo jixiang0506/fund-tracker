@@ -5,8 +5,8 @@
     "files": [
         "fetch_fund_data.py",
         "index.html",
-        "test_cumulative_returns.py",
-        "test_helpers.py",
+        "logger_config.py",
+        "requirements.txt",
         "github_config.json"
     ],
     "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件"

@@ -10,8 +10,8 @@
 
 import json
 import os
-from datetime import datetime, timezone, timedelta
-from logger_config import log
+from datetime import datetime
+from logger_config import log, get_beijing_time
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 PURCHASE_FILE = os.path.join(DATA_DIR, 'purchase_records.json')
@@ -57,7 +57,7 @@ def generate_holdings_snapshot():
         if not snapshot_time:
             log(f"[Warning] 无法解析时间戳格式: {data_update_time}，使用当前时间", "warning")
     if not snapshot_time:
-        snapshot_time = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
+        snapshot_time = get_beijing_time().strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
     snapshot = {
         "format_version": "1.0",
@@ -75,11 +75,11 @@ def generate_holdings_snapshot():
         }
     }
 
-    platforms_set = set()
     total_holdings_value = 0.0
     total_invested = 0.0
     total_profit_loss = 0.0
     total_latest_trading_day_profit_loss = 0.0
+    total_realized_profit = 0.0
     funds_count = 0
 
     # 遍历 funds_data 中的基金，直接复用 holdings 数据
@@ -90,8 +90,6 @@ def generate_holdings_snapshot():
         if platform not in snapshot['funds']:
             snapshot['funds'][platform] = {}
 
-        platforms_set.add(platform)
-
         for fund in fund_list:
             fund_code = fund.get('code', '')
             fund_name = fund.get('name', fund_code)
@@ -100,14 +98,12 @@ def generate_holdings_snapshot():
             daily_return = fund.get('daily_return', 0)
             holdings = fund.get('holdings')
 
-            # 跳过无持仓的基金（无 holdings 或总份额为 0）
             if not holdings:
                 continue
             total_shares = holdings.get('total_shares', 0)
             if total_shares <= 0.0001:
                 continue
 
-            # 从 purchase_records 获取交易统计信息（笔数、首笔日期）
             platform_records = purchase_records.get(platform, {})
             records = platform_records.get(fund_code, [])
             transactions_count = len(records)
@@ -116,15 +112,12 @@ def generate_holdings_snapshot():
                 sorted_records = sorted(records, key=lambda x: x.get('date', ''))
                 first_date = sorted_records[0].get('date', '')
 
-            # 直接从 holdings 读取所有计算好的数据（由 fetch_fund_data.py 的 FIFO 逻辑生成）
             total_invested_fund = holdings.get('total_invested', 0)
             current_value = holdings.get('current_value', 0)
             profit_loss = holdings.get('profit_loss', 0)
             profit_loss_percent = holdings.get('profit_loss_percent', 0)
             realized_profit_loss = holdings.get('realized_profit_loss', 0)
             avg_cost_nav = holdings.get('avg_cost_nav', 0)
-
-            # 直接复用 funds_data.json 中已算好的最新交易日收益，避免重复计算导致不一致
             daily_profit_loss = fund.get('latest_trading_day_profit', 0)
 
             snapshot['funds'][platform][fund_code] = {
@@ -145,28 +138,25 @@ def generate_holdings_snapshot():
                 },
                 "transactions_count": transactions_count,
                 "first_purchase_date": first_date or '',
-                "last_update": snapshot_time  # 继承主数据时间戳，与 generated_at 保持一致
+                "last_update": snapshot_time
             }
 
             total_holdings_value += current_value
             total_invested += total_invested_fund
             total_profit_loss += profit_loss
             total_latest_trading_day_profit_loss += daily_profit_loss
+            total_realized_profit += realized_profit_loss
             funds_count += 1
 
-    # 计算汇总（加除零保护）
-    total_invested_safe = total_invested if abs(total_invested) > 0.0001 else 0
-    total_holdings_value_safe = total_holdings_value if abs(total_holdings_value) > 0.0001 else 0
-    
     snapshot['summary'] = {
         "total_holdings_value": round(total_holdings_value, 2),
         "total_invested": round(total_invested, 2),
         "total_profit_loss": round(total_profit_loss, 2),
-        "total_profit_loss_percent": round(total_profit_loss / total_invested_safe * 100, 2) if total_invested_safe > 0 else 0,
+        "total_profit_loss_percent": round(total_profit_loss / total_invested * 100, 2) if total_invested > 0 else 0,
         "latest_trading_day_profit_loss": round(total_latest_trading_day_profit_loss, 2),
-        "latest_trading_day_profit_loss_percent": round(total_latest_trading_day_profit_loss / total_holdings_value_safe * 100, 2) if total_holdings_value_safe > 0 else 0,
+        "latest_trading_day_profit_loss_percent": round(total_latest_trading_day_profit_loss / total_holdings_value * 100, 2) if total_holdings_value > 0 else 0,
         "funds_count": funds_count,
-        "platforms": sorted(platforms_set)
+        "platforms": sorted(snapshot['funds'].keys())
     }
 
     # 移除没有持仓的平台
@@ -184,15 +174,8 @@ def generate_holdings_snapshot():
         log(f"[OK] 持仓基金数: {funds_count}", "info")
         log(f"[OK] 总市值: {total_holdings_value:,.2f}", "info")
         
-        profit_pct = snapshot['summary']['total_profit_loss_percent']
-        log(f"[OK] 累计盈亏: {total_profit_loss:,.2f} ({profit_pct:.2f}%)", "info")
-        
-        realized_total = sum(
-            f.get('holdings', {}).get('realized_profit_loss', 0) 
-            for p in snapshot['funds'].values() 
-            for f in p.values()
-        )
-        log(f"[OK] 已实现盈亏: {realized_total:,.2f}", "info")
+        log(f"[OK] 累计盈亏: {total_profit_loss:,.2f} ({snapshot['summary']['total_profit_loss_percent']:.2f}%)", "info")
+        log(f"[OK] 已实现盈亏: {total_realized_profit:,.2f}", "info")
     except Exception as e:
         log(f"[Error] 保存持仓快照失败: {e}", "error")
         return

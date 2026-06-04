@@ -1363,10 +1363,6 @@
         /* 通用工具类 */
         .hidden { display: none; }
         
-        .text-secondary-sm {
-            color: var(--color-text-secondary);
-            font-size: 12px;
-        }
         
         .text-muted-sm {
             color: var(--color-text-muted);
@@ -1592,8 +1588,9 @@
            【模块十五】同步状态 & 下拉菜单
            ============================================================ */
 
-        /* 同步状态提示 */
-        .sync-status {
+        /* 同步状态 & 上传状态 - 共同基础样式 */
+        .sync-status,
+        .upload-status {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -1603,31 +1600,39 @@
             z-index: 10000;
             font-size: 14px;
             display: none;
-            min-width: 280px;
             border: 1px solid var(--color-border);
         }
 
-        .sync-status.show {
+        .sync-status.show,
+        .upload-status.show {
             display: block;
             animation: slideIn 0.3s ease;
         }
 
-        .sync-status.loading {
+        .sync-status.loading,
+        .upload-status.loading {
             background: rgba(66, 153, 225, 0.1);
             color: var(--color-info);
             border-left: 4px solid var(--color-info);
         }
 
-        .sync-status.success {
+        .sync-status.success,
+        .upload-status.success {
             background: rgba(72, 187, 120, 0.1);
             color: var(--color-loss);
             border-left: 4px solid var(--color-loss);
         }
 
-        .sync-status.error {
+        .sync-status.error,
+        .upload-status.error {
             background: rgba(245, 101, 101, 0.1);
             color: var(--color-profit);
             border-left: 4px solid var(--color-profit);
+        }
+
+        /* 同步状态特有样式 */
+        .sync-status {
+            min-width: 280px;
         }
 
         .sync-spinner {
@@ -1987,43 +1992,6 @@
             gap: var(--space-sm);
             flex-wrap: wrap;
             margin-bottom: var(--space-md);
-        }
-
-        /* 上传状态提示 */
-        .upload-status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: var(--pad-content);
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-sm);
-            z-index: 10000;
-            font-size: 14px;
-            display: none;
-            border: 1px solid var(--color-border);
-        }
-
-        .upload-status.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        .upload-status.success {
-            background: rgba(72, 187, 120, 0.1);
-            color: var(--color-loss);
-            border-left: 4px solid var(--color-loss);
-        }
-
-        .upload-status.error {
-            background: rgba(245, 101, 101, 0.1);
-            color: var(--color-profit);
-            border-left: 4px solid var(--color-profit);
-        }
-
-        .upload-status.loading {
-            background: rgba(66, 153, 225, 0.1);
-            color: var(--color-info);
-            border-left: 4px solid var(--color-info);
         }
 
         /* ============================================================

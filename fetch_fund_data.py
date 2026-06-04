@@ -700,7 +700,7 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
         "avg_cost_nav": round(avg_cost_nav, 4)  # 新增:平均持仓成本
     }
 
-def calculate_cumulative_returns(history, purchases, original_purchases=None, history_for_nav=None):
+def calculate_cumulative_returns(history, original_purchases=None, history_for_nav=None):
     """为历史数据中每一天预计算累计收益率，使用与 calculate_holdings() 一致的 FIFO 逻辑。
     优化:增量维护 FIFO 队列，时间复杂度从 O(H×P) 降至 O(H+P)。
     """
@@ -962,7 +962,7 @@ def process_fund(platform, code, fund_start_date, http_session,
                     # 重新计算累计收益率（使用路径2近似计算）
                     # 也传入原始交易记录和完整历史，使用精确FIFO模拟（路径1）
                     old_fund["return_rates"] = calculate_cumulative_returns(
-                        history, new_holdings["purchases"],
+                        history,
                         original_purchases=purchases, history_for_nav=history
                     )
                     # 更新昨日收益指标（使用旧 NAV）
@@ -984,7 +984,7 @@ def process_fund(platform, code, fund_start_date, http_session,
         holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
 
         cumulative_returns = calculate_cumulative_returns(
-            history, holdings["purchases"],
+            history,
             original_purchases=purchases, history_for_nav=history
         )
 

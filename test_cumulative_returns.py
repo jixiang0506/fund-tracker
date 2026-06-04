@@ -8,22 +8,10 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fetch_fund_data import calculate_cumulative_returns, get_nav_from_history
+from fetch_fund_data import calculate_cumulative_returns
 
 
-def make_history(nav_map):
-    """nav_map: {date: nav}"""
-    return [{"date": d, "nav": v} for d, v in nav_map.items()]
-
-
-def make_purchase(code, date, shares, nav, amount=None, before_15=True):
-    """
-    构造买入记录，字段与生产环境 purchase_records.json 保持一致：
-    只包含 code, date, amount, before_15。
-    shares/nav 仅用于计算 amount。
-    """
-    a = amount if amount is not None else round(shares * nav, 2)
-    return {"code": code, "date": date, "amount": a, "before_15": before_15}
+from test_helpers import make_purchase, make_history
 
 
 class TestCumulativeReturnsFIFO(unittest.TestCase):

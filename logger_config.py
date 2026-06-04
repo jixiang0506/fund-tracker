@@ -11,22 +11,16 @@ import os
 import sys
 import io
 import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 # 统一日志格式
 LOG_FORMAT = '[%(asctime)s] %(levelname)s [%(filename)s:%(lineno)d] - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 # 北京时区（UTC+8），供全项目统一调用
-try:
-    from zoneinfo import ZoneInfo
-    _BEIJING_TZ = ZoneInfo("Asia/Shanghai")
-except ImportError:
-    try:
-        import pytz
-        _BEIJING_TZ = pytz.timezone("Asia/Shanghai")
-    except ImportError:
-        _BEIJING_TZ = timezone(timedelta(hours=8))
+# Python 3.9+ 内置 zoneinfo，项目最低版本为 3.13
+from zoneinfo import ZoneInfo
+_BEIJING_TZ = ZoneInfo("Asia/Shanghai")
 
 
 def get_beijing_time():

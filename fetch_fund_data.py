@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 import time
 import argparse
 import re
+import traceback
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from logger_config import get_beijing_time, safe_load_json, log, setup_encoding
@@ -1023,7 +1024,6 @@ def process_fund(platform, code, fund_start_date, http_session,
 
     except Exception as e:
         log("❌ 基金 {} 处理失败: {}".format(code, e))
-        import traceback
         log(traceback.format_exc())
         return (None, 0, 0, str(e))
 

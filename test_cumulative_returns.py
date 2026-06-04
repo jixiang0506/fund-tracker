@@ -21,7 +21,7 @@ class TestCumulativeReturnsFIFO(unittest.TestCase):
         """单笔买入，盈利"""
         history = make_history({"2025-01-02": 1.0, "2025-01-03": 1.1})
         purchases = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         self.assertTrue(len(result) > 0)
         # 最后一天（2025-01-03）应有正收益
         self.assertGreater(result[-1], 0)
@@ -30,7 +30,7 @@ class TestCumulativeReturnsFIFO(unittest.TestCase):
         """单笔买入，亏损"""
         history = make_history({"2025-01-02": 1.0, "2025-01-03": 0.9})
         purchases = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         self.assertTrue(len(result) > 0)
         self.assertLess(result[-1], 0)
 
@@ -45,7 +45,7 @@ class TestCumulativeReturnsFIFO(unittest.TestCase):
             make_purchase("000001", "2025-01-02", 1000, 1.0),
             make_purchase("000001", "2025-01-03", 1000, 1.05),
         ]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         self.assertTrue(len(result) > 0)
         self.assertGreater(result[-1], 0)
 
@@ -57,13 +57,13 @@ class TestCumulativeReturnsFallback(unittest.TestCase):
         """历史记录不足"""
         history = make_history({"2025-01-02": 1.0})
         purchases = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         # 只有1天历史，返回空列表或单元素
         self.assertTrue(len(result) <= 1)
 
     def test_empty_history(self):
         """空历史"""
-        result = calculate_cumulative_returns([], [], [], [])
+        result = calculate_cumulative_returns([], original_purchases=[], history_for_nav=[])
         self.assertEqual(len(result), 0)
 
 
@@ -86,14 +86,14 @@ class TestCumulativeReturnsEdgeCases(unittest.TestCase):
             "amount": 1000.0,
             "before_15": True,
         }]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         self.assertTrue(len(result) > 0)
 
     def test_zero_nav(self):
         """零净值处理"""
         history = make_history({"2025-01-02": 1.0, "2025-01-03": 0.0})
         purchases = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         # 零净值时累计收益率应为0或负
         self.assertTrue(len(result) > 0)
 
@@ -105,7 +105,7 @@ class TestCumulativeReturnsEdgeCases(unittest.TestCase):
             "2025-01-06": 1.08,
         })
         purchases = [make_purchase("000001", "2025-01-02", 1000, 1.0)]
-        result = calculate_cumulative_returns(history, purchases, purchases, history)
+        result = calculate_cumulative_returns(history, original_purchases=purchases, history_for_nav=history)
         self.assertEqual(len(result), len(history))
 
 

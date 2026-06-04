@@ -131,6 +131,7 @@ def generate_holdings_snapshot():
                 "fund_name": fund_name,
                 "current_nav": current_nav,
                 "nav_date": nav_date,
+                "data_source": fund.get("data_source", "live"),
                 "holdings": {
                     "total_shares": total_shares,
                     "total_invested": total_invested_fund,

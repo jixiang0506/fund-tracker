@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import io
+import json
 from datetime import datetime, timezone, timedelta
 
 # 统一日志格式
@@ -31,6 +32,32 @@ except ImportError:
 def get_beijing_time():
     """获取当前北京时间（供全项目统一调用）"""
     return datetime.now(_BEIJING_TZ)
+
+
+def safe_load_json(filepath, default=None, filter_keys=None):
+    """
+    统一的安全 JSON 加载函数。
+    供全项目复用，避免各文件重复实现 try/except + json.load 模式。
+
+    Args:
+        filepath: JSON 文件路径
+        default: 加载失败时返回的默认值（默认 None）
+        filter_keys: 可选，过滤掉符合条件的键（如 lambda k: k.startswith("_")）
+    Returns:
+        解析后的 Python 对象，或 default（文件不存在/解析失败）
+    """
+    if not os.path.exists(filepath):
+        log(f"[Warning] 文件不存在: {filepath}", "warning")
+        return default
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        if filter_keys:
+            data = {k: v for k, v in data.items() if not filter_keys(k)}
+        return data
+    except Exception as e:
+        log(f"[Error] 读取失败 {filepath}: {e}", "error")
+        return default
 
 
 def setup_encoding():

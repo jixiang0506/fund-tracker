@@ -14,8 +14,7 @@ import requests
 import sys
 import time
 import argparse
-from datetime import datetime, timezone, timedelta
-from logger_config import log, load_env_file
+from logger_config import log, load_env_file, get_beijing_time
 
 
 def get_file_sha(file_path, owner, repo, token):
@@ -176,7 +175,7 @@ def main():
     for i, file_path in enumerate(files_to_push):
         if os.path.exists(file_path):
             # 提交信息包含时间戳，便于追溯（使用北京时间）
-            beijing_now = datetime.now(timezone(timedelta(hours=8)))
+            beijing_now = get_beijing_time()
             commit_msg = "更新 {} ({})".format(
                 file_path,
                 beijing_now.strftime("%Y-%m-%d %H:%M")

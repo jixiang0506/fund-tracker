@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>我的基金收益追踪</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     
     <!-- ============================================ -->
     <!-- ========== CSS样式开始 ========== -->
@@ -2135,6 +2136,118 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ============================================================
+           【模块十九】基金同期对比弹窗
+           ============================================================ */
+
+        /* 基金多选区：网格布局 */
+        .compare-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .compare-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--color-bg-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            font-size: 13px;
+            color: var(--color-text-primary);
+        }
+
+        .compare-checkbox-item:hover {
+            border-color: var(--color-text-accent);
+            background: var(--color-bg-card);
+        }
+
+        .compare-checkbox-item.selected {
+            border-color: var(--color-text-accent);
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .compare-checkbox-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .compare-checkbox-item input[type="checkbox"] {
+            accent-color: var(--color-text-accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .compare-checkbox-item .fund-code-sm {
+            color: var(--color-text-muted);
+            font-size: 11px;
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .compare-checkbox-item .platform-tag-sm {
+            font-size: 10px;
+            padding: 1px 6px;
+            background: var(--color-bg-surface);
+            border-radius: 3px;
+            color: var(--color-text-secondary);
+        }
+
+        /* 对比图表容器 */
+        .compare-chart-wrapper {
+            margin-top: 10px;
+        }
+
+        /* 对比图例 */
+        .compare-legend {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .compare-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .compare-legend-color {
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .compare-legend-line {
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+            border-top: 2px dashed;
+            background: none;
+        }
+
+        /* 对比弹窗：时间范围按钮区 */
+        .compare-period-buttons {
+            margin-bottom: 10px;
+        }
+
+        /* 提示文字 */
+        .compare-hint {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 6px;
+        }
+
     <!-- ============================================ -->
     <!-- ========== CSS样式结束 ========== -->
     <!-- ============================================ -->
@@ -2183,6 +2296,7 @@
                         <a data-action="trigger-workflow">🔄 同步数据</a>
                     </div>
                 </div>
+                <button class="btn btn-primary" id="compareBtn" style="margin-left: 10px;" aria-label="基金同期对比">📊 基金对比</button>
             </div>
         </div>
 
@@ -2385,6 +2499,58 @@
             </div> <!-- 结束 modal-body -->
         </div> <!-- 结束 modal-content -->
     </div> <!-- 结束 manageModal -->
+
+    <!-- 基金同期对比 Modal -->
+    <div id="compareModal" class="modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2>📊 基金同期对比</h2>
+                <span class="close" id="closeCompareModalBtn" aria-label="关闭弹窗">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- 基金多选区 -->
+                <div class="compare-fund-select">
+                    <label style="display:block; margin-bottom: 10px; color: var(--color-text-primary); font-weight: 600; font-size: 14px;">
+                        ☑️ 选择要对比的基金（最多 5 只）
+                    </label>
+                    <div id="compareFundCheckboxes" class="compare-checkbox-grid">
+                        <!-- 动态生成复选框 -->
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--color-border-light);">
+
+                <!-- 时间范围筛选 -->
+                <div class="compare-period-buttons">
+                    <label style="display:block; margin-bottom: 8px; color: var(--color-text-primary); font-weight: 600; font-size: 14px;">
+                        📅 时间范围
+                    </label>
+                    <div class="chart-period-buttons" id="comparePeriodButtons">
+                        <button class="period-btn" data-period="7d">近 7 天</button>
+                        <button class="period-btn" data-period="1m">近 1 个月</button>
+                        <button class="period-btn" data-period="3m">近 3 个月</button>
+                        <button class="period-btn" data-period="6m">近 6 个月</button>
+                        <button class="period-btn active" data-period="all">全部</button>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--color-border-light);">
+
+                <!-- 图表容器 -->
+                <div class="compare-chart-wrapper">
+                    <div class="chart-container" style="height: 450px; position: relative;">
+                        <canvas id="compareChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 图例说明 -->
+                <div id="compareLegend" class="compare-legend">
+                    <!-- 动态生成图例 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 结束 compareModal -->
 
     <!-- ============================================ -->
     <!-- ========== HTML结构结束 ========== -->
@@ -3797,6 +3963,372 @@
         // 关闭管理Modal
         function closeManageModal() {
             DOM.manageModal.style.display = 'none';
+        }
+
+        // ============================================================
+        // 基金同期对比功能
+        // ============================================================
+
+        // 打开对比弹窗
+        function openCompareModal() {
+            if (!state.fundsData || !state.fundsData.funds) {
+                showMessage('请先加载基金数据！', 'error');
+                return;
+            }
+
+            const fundGroups = state.fundsData.funds || {};
+            const hasFunds = Object.values(fundGroups).some(arr => Array.isArray(arr) && arr.length > 0);
+            if (!hasFunds) {
+                showMessage('请先加载基金数据！', 'error');
+                return;
+            }
+
+            const modal = document.getElementById('compareModal');
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+
+            // 渲染基金复选框
+            renderCompareFundCheckboxes();
+
+            // 默认选中前 2 只基金
+            const checkboxes = document.querySelectorAll('#compareFundCheckboxes input[type="checkbox"]');
+            checkboxes.forEach((cb, i) => {
+                if (i < 2) {
+                    cb.checked = true;
+                    cb.closest('.compare-checkbox-item').classList.add('selected');
+                }
+            });
+
+            // 更新复选框状态（禁用超过 5 个的）
+            updateCompareCheckboxState();
+
+            // 渲染图表
+            renderCompareChart();
+        }
+
+        // 关闭对比弹窗
+        function closeCompareModal() {
+            const modal = document.getElementById('compareModal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                // 销毁图表实例
+                if (window._compareChartInstance) {
+                    try { window._compareChartInstance.destroy(); } catch(e) {}
+                    window._compareChartInstance = null;
+                }
+            }, 300);
+        }
+
+        // 渲染基金复选框列表
+        function renderCompareFundCheckboxes() {
+            const container = document.getElementById('compareFundCheckboxes');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // flatten: funds_data.json 中 funds 按平台分组，需合并为单一数组
+            const allFunds = [];
+            const fundGroups = state.fundsData?.funds || {};
+            Object.values(fundGroups).forEach(arr => {
+                if (Array.isArray(arr)) allFunds.push(...arr);
+            });
+
+            allFunds.forEach(fund => {
+                const item = document.createElement('label');
+                item.className = 'compare-checkbox-item';
+
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = fund.code;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'fund-name-sm';
+                nameSpan.textContent = fund.name || fund.code;
+
+                const codeSpan = document.createElement('span');
+                codeSpan.className = 'fund-code-sm';
+                codeSpan.textContent = fund.code;
+
+                const platformSpan = document.createElement('span');
+                platformSpan.className = 'platform-tag-sm';
+                platformSpan.textContent = fund.platform || '';
+
+                item.appendChild(cb);
+                item.appendChild(nameSpan);
+                item.appendChild(codeSpan);
+                item.appendChild(platformSpan);
+
+                cb.addEventListener('change', function() {
+                    item.classList.toggle('selected', this.checked);
+                    updateCompareCheckboxState();
+                    renderCompareChart();
+                });
+
+                container.appendChild(item);
+            });
+        }
+
+        // 更新复选框状态（超过 5 个时禁用未选中的）
+        function updateCompareCheckboxState() {
+            const items = document.querySelectorAll('#compareFundCheckboxes .compare-checkbox-item');
+            const checkedCount = document.querySelectorAll('#compareFundCheckboxes input[type="checkbox"]:checked').length;
+
+            items.forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (!cb.checked && checkedCount >= 5) {
+                    item.classList.add('disabled');
+                    cb.disabled = true;
+                } else {
+                    item.classList.remove('disabled');
+                    cb.disabled = false;
+                }
+            });
+
+            // 提示文字
+            let hint = document.querySelector('#compareFundCheckboxes').nextElementSibling;
+            if (!hint || !hint.classList || !hint.classList.contains('compare-hint')) {
+                hint = document.createElement('div');
+                hint.className = 'compare-hint';
+                const container = document.getElementById('compareFundCheckboxes');
+                container.parentNode.insertBefore(hint, container.nextSibling);
+            }
+            hint.textContent = checkedCount === 0 ? '请至少选择 1 只基金' : `已选择 ${checkedCount} 只基金（最多 5 只）`;
+        }
+
+        // 获取选中的基金代码
+        function getSelectedCompareFunds() {
+            const checked = document.querySelectorAll('#compareFundCheckboxes input[type="checkbox"]:checked');
+            return Array.from(checked).map(el => el.value);
+        }
+
+        // 计算时间范围截止日期
+        function buildComparePeriodCutoff(period) {
+            const now = new Date();
+            const cutoff = new Date(now);
+            switch(period) {
+                case '7d': cutoff.setDate(cutoff.getDate() - 7); break;
+                case '1m': cutoff.setMonth(cutoff.getMonth() - 1); break;
+                case '3m': cutoff.setMonth(cutoff.getMonth() - 3); break;
+                case '6m': cutoff.setMonth(cutoff.getMonth() - 6); break;
+                case 'all': return null;
+                default: return null;
+            }
+            return cutoff.toISOString().split('T')[0];
+        }
+
+        // 根据基金代码查找配置
+        function findFundConfigByCode(code) {
+            if (!state.fundConfig) return null;
+            for (const [platform, funds] of Object.entries(state.fundConfig.funds || {})) {
+                const found = funds.find(f => f.code === code);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        // 核心：渲染对比图表
+        function renderCompareChart() {
+            const canvas = document.getElementById('compareChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const selectedCodes = getSelectedCompareFunds();
+
+            if (selectedCodes.length === 0) {
+                if (window._compareChartInstance) {
+                    try { window._compareChartInstance.destroy(); } catch(e) {}
+                    window._compareChartInstance = null;
+                }
+                return;
+            }
+
+            // 获取当前选中的时间范围
+            const activePeriodBtn = document.querySelector('#comparePeriodButtons .period-btn.active');
+            const period = activePeriodBtn ? activePeriodBtn.dataset.period : 'all';
+            const startDate = buildComparePeriodCutoff(period);
+
+            // 收集所有数据集
+            const datasets = [];
+            const colorPalette = [
+                '#f56565',  // 红
+                '#48bb78',  // 绿
+                '#4299e1',  // 蓝
+                '#ed8936',  // 橙
+                '#9f7aea',  // 紫
+            ];
+
+            // 1. 添加基金数据集
+            selectedCodes.forEach((code, idx) => {
+                // flatten 查找基金
+                let fund = null;
+                const fundGroups = state.fundsData?.funds || {};
+                for (const arr of Object.values(fundGroups)) {
+                    if (Array.isArray(arr)) {
+                        fund = arr.find(f => f.code === code);
+                        if (fund) break;
+                    }
+                }
+                if (!fund || !fund.history || fund.history.length === 0) return;
+
+                // 过滤日期范围
+                let data = fund.history.filter(h => !startDate || h.date >= startDate);
+                if (data.length === 0) return;
+
+                // 归一化：找到第一个有效 NAV，后续值除以该值
+                const baseNav = data.find(h => h.nav > 0)?.nav;
+                if (!baseNav || baseNav <= 0) return;
+
+                const normalizedData = data.map(h => ({
+                    x: h.date,
+                    y: h.nav / baseNav
+                }));
+
+                datasets.push({
+                    label: `${fund.name || fund.code} (${fund.code})`,
+                    data: normalizedData,
+                    borderColor: colorPalette[idx % colorPalette.length],
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    tension: 0.1
+                });
+            });
+
+            // 2. 添加基准指数数据集（始终显示两个业绩比较基准）
+            const benchmarkColors = ['#ecc94b', '#00b5d8'];
+            const benchmarkNames = ['科创50', '纳斯达克100'];
+            let bIdx = 0;
+            benchmarkNames.forEach(bmKey => {
+                const indexCode = BENCHMARK_INDEX_MAP[bmKey];
+                if (!indexCode || !state.benchmarkIndexData?.[indexCode]) return;
+
+                const bmDataObj = state.benchmarkIndexData[indexCode].data || {};
+                const bmData = Object.entries(bmDataObj)
+                    .map(([date, value]) => ({date, value}))
+                    .sort((a, b) => a.date.localeCompare(b.date));
+                if (bmData.length === 0) return;
+
+                let filtered = bmData.filter(d => !startDate || d.date >= startDate);
+                if (filtered.length === 0) return;
+
+                const baseVal = filtered.find(d => d.value > 0)?.value;
+                if (!baseVal || baseVal <= 0) return;
+
+                const normalizedBm = filtered.map(d => ({
+                    x: d.date,
+                    y: d.value / baseVal
+                }));
+
+                datasets.push({
+                    label: `📈 ${bmKey}（基准）`,
+                    data: normalizedBm,
+                    borderColor: benchmarkColors[bIdx % benchmarkColors.length],
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    pointHoverRadius: 3,
+                    tension: 0.1
+                });
+                bIdx++;
+            });
+
+            // 销毁旧图表
+            if (window._compareChartInstance) {
+                try { window._compareChartInstance.destroy(); } catch(e) {}
+            }
+
+            // 创建新图表
+            window._compareChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: false  // 禁用 Chart.js 内置图例，使用下方自定义图例
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const val = ctx.raw.y;
+                                    const pct = ((val - 1) * 100).toFixed(2);
+                                    const sign = pct >= 0 ? '+' : '';
+                                    return `${ctx.dataset.label}: ${sign}${pct}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                tooltipFormat: 'yyyy-MM-dd',
+                                displayFormats: {
+                                    day: 'MM-dd',
+                                    week: 'MM-dd',
+                                    month: 'yyyy-MM'
+                                }
+                            },
+                            ticks: {
+                                color: '#a0aec0'
+                            },
+                            grid: {
+                                color: 'rgba(74, 85, 104, 0.5)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#a0aec0',
+                                callback: function(val) {
+                                    return ((val - 1) * 100).toFixed(0) + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(74, 85, 104, 0.5)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 渲染图例说明
+            renderCompareLegend(datasets);
+        }
+
+        // 渲染图例说明
+        function renderCompareLegend(datasets) {
+            const container = document.getElementById('compareLegend');
+            if (!container) return;
+            container.innerHTML = '';
+
+            datasets.forEach(ds => {
+                const item = document.createElement('div');
+                item.className = 'compare-legend-item';
+
+                const colorBox = document.createElement('div');
+                if (ds.borderDash) {
+                    colorBox.className = 'compare-legend-line';
+                    colorBox.style.borderTopColor = ds.borderColor;
+                    colorBox.style.borderTopWidth = '2px';
+                    colorBox.style.borderTopStyle = 'dashed';
+                } else {
+                    colorBox.className = 'compare-legend-color';
+                    colorBox.style.backgroundColor = ds.borderColor;
+                }
+
+                const label = document.createElement('span');
+                label.textContent = ds.label;
+
+                item.appendChild(colorBox);
+                item.appendChild(label);
+                container.appendChild(item);
+            });
         }
 
         // 获取当前基金配置（唯一数据源：fund_config.json）
@@ -5937,6 +6469,22 @@ function deletePurchaseRecord(platform, fundCode, index) {
             // 9. 添加/更新记录按钮
             document.getElementById('addOrUpdateBtn')?.addEventListener('click', addOrUpdatePurchaseRecord);
             document.getElementById('cancelEditBtn')?.addEventListener('click', cancelEdit);
+
+            // 10. 基金对比弹窗事件
+            document.getElementById('compareBtn')?.addEventListener('click', openCompareModal);
+            document.getElementById('closeCompareModalBtn')?.addEventListener('click', closeCompareModal);
+            // 点击弹窗背景关闭
+            document.getElementById('compareModal')?.addEventListener('click', function(e) {
+                if (e.target === this) closeCompareModal();
+            });
+            // 时间范围按钮（事件委托）
+            document.getElementById('comparePeriodButtons')?.addEventListener('click', function(e) {
+                const btn = e.target.closest('.period-btn');
+                if (!btn) return;
+                document.querySelectorAll('#comparePeriodButtons .period-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderCompareChart();
+            });
 
             // 9.5 Tab 切换逻辑
             document.querySelectorAll('.modal-tab').forEach(function(tab) {

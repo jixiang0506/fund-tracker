@@ -5,6 +5,10 @@
 Token 从环境变量 GITHUB_TOKEN 读取（安全）
 支持从 .env 文件自动加载（方便开发）
 其他配置从 github_config.json 读取
+
+改进点（2026-06-05）：
+1. 添加 SSL/网络错误重试机制（指数退避）
+2. 推送完成后自动同步本地仓库（git fetch + git reset）
 """
 
 import os
@@ -17,26 +21,78 @@ import argparse
 from logger_config import log, load_env_file, get_beijing_time
 
 
-def get_file_sha(file_path, owner, repo, token):
-    """获取文件的当前 SHA（区分 404 和其他错误）"""
+def get_file_sha(file_path, owner, repo, token, max_retries=3):
+    """
+    获取文件的当前 SHA（支持重试和指数退避）
+    
+    重试场景：
+    - SSL 错误（SSLEOFError 等）
+    - 网络连接超时
+    - 5xx 服务器错误
+    - 其他临时网络错误
+    
+    不重试场景：
+    - 401/403（认证失败，重试无意义）
+    - 404（文件不存在，正常情况）
+    """
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
     headers = {
         'Authorization': 'token ' + token,
         'Accept': 'application/vnd.github.v3+json'
     }
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            return response.json().get('sha')
-        elif response.status_code == 404:
-            return None  # 文件确实不存在，正常
-        else:
-            # 401/403/500 等异常，记录错误并返回特殊值触发重试
-            log(f"[WARN] get_file_sha 返回异常状态码 {response.status_code}: {response.text[:200]}", "warning")
-            return "__ERROR__"
-    except Exception as e:
-        log(f"[WARN] get_file_sha 请求异常: {e}", "warning")
-        return "__ERROR__"
+    
+    for attempt in range(max_retries + 1):
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                return response.json().get('sha')
+            elif response.status_code == 404:
+                return None  # 文件不存在，正常
+            elif response.status_code >= 500 and attempt < max_retries:
+                # 5xx 错误，重试
+                wait_time = 2 ** attempt  # 指数退避：1s, 2s, 4s
+                log(f"[WARN] {file_path} - 服务器错误 {response.status_code}，{wait_time}s 后重试 ({attempt + 1}/{max_retries})...", "warning")
+                time.sleep(wait_time)
+                continue
+            elif response.status_code in [401, 403] or attempt == max_retries:
+                # 认证失败或已达最大重试次数
+                log(f"[WARN] get_file_sha 返回异常状态码 {response.status_code}: {response.text[:200]}", "warning")
+                return "__ERROR__"
+            else:
+                # 其他 4xx 错误，不重试
+                log(f"[WARN] get_file_sha 返回异常状态码 {response.status_code}: {response.text[:200]}", "warning")
+                return "__ERROR__"
+                
+        except requests.exceptions.SSLError as e:
+            if attempt < max_retries:
+                wait_time = 2 ** attempt  # 指数退避
+                log(f"[WARN] {file_path} - SSL 错误，{wait_time}s 后重试 ({attempt + 1}/{max_retries})...", "warning")
+                time.sleep(wait_time)
+                continue
+            else:
+                log(f"[ERROR] {file_path} - SSL 错误（已达最大重试次数）: {e}", "error")
+                return "__ERROR__"
+                
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries:
+                wait_time = 2 ** attempt
+                log(f"[WARN] {file_path} - 网络错误，{wait_time}s 后重试 ({attempt + 1}/{max_retries})...", "warning")
+                time.sleep(wait_time)
+                continue
+            else:
+                log(f"[ERROR] {file_path} - 网络错误（已达最大重试次数）: {e}", "error")
+                return "__ERROR__"
+        
+        # 如果走到这里，说明需要重试但没有触发 continue
+        if attempt < max_retries:
+            wait_time = 2 ** attempt
+            log(f"[WARN] {file_path} - 未知错误，{wait_time}s 后重试...", "warning")
+            time.sleep(wait_time)
+            continue
+        break
+    
+    return "__ERROR__"
 
 
 def push_file(file_path, message, owner, repo, token, branch='main', max_retries=3):
@@ -59,10 +115,16 @@ def push_file(file_path, message, owner, repo, token, branch='main', max_retries
 
     for attempt in range(max_retries + 1):
         # 每次重试前重新获取 SHA，防止 409 冲突
-        sha = get_file_sha(file_path, owner, repo, token)
+        sha = get_file_sha(file_path, owner, repo, token, max_retries=2)
         if sha == "__ERROR__":
-            log(f"[ERROR] 获取 SHA 失败，跳过此次推送: {file_path}", "error")
-            return False
+            if attempt < max_retries:
+                wait_time = 2 ** attempt
+                log(f"  ⚠ SHA 获取失败，{wait_time}s 后重试 ({attempt + 1}/{max_retries})...", "warning")
+                time.sleep(wait_time)
+                continue
+            else:
+                log(f"[ERROR] 获取 SHA 失败，跳过此次推送: {file_path}", "error")
+                return False
 
         data = {
             'message': message,
@@ -89,14 +151,67 @@ def push_file(file_path, message, owner, repo, token, branch='main', max_retries
                 return False
         except Exception as e:
             if attempt < max_retries:
-                log(f"  ⚠ 推送异常，正在重试 ({attempt + 1}/{max_retries}): {e}", "warning")
-                time.sleep(2)
+                wait_time = 2 ** attempt
+                log(f"  ⚠ 推送异常，{wait_time}s 后重试 ({attempt + 1}/{max_retries}): {e}", "warning")
+                time.sleep(wait_time)
                 continue
             else:
                 log(f"[Error] 推送异常: {file_path} - {e}", "error")
                 return False
 
     return False
+
+
+def sync_local_repo(branch='main'):
+    """
+    同步本地仓库到远程状态
+    
+    执行步骤：
+    1. git fetch origin <branch>
+    2. git reset --hard origin/<branch>
+    
+    注意：此操作会丢弃所有本地修改，请确保已推送所有更改
+    """
+    log("", "info")
+    log("=" * 60, "info")
+    log("[INFO] 同步本地仓库到 origin/" + branch + "...", "info")
+    
+    try:
+        # Step 1: git fetch
+        log("  > git fetch origin " + branch, "info")
+        result = subprocess.run(
+            ['git', 'fetch', 'origin', branch],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode != 0:
+            log(f"[WARN] git fetch 失败: {result.stderr}", "warning")
+            return False
+        
+        # Step 2: git reset --hard
+        log("  > git reset --hard origin/" + branch, "info")
+        result = subprocess.run(
+            ['git', 'reset', '--hard', f'origin/{branch}'],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode != 0:
+            log(f"[WARN] git reset 失败: {result.stderr}", "warning")
+            return False
+        
+        log("[OK] 本地仓库已同步到 origin/" + branch, "info")
+        return True
+        
+    except subprocess.TimeoutExpired:
+        log("[ERROR] git 命令超时（30s）", "error")
+        return False
+    except Exception as e:
+        log(f"[ERROR] 同步本地仓库失败: {e}", "error")
+        return False
 
 
 def main():
@@ -114,6 +229,11 @@ def main():
         '--config',
         default='github_config.json',
         help='配置文件路径（默认: github_config.json）'
+    )
+    parser.add_argument(
+        '--no-sync',
+        action='store_true',
+        help='推送后不同步本地仓库'
     )
     args = parser.parse_args()
 
@@ -172,6 +292,8 @@ def main():
     log("=" * 60, "info")
 
     success_count = 0
+    failed_files = []
+    
     for i, file_path in enumerate(files_to_push):
         if os.path.exists(file_path):
             # 提交信息包含时间戳，便于追溯（使用北京时间）
@@ -182,8 +304,11 @@ def main():
             )
             if push_file(file_path, commit_msg, owner, repo, token, branch):
                 success_count += 1
+            else:
+                failed_files.append(file_path)
         else:
             log("[Warning] 文件不存在: " + file_path, "warning")
+            failed_files.append(file_path)
 
         # 多文件推送间隔 1 秒，降低 409/速率限制风险
         if i < len(files_to_push) - 1:
@@ -191,14 +316,23 @@ def main():
 
     log("=" * 60, "info")
     log("完成: {}/{} 个文件推送成功".format(success_count, len(files_to_push)), "info")
-
+    log("", "info")
+    
     if success_count == len(files_to_push):
-        log("", "info")
         log("[OK] 所有文件推送成功！", "info")
         log("[OK] 请访问 https://jixiang0506.github.io/fund-tracker/ 查看部署结果", "info")
+        
+        # 自动同步本地仓库
+        if not args.no_sync:
+            sync_local_repo(branch)
     else:
-        log("", "info")
         log("[Warning] 有 {} 个文件推送失败".format(len(files_to_push) - success_count), "warning")
+        if failed_files:
+            log("[INFO] 失败文件列表:", "info")
+            for f in failed_files:
+                log(f"  - {f}", "info")
+            log("", "info")
+            log("[TIP] 可重试失败的文件: python push_to_github.py " + " ".join(failed_files), "info")
 
 
 if __name__ == '__main__':

@@ -43,6 +43,7 @@ check_*.py
 # 代码索引（本地生成，不提交）
 .gitnexus/
 .codegraph/
+graphify-out/
 
 # OS 文件
 Thumbs.db

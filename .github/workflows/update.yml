@@ -51,6 +51,10 @@ jobs:
         run: |
           python fetch_fund_data.py
 
+      - name: 校验交易记录完整性
+        run: |
+          python validate_records.py
+
       - name: 提交更新数据（通过 API 推送，避免 git 冲突）
         run: |
           set -e

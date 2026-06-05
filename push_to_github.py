@@ -18,6 +18,7 @@ import requests
 import sys
 import time
 import argparse
+import subprocess
 from logger_config import log, load_env_file, get_beijing_time
 
 

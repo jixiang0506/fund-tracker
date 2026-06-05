@@ -53,12 +53,14 @@
         "date": "2025-03-15",
         "amount": 74778.92,
         "type": "sell",
-        "before_15": false
+        "before_15": false,
+        "shares": 19875.85
       },
       {
         "date": "2025-03-06",
         "amount": 75551.06,
-        "type": "sell"
+        "type": "sell",
+        "shares": 19904.91
       },
       {
         "date": "2025-01-16",

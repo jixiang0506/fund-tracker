@@ -5,10 +5,8 @@
 数据源: yfinance (替代已失效的 Yahoo Finance 直接 CSV 下载)
 """
 import json
-import os
 import sys
 import io
-from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 # 强制 UTF-8 stdout，避免 Windows 控制台 GBK 编码报错

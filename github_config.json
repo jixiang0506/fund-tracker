@@ -4,7 +4,6 @@
     "branch": "main",
     "files": [
         "fetch_fund_data.py",
-        "fetch_benchmark_data.py",
         "index.html",
         "logger_config.py",
         "requirements.txt",

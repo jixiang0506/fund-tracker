@@ -11,7 +11,6 @@ import requests
 import sys
 import io
 
-from datetime import datetime, timedelta
 from pathlib import Path
 
 # 导入日志模块（与 fetch_fund_data.py 保持一致）

@@ -378,3 +378,163 @@ API 失败回退时，应区分"能重新计算的部分"（holdings、累计收
 - First-Seen: 2026-06-04
 
 ---
+
+
+---
+
+## [LRN-20260609-001] best_practice
+
+**Logged**: 2026-06-09T20:00:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: backend
+
+### Summary
+Edit 工具第一次 EBUSY（文件被锁定）后立即换用 Python 脚本，不要重试第二次。
+
+### Details
+- **旧方法**: 遇到 EBUSY 后重新 Read 再 Edit
+- **问题**: Edit 工具对 BOM 文件不友好，反复失败浪费轮次
+- **新方法**: 第一次 EBUSY 后，立即写脚本用 `open(..., 'r', encoding='utf-8-sig')` 读取并修改
+
+### Suggested Action
+Edit 工具第一次失败 → 立即换 Python 脚本（utf-8-sig 读取，utf-8 写回），不要反复尝试。
+
+### Metadata
+- Source: conversation
+- Related Files: (any file that triggered EBUSY)
+- Tags: edit-tool, ebussy, bom, encoding, workaround
+- Recurrence-Count: 2
+- First-Seen: 2026-06-02
+
+---
+
+## [LRN-20260609-002] best_practice
+
+**Logged**: 2026-06-09T20:05:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Summary
+临时推送脚本必须在开头加载 `.env` 文件，否则 GITHUB_TOKEN 为空会导致 401 错误。
+
+### Details
+- **问题**: `push_cleanup.py` 没有调用 `load_env_file()`，导致 `os.environ.get('GITHUB_TOKEN')` 返回空字符串
+- **后果**: GitHub API 返回 401 Bad credentials
+- **修复**: 在脚本开头显式加载 `.env`：
+  ```python
+  def load_env_file():
+      env_path = os.path.join(os.path.dirname(__file__), '.env')
+      if os.path.exists(env_path):
+          with open(env_path, 'r', encoding='utf-8') as f:
+              for line in f:
+                  line = line.strip()
+                  if line and not line.startswith('#') and '=' in line:
+                      k, v = line.split('=', 1)
+                      os.environ[k.strip()] = v.strip()
+  load_env_file()
+  token = os.environ.get('GITHUB_TOKEN', '')
+  if not token:
+      raise RuntimeError("GITHUB_TOKEN not found in .env")
+  ```
+
+### Suggested Action
+任何需要 Token/密钥的临时脚本，开头必须加载 `.env` 或直接用 `push_to_github.py`（已内置加载逻辑）。
+
+### Metadata
+- Source: conversation
+- Related Files: push_to_github.py, .env
+- Tags: github-token, env-file, 401-error, push-script
+- Recurrence-Count: 1
+- First-Seen: 2026-06-09
+
+---
+
+## [LRN-20260609-003] best_practice
+
+**Logged**: 2026-06-09T20:10:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: infra
+
+### Summary
+Windows 控制台默认编码是 GBK (cp936)，跨平台脚本中不在 stdout 打印 emoji（U+2705 等），否则会触发 UnicodeEncodeError。
+
+### Details
+- **问题**: `print("[OK] 推送完成！")` 在 Windows 控制台输出正常，但 `print("✅ 推送完成！")` 报 `UnicodeEncodeError: 'gbk' codec can't encode character`
+- **原因**: Windows `sys.stdout.encoding` 通常是 `cp936` (GBK)，不支持 emoji 字符
+- **修复**: 跨平台脚本用纯文本输出：
+  - ✅ `print("[OK] 推送完成")`
+  - ✅ `print("[ERROR] 推送失败")`
+  - ❌ `print("✅ 推送完成")`
+
+### Suggested Action
+跨平台脚本的 stdout 输出只用 ASCII 方括号标记（[OK]、[ERROR]、[WARN]），不打印 emoji。
+
+### Metadata
+- Source: conversation
+- Related Files: push_cleanup.py
+- Tags: windows, gbk, emoji, unicode-error, cross-platform
+- Recurrence-Count: 1
+- First-Seen: 2026-06-09
+
+---
+
+## [LRN-20260610-001] correction
+
+**Logged**: 2026-06-10T01:10:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: workflow
+
+### Summary
+截图静态分析可能不准确，不能直接作为"该文件可删除"的依据，必须实际 Grep 验证引用。
+
+### Details
+- **触发场景**: 截图分析说 `validate_records.py` "未被引用"，建议删除
+- **实际情况**: Grep 搜索发现 `.github/workflows/update.yml:56` 明确调用 `python validate_records.py`
+- **后果**: 如果直接按截图建议删除，CI 校验环节会断裂
+- **根本原因**: 静态分析工具可能只扫描 `*.py` 文件，遗漏 `.yml` 中的脚本调用
+
+### Suggested Action
+在评估"某文件是否可删除"时：
+1. 先用 Grep 搜索文件名（不限文件类型），确认项目中无任何引用
+2. 特别检查 `.github/workflows/*.yml` 中的脚本调用
+3. 截图分析作为**线索**，不作为**结论**
+
+### Metadata
+- Source: screenshot_review + grep_verification
+- Related Files: validate_records.py, .github/workflows/update.yml
+- Tags: screenshot-analysis, grep-verify, false-positive, ci-safety
+- Recurrence-Count: 1
+- First-Seen: 2026-06-10
+
+---
+
+## [LRN-20260610-002] best_practice
+
+**Logged**: 2026-06-10T01:12:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: backend
+
+### Summary
+删除重复/废弃脚本时，需同步更新 `github_config.json` 的 `files` 列表，否则 `push_to_github.py` 会尝试推送不存在的文件导致 404 错误。
+
+### Details
+- **问题**: 删除 `fetch_benchmark_data.py` 后，`github_config.json` 中仍包含该文件名
+- **后果**: `push_to_github.py` 读取 `files` 列表，对不存在的文件调用 GitHub API PUT，返回 404
+- **修复**: 删除脚本后，立即用 Python 脚本同步更新 `github_config.json`
+
+### Suggested Action
+任何文件删除操作（尤其是 `github_config.json` 中列出的文件）后，必须同步更新 `github_config.json` 的 `files` 列表。
+
+### Metadata
+- Source: conversation
+- Related Files: github_config.json, push_to_github.py
+- Tags: file-deletion, github-config, sync-config
+- Recurrence-Count: 1
+- First-Seen: 2026-06-10
+
+---

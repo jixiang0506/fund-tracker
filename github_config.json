@@ -4,10 +4,16 @@
     "branch": "main",
     "files": [
         "fetch_fund_data.py",
+        "fetch_benchmark_data.py",
         "index.html",
         "logger_config.py",
         "requirements.txt",
-        "github_config.json"
+        "github_config.json",
+        "fund_config.json",
+        "data/purchase_records.json",
+        "data/funds_data.json",
+        "data/benchmark_index_data.json",
+        "data/history_cache.json"
     ],
     "_comment": "files 列表仅在不使用命令行参数时生效。推荐使用命令行指定文件"
 }

@@ -94,33 +94,6 @@ def fetch_index_history(index_code, start_date=None, days=1000, session=None):
         return None
 
 
-def calculate_index_return(index_data, base_date=None):
-    """
-    计算指数收益率
-    index_data: {date: close_price}
-    返回: {date: return_rate%}
-    """
-    if not index_data:
-        return {}
-
-    # 找到基准日期（第一笔买入日期或数据起始日期）
-    dates = sorted(index_data.keys())
-    if not dates:
-        return {}
-
-    if base_date and base_date in index_data:
-        base_price = index_data[base_date]
-    else:
-        base_price = index_data[dates[0]]
-
-    result = {}
-    for date in dates:
-        price = index_data[date]
-        return_rate = (price / base_price - 1) * 100
-        result[date] = return_rate
-
-    return result
-
 
 def parse_benchmark(benchmark_str):
     """

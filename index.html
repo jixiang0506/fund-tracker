@@ -261,43 +261,6 @@
         }
 
         /* 卖出模式切换 */
-        .sell-mode-toggle {
-            margin-bottom: var(--space-md);
-        }
-
-        .sell-mode-label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--color-text-primary);
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .sell-mode-buttons {
-            display: flex;
-            gap: var(--space-md);
-        }
-
-        .sell-mode-btn {
-            flex: 1;
-            padding: 8px 16px;
-            border: 2px solid var(--color-border-light);
-            background: var(--color-bg-card);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: border-color 0.2s, background 0.2s, color 0.2s, font-weight 0.2s;
-            color: var(--color-text-secondary);
-            font-weight: 500;
-        }
-
-        .sell-mode-btn.active {
-            border-color: var(--color-text-accent);
-            background: var(--color-bg-secondary);
-            color: var(--color-text-accent);
-            font-weight: 600;
-        }
-
         .sell-mode-btn:hover:not(.active) {
             border-color: var(--color-text-accent);
             color: var(--color-text-accent);
@@ -460,16 +423,6 @@
             font-size: 14px;
         }
 
-        .no-records {
-            color: var(--color-text-muted);
-            text-align: center;
-        }
-
-        /* ============================================================
-           【模块六】通用布局工具类
-           ============================================================ */
-
-        /* 通用布局工具类 */
         .flex-space-between {
             display: flex;
             justify-content: space-between;
@@ -618,21 +571,6 @@
         }
 
         /* 交易记录列表样式 */
-        .record-type-buy {
-            font-weight: bold;
-            color: var(--color-profit);
-        }
-
-        .record-type-sell {
-            font-weight: bold;
-            color: var(--color-loss);
-        }
-
-        .record-type-convert {
-            font-weight: bold;
-            color: var(--color-warning);
-        }
-
         .record-15pm {
             color: var(--color-warning);
             font-size: 12px;
@@ -1170,19 +1108,6 @@
         .record-actions {
             display: flex;
             gap: var(--space-md);
-        }
-
-        .token-section {
-            background: rgba(237, 137, 54, 0.1);
-            border: 1px solid var(--color-warning);
-            padding: var(--pad-md);
-            border-radius: var(--radius-sm);
-            margin-bottom: var(--space-lg);
-        }
-
-        .token-section h3 {
-            color: var(--color-warning);
-            margin-bottom: 10px;
         }
 
         /* 快速配置面板 */
@@ -2814,9 +2739,6 @@
                 case 'import-file':
                     DOM.importFileInput.click();
                     break;
-                case 'save-github':
-                    savePurchaseRecords();
-                    break;
                 case 'confirm-save-sync':
                     showConfirmDialog();
                     break;
@@ -3950,7 +3872,6 @@
             DOM.manageModal.style.display = 'block';
             populatePlatformSelect();
             renderRecordsList();
-            updateProfitLossSummary();
 
             if (initialType === 'sell') {
                 DOM.recordType.value = 'sell';
@@ -5830,58 +5751,6 @@ function startDataUpdatePolling() {
     }, 10000);
 }
 
-// 更新盈亏概览
-function updateProfitLossSummary() {
-    const summaryDiv = document.getElementById('profitLossSummary');
-    const contentDiv = document.getElementById('summaryContent');
-
-    if (!state.fundsData || !state.fundsData.summary) {
-        if (summaryDiv) summaryDiv.style.display = 'none';
-        return;
-    }
-
-    const summary = state.fundsData.summary;
-    const totalInvested = summary.total_invested || 0;
-    const totalValue = summary.total_value || 0;
-    const totalProfit = summary.total_profit_loss || 0;
-    const totalProfitPercent = summary.total_profit_loss_percent || 0;
-    const totalRealizedProfit = summary.total_realized_profit_loss || 0;
-
-    const profitClass = totalProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
-    const profitSign = totalProfit >= 0 ? '+' : '';
-    const realizedClass = totalRealizedProfit >= 0 ? 'color: var(--color-profit);' : 'color: var(--color-loss);';
-    const realizedSign = totalRealizedProfit >= 0 ? '+' : '';
-
-    if (!contentDiv) return;
-    contentDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-    <div>
-        <div style="color: var(--color-text-secondary); font-size: 12px;">总投入</div>
-        <div style="font-size: 18px; font-weight: bold;">¥${totalInvested.toFixed(2)}</div>
-    </div>
-    <div>
-        <div style="color: var(--color-text-secondary); font-size: 12px;">当前市值</div>
-        <div style="font-size: 18px; font-weight: bold;">¥${totalValue.toFixed(2)}</div>
-    </div>
-    <div>
-        <div style="color: var(--color-text-secondary); font-size: 12px;">未实现盈亏</div>
-        <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}¥${totalProfit.toFixed(2)}</div>
-    </div>
-    <div>
-        <div style="color: var(--color-text-secondary); font-size: 12px;">总收益率</div>
-        <div style="font-size: 18px; font-weight: bold; ${profitClass}">${profitSign}${totalProfitPercent.toFixed(2)}%</div>
-    </div>
-    <div>
-        <div style="color: var(--color-text-secondary); font-size: 12px;">已实现盈亏</div>
-        <div style="font-size: 18px; font-weight: bold; ${realizedClass}">${realizedSign}¥${totalRealizedProfit.toFixed(2)}</div>
-    </div>
-        </div>
-        <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">最后更新: ${escapeHtml(state.fundsData.update_time)}</div>
-    `;
-
-    if (summaryDiv) summaryDiv.style.display = 'block';
-        }
-
 
 // 渲染交易记录平台筛选标签
 function renderRecordsFilterButtons() {
@@ -6449,16 +6318,6 @@ function deletePurchaseRecord(platform, fundCode, index) {
             // 4. 关闭Modal按钮
             document.getElementById('closeManageModalBtn')?.addEventListener('click', closeManageModal);
 
-            // 5. 加载按钮
-            document.getElementById('btnLoadFromGithub')?.addEventListener('click', loadPurchaseRecords);
-            document.getElementById('btnLoadLocal')?.addEventListener('click', loadLocalRecords);
-            document.getElementById('btnRefreshFundInfo')?.addEventListener('click', refreshFundInfo);
-
-            // 6. 导入文件按钮
-            document.getElementById('btnImportFile')?.addEventListener('click', function() {
-                DOM.importFileInput.click();
-            });
-
             // 7. 卖出快速百分比按钮
             document.querySelectorAll('.sell-quick-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
@@ -6512,10 +6371,6 @@ function deletePurchaseRecord(platform, fundCode, index) {
                     }
                 });
             });
-
-            // 10. 保存按钮
-            document.getElementById('btnSaveGithub')?.addEventListener('click', savePurchaseRecords);
-            document.getElementById('btnExportJson')?.addEventListener('click', exportRecordsToFile);
 
             // 11. 周期切换按钮（事件委托）
             document.addEventListener('click', function(e) {

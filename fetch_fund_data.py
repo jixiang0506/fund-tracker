@@ -425,8 +425,8 @@ def get_nav_from_history(history, target_date, before_15=True):
 
     return None
 
-def create_template_files(funds=None):
-    """创建模板文件（从配置动态生成示例数据）"""
+def setup_data_files(funds=None):
+    """设置数据文件：如果 purchase_records.json 不存在则创建模板，返回文件是否已存在"""
     # 创建 data 目录
     data_dir = os.path.join(BASE_DIR, "data")
     os.makedirs(data_dir, exist_ok=True)
@@ -531,7 +531,7 @@ def load_purchase_records():
         # 如果文件不存在，创建模板
         if not os.path.exists(records_file):
             log("未找到持仓记录文件，正在创建空模板...")
-            create_template_files(None)
+            setup_data_files(None)
             return None
 
         with open(records_file, "r", encoding="utf-8") as f:
@@ -730,7 +730,8 @@ def calculate_cumulative_returns(history, original_purchases=None, history_for_n
 
             trans_type = p.get("type", "buy")
             before_15 = p.get("before_15", True)
-            nav_result = get_nav_from_history(history_for_nav, p["date"], before_15)
+            # 使用 history（完整历史数据）作为净值查找源，避免 history_for_nav 数据窗口不足导致 NAV 错位
+            nav_result = get_nav_from_history(history, p["date"], before_15)
             if not nav_result or nav_result["nav"] <= 0:
                 continue
             nav_on_date = nav_result["nav"]
@@ -1062,8 +1063,8 @@ def main():
     
     # 检查/创建模板文件
     log("\n[1/4] 检查必要文件...")
-    has_records = create_template_files(funds)
-    if not has_records:
+    records_file_exists = setup_data_files(funds)
+    if not records_file_exists:
         log("\n⚠️  请先编辑 data/purchase_records.json 文件，填入你的实际买入记录")
         log("   模板文件已创建，你可以参考其中的格式")
         return

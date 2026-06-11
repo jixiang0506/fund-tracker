@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-06-12 01:49:09",
+  "update_time": "2026-06-12 01:50:05",
   "funds": {
     "支付宝": [
       {
@@ -22,10 +22,10 @@
         "ytd_profit": 18890.03,
         "ytd_start_nav": 4.7337,
         "holdings": {
-          "total_invested": 47860.31,
+          "total_invested": 47860.3,
           "total_shares": 11745.34,
-          "current_value": 74708.61,
-          "profit_loss": 26848.3,
+          "current_value": 74708.6,
+          "profit_loss": 26848.29,
           "profit_loss_percent": 56.1,
           "purchases": [
             {
@@ -131,7 +131,7 @@
               "shares": -19904.91,
               "type": "sell",
               "realized_profit": 3662.94,
-              "fifo_cost": 71888.12,
+              "fifo_cost": 71888.14,
               "nav_source": "exact"
             },
             {
@@ -141,7 +141,7 @@
               "shares": -19875.85,
               "type": "sell",
               "realized_profit": -5335.4,
-              "fifo_cost": 80114.32,
+              "fifo_cost": 80114.31,
               "nav_source": "next_trading_day"
             },
             {
@@ -9674,8 +9674,8 @@
     ]
   },
   "summary": {
-    "total_invested": 573410.75,
-    "total_value": 704616.65,
+    "total_invested": 573410.74,
+    "total_value": 704616.6400000001,
     "total_profit_loss": 131205.9,
     "total_profit_loss_percent": 22.88,
     "latest_trading_day_profit_loss": -9398.89,

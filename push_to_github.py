@@ -84,16 +84,6 @@ def get_file_sha(file_path, owner, repo, token, max_retries=3):
             else:
                 log(f"[ERROR] {file_path} - 网络错误（已达最大重试次数）: {e}", "error")
                 return "__ERROR__"
-        
-        # 如果走到这里，说明需要重试但没有触发 continue
-        if attempt < max_retries:
-            wait_time = 2 ** attempt
-            log(f"[WARN] {file_path} - 未知错误，{wait_time}s 后重试...", "warning")
-            time.sleep(wait_time)
-            continue
-        break
-    
-    return "__ERROR__"
 
 
 def push_file(file_path, message, owner, repo, token, branch='main', max_retries=3):
@@ -159,8 +149,6 @@ def push_file(file_path, message, owner, repo, token, branch='main', max_retries
             else:
                 log(f"[Error] 推送异常: {file_path} - {e}", "error")
                 return False
-
-    return False
 
 
 def sync_local_repo(branch='main'):

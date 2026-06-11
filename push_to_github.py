@@ -22,59 +22,66 @@ import subprocess
 from logger_config import log, load_env_file, get_beijing_time
 
 
-def get_file_sha(file_path, owner, repo, token, max_retries=3):
+def get_file_sha(file_path, owner, repo, token, max_retries=1):
     """
     获取文件的当前 SHA（支持重试和指数退避）
-    
-    重试场景：
+
+    重试场景（max_retries 默认 1）：
     - SSL 错误（SSLEOFError 等）
     - 网络连接超时
     - 5xx 服务器错误
     - 其他临时网络错误
-    
-    不重试场景：
-    - 401/403（认证失败，重试无意义）
-    - 404（文件不存在，正常情况）
+
+    不重试场景（直接返回特殊标记）：
+    - "__AUTH_ERROR__"：401/403（认证失败，外层不应重试）
+    - "__ERROR__"：其他错误（外层可重试）
+    - None：404（文件不存在，正常情况）
+
+    注意：外层 upload_file 已包含重试循环，内层建议 max_retries=0 避免嵌套重试。
     """
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
     headers = {
         'Authorization': 'token ' + token,
         'Accept': 'application/vnd.github.v3+json'
     }
-    
+
     for attempt in range(max_retries + 1):
         try:
             response = requests.get(url, headers=headers, timeout=10)
-            
+
             if response.status_code == 200:
                 return response.json().get('sha')
             elif response.status_code == 404:
                 return None  # 文件不存在，正常
+            elif response.status_code in [401, 403]:
+                # 认证失败：外层无需重试，直接返回特殊标记
+                log(f"[WARN] get_file_sha 认证失败 {response.status_code}: {response.text[:200]}", "warning")
+                return "__AUTH_ERROR__"
             elif response.status_code >= 500 and attempt < max_retries:
                 # 5xx 错误，重试
-                wait_time = 2 ** attempt  # 指数退避：1s, 2s, 4s
+                wait_time = 2 ** attempt  # 指数退避：1s, 2s
                 log(f"[WARN] {file_path} - 服务器错误 {response.status_code}，{wait_time}s 后重试 ({attempt + 1}/{max_retries})...", "warning")
                 time.sleep(wait_time)
                 continue
-            elif response.status_code in [401, 403] or attempt == max_retries:
-                # 认证失败或已达最大重试次数
+            elif attempt == max_retries:
+                # 已达最大重试次数
                 log(f"[WARN] get_file_sha 返回异常状态码 {response.status_code}: {response.text[:200]}", "warning")
                 return "__ERROR__"
             else:
                 # 其他 4xx 错误，不重试
                 log(f"[WARN] get_file_sha 返回异常状态码 {response.status_code}: {response.text[:200]}", "warning")
                 return "__ERROR__"
-                
+
         except requests.exceptions.SSLError as e:
             if attempt < max_retries:
-                wait_time = 2 ** attempt  # 指数退避
+                wait_time = 2 ** attempt
                 log(f"[WARN] {file_path} - SSL 错误，{wait_time}s 后重试 ({attempt + 1}/{max_retries})...", "warning")
                 time.sleep(wait_time)
                 continue
             else:
                 log(f"[ERROR] {file_path} - SSL 错误（已达最大重试次数）: {e}", "error")
                 return "__ERROR__"
-                
+
         except requests.exceptions.RequestException as e:
             if attempt < max_retries:
                 wait_time = 2 ** attempt
@@ -106,7 +113,14 @@ def push_file(file_path, message, owner, repo, token, branch='main', max_retries
 
     for attempt in range(max_retries + 1):
         # 每次重试前重新获取 SHA，防止 409 冲突
-        sha = get_file_sha(file_path, owner, repo, token, max_retries=2)
+        # max_retries=0：内层不重试，外层已负责重试，避免嵌套重试产生过多 API 调用
+        sha = get_file_sha(file_path, owner, repo, token, max_retries=0)
+
+        if sha == "__AUTH_ERROR__":
+            # 认证失败（401/403），外层重试无意义，直接失败
+            log(f"[ERROR] 认证失败，停止推送: {file_path}", "error")
+            return False
+
         if sha == "__ERROR__":
             if attempt < max_retries:
                 wait_time = 2 ** attempt

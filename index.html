@@ -4019,14 +4019,14 @@
             return cutoff.toISOString().split('T')[0];
         }
 
-        // 根据基金代码查找配置
-        function findFundConfigByCode(code) {
-            if (!state.fundConfig) return null;
-            for (const [platform, funds] of Object.entries(state.fundConfig.funds || {})) {
-                const found = funds.find(f => f.code === code);
-                if (found) return found;
+        // 将 Base64 字符串解码为 UTF-8 文本（GitHub API 返回的 content 需要此函数）
+        function decodeUtf8Base64(base64) {
+            const binary = atob(base64.replace(/\s/g, ''));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
             }
-            return null;
+            return new TextDecoder().decode(bytes);
         }
 
         // 核心：渲染对比图表

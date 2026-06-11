@@ -5,25 +5,17 @@
 确保所有交易记录都被正确处理。
 如果有记录丢失，返回非0退出码（阻断 GitHub Actions 推送）。
 """
-import json
 import sys
 import os
+from logger_config import safe_load_json
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 PURCHASE_FILE = os.path.join(DATA_DIR, 'purchase_records.json')
 FUNDS_FILE = os.path.join(DATA_DIR, 'funds_data.json')
 
-def load_json(path):
-    try:
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"❌ 无法读取 {os.path.basename(path)}: {e}")
-        return None
-
 def validate():
-    pr = load_json(PURCHASE_FILE)
-    fd = load_json(FUNDS_FILE)
+    pr = safe_load_json(PURCHASE_FILE)
+    fd = safe_load_json(FUNDS_FILE)
 
     if pr is None or fd is None:
         print("❌ 数据文件读取失败，校验中止")

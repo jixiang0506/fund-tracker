@@ -599,7 +599,12 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
 
         if trans_type == "sell":
             # 卖出记录:按FIFO法从最早买入抵扣
-            sell_shares = amount / nav_on_date
+            # 优先使用 shares 字段（实际卖出份额），否则从 amount / nav 计算
+            raw_shares = purchase.get("shares")
+            if raw_shares is not None and raw_shares > 0:
+                sell_shares = raw_shares
+            else:
+                sell_shares = amount / nav_on_date
             remaining_sell_shares = sell_shares
             sell_realized_profit = 0  # 本笔卖出实现的盈亏
             total_fifo_cost = 0  # 本笔卖出的FIFO总成本

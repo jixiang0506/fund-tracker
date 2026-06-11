@@ -465,14 +465,6 @@
             white-space: nowrap;
         }
 
-        .margin-top-4 {
-            margin-top: var(--space-xs);
-        }
-
-        .margin-top-8 {
-            margin-top: var(--space-sm);
-        }
-
         .margin-top-10 {
             margin-top: var(--space-md);
         }
@@ -487,10 +479,6 @@
 
         .margin-bottom-20 {
             margin-bottom: var(--space-lg);
-        }
-
-        .padding-left-24 {
-            padding-left: 24px;
         }
 
         .chart-wrapper-main {
@@ -2041,15 +2029,6 @@
             background: var(--color-bg-secondary);
         }
 
-        .more-menu-item.disabled {
-            color: var(--color-text-muted);
-            cursor: not-allowed;
-        }
-
-        .more-menu-item.disabled:hover {
-            background: none;
-        }
-
         .more-menu-divider {
             height: 1px;
             background: var(--color-border-light);
@@ -2756,10 +2735,13 @@
 
         // ============ 结束更多菜单逻辑 ============
 
-        function decodeUtf8Base64(base64Content) {
-            const binaryStr = atob(base64Content);
-            const bytes = new Uint8Array([...binaryStr].map(c => c.charCodeAt(0)));
-            return new TextDecoder('utf-8').decode(bytes);
+        // ========== QDII 基金识别关键字（全局常量，统一前后端逻辑） ==========
+        const QDII_KEYWORDS = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"];
+        function isQdiiFund(name) {
+            return QDII_KEYWORDS.some(kw => name.includes(kw));
+        }
+        function getQdiiBenchmark() {
+            return "纳斯达克100指数";
         }
 
         // 纯数据操作：应用交易记录到 state + 重新渲染列表
@@ -5075,10 +5057,9 @@ function addPurchaseRecord() {
         fetchFundInfoWeb(fundCode, function(data) {
             if (data && data.name) {
                 // 判断是否为 QDII 基金
-                const qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"];
-                const is_qdii = qdii_keywords.some(kw => data.name.includes(kw));
-                const benchmark = is_qdii ? "纳斯达克100指数" : "科创50指数";
-                
+                const is_qdii = isQdiiFund(data.name);
+                const benchmark = is_qdii ? getQdiiBenchmark() : "科创50指数";
+
                 // 添加到 fundConfig
                 if (!state.fundConfig[platform]) {
                     state.fundConfig[platform] = [];
@@ -5591,13 +5572,9 @@ function getFundName(platform, fundCode) {
 
 // 手动刷新基金信息（修复基金名称显示异常）
 function refreshFundInfo() {
-    const btn = document.getElementById('btnRefreshFundInfo');
-    if (btn) btn.classList.add('btn-loading');
-
     const fundCode = prompt('请输入要刷新信息的基金代码（6位数字）：');
     if (!fundCode || !/^\d{6}$/.test(fundCode)) {
         showMessage('请输入有效的6位基金代码', 'error');
-        if (btn) btn.classList.remove('btn-loading');
         return;
     }
     
@@ -5606,9 +5583,8 @@ function refreshFundInfo() {
     fetchFundInfoWeb(fundCode, function(data) {
         if (data && data.name) {
             // 判断是否为 QDII 基金
-            const qdii_keywords = ["全球", "纳斯达克", "美股", "QDII", "海外", "国际"];
-            const is_qdii = qdii_keywords.some(kw => data.name.includes(kw));
-            const benchmark = is_qdii ? "纳斯达克100指数" : "科创50指数";
+            const is_qdii = isQdiiFund(data.name);
+            const benchmark = is_qdii ? getQdiiBenchmark() : "科创50指数";
             
             let updated = false;
             
@@ -6455,6 +6431,9 @@ function deletePurchaseRecord(platform, fundCode, index) {
             document.getElementById('moreBtn')?.addEventListener('click', function(e) { toggleMoreMenu(e); });
             // 5. 保存并配置按钮
             document.getElementById('saveQuickConfigBtn')?.addEventListener('click', saveQuickConfig);
+            
+            // 6. 刷新基金信息按钮
+            document.getElementById('btnRefreshFundInfo')?.addEventListener('click', refreshFundInfo);
         });
     <!-- ============================================ -->
     <!-- ========== JS逻辑结束 ========== -->

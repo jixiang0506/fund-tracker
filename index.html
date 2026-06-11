@@ -3452,12 +3452,19 @@
         }
 
         // 获取北京时间的 Date 对象（用于日期计算）
+        // 使用 toLocaleString 指定时区，自动处理 DST 夏令时切换
         function getBeijingNow() {
             const now = new Date();
-            const beijingOffset = 8 * 60; // 北京 UTC+8（分钟）
-            const localOffset = -now.getTimezoneOffset(); // 本地 UTC 偏移（分钟）
-            const diffMinutes = beijingOffset - localOffset;
-            return new Date(now.getTime() + diffMinutes * 60 * 1000);
+            const beijingStr = now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' });
+            const beijingTime = new Date(beijingStr);
+            // 如果解析失败（某些浏览器可能无法解析美式日期格式），回退到手动计算
+            if (isNaN(beijingTime.getTime())) {
+                const beijingOffset = 8 * 60; // 北京 UTC+8（分钟）
+                const localOffset = -now.getTimezoneOffset(); // 本地 UTC 偏移（分钟）
+                const diffMinutes = beijingOffset - localOffset;
+                return new Date(now.getTime() + diffMinutes * 60 * 1000);
+            }
+            return beijingTime;
         }
 
         // 生成净值日期标签（根据北京时间判断显示策略）

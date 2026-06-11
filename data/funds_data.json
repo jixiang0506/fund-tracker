@@ -1,14 +1,14 @@
 {
-  "update_time": "2026-06-11 02:34:57",
+  "update_time": "2026-06-11 13:09:41",
   "funds": {
     "支付宝": [
       {
         "code": "270023",
         "name": "广发全球精选股票(QDII)人民币A",
         "platform": "支付宝",
-        "current_nav": 6.5164,
-        "nav_date": "2026-06-10 22:28",
-        "daily_return": -0.2,
+        "current_nav": 6.4644,
+        "nav_date": "2026-06-11 04:00",
+        "daily_return": -1.0,
         "nav_status": "delayed",
         "data_source": "live",
         "latest_history_date": "2026-06-09",
@@ -24,9 +24,9 @@
         "holdings": {
           "total_invested": 47860.31,
           "total_shares": 11745.34,
-          "current_value": 76537.36,
-          "profit_loss": 28677.05,
-          "profit_loss_percent": 59.92,
+          "current_value": 75926.6,
+          "profit_loss": 28066.29,
+          "profit_loss_percent": 58.64,
           "purchases": [
             {
               "date": "2024-03-06",
@@ -2943,12 +2943,284 @@
         ]
       },
       {
+        "code": "002112",
+        "name": "德邦鑫星价值灵活配置混合C",
+        "platform": "支付宝",
+        "current_nav": 5.7976,
+        "nav_date": "2026-06-11 13:06",
+        "daily_return": -1.62,
+        "nav_status": "confirmed",
+        "data_source": "live",
+        "latest_history_date": "2026-06-10",
+        "latest_trading_day_nav": 5.8934,
+        "latest_trading_day_nav_date": "2026-06-10",
+        "latest_trading_day_return": -3.97,
+        "latest_trading_day_profit": -3614.32,
+        "day_before_latest_trading_day_return": 5.6,
+        "day_before_latest_trading_day_profit": 4830.47,
+        "ytd_return": 35.69,
+        "ytd_profit": 23017.88,
+        "ytd_start_nav": 4.3433,
+        "holdings": {
+          "total_invested": 70000.0,
+          "total_shares": 14849.29,
+          "current_value": 86090.26,
+          "profit_loss": 16090.26,
+          "profit_loss_percent": 22.99,
+          "purchases": [
+            {
+              "date": "2026-04-15",
+              "amount": 20000,
+              "nav": 4.5541,
+              "shares": 4391.65,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 20000,
+              "nav": 4.5541,
+              "shares": 4391.65,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-18",
+              "amount": 30000,
+              "nav": 4.9456,
+              "shares": 6066.0,
+              "type": "buy",
+              "nav_source": "next_trading_day"
+            }
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 4.714
+        },
+        "history": [
+          {
+            "date": "2026-04-08",
+            "nav": 4.3433,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-09",
+            "nav": 4.3888,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-10",
+            "nav": 4.5067,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-13",
+            "nav": 4.5436,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-14",
+            "nav": 4.6479,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-15",
+            "nav": 4.5541,
+            "return_rate": 0.0
+          },
+          {
+            "date": "2026-04-16",
+            "nav": 4.7371,
+            "return_rate": 4.02
+          },
+          {
+            "date": "2026-04-17",
+            "nav": 4.9568,
+            "return_rate": 8.84
+          },
+          {
+            "date": "2026-04-20",
+            "nav": 4.9456,
+            "return_rate": 4.91
+          },
+          {
+            "date": "2026-04-21",
+            "nav": 4.971,
+            "return_rate": 5.45
+          },
+          {
+            "date": "2026-04-22",
+            "nav": 5.1976,
+            "return_rate": 10.26
+          },
+          {
+            "date": "2026-04-23",
+            "nav": 5.0644,
+            "return_rate": 7.43
+          },
+          {
+            "date": "2026-04-24",
+            "nav": 4.9024,
+            "return_rate": 4.0
+          },
+          {
+            "date": "2026-04-27",
+            "nav": 4.9353,
+            "return_rate": 4.69
+          },
+          {
+            "date": "2026-04-28",
+            "nav": 4.8624,
+            "return_rate": 3.15
+          },
+          {
+            "date": "2026-04-29",
+            "nav": 4.9173,
+            "return_rate": 4.31
+          },
+          {
+            "date": "2026-04-30",
+            "nav": 4.9346,
+            "return_rate": 4.68
+          },
+          {
+            "date": "2026-05-06",
+            "nav": 4.9677,
+            "return_rate": 5.38
+          },
+          {
+            "date": "2026-05-07",
+            "nav": 5.2704,
+            "return_rate": 11.8
+          },
+          {
+            "date": "2026-05-08",
+            "nav": 5.3056,
+            "return_rate": 12.55
+          },
+          {
+            "date": "2026-05-11",
+            "nav": 5.4822,
+            "return_rate": 16.3
+          },
+          {
+            "date": "2026-05-12",
+            "nav": 5.6052,
+            "return_rate": 18.9
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 5.8258,
+            "return_rate": 23.58
+          },
+          {
+            "date": "2026-05-14",
+            "nav": 5.7165,
+            "return_rate": 21.27
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 5.5963,
+            "return_rate": 18.72
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 5.6275,
+            "return_rate": 19.38
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 5.5357,
+            "return_rate": 17.43
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 5.5868,
+            "return_rate": 18.51
+          },
+          {
+            "date": "2026-05-21",
+            "nav": 5.3496,
+            "return_rate": 13.48
+          },
+          {
+            "date": "2026-05-22",
+            "nav": 5.6925,
+            "return_rate": 20.76
+          },
+          {
+            "date": "2026-05-25",
+            "nav": 6.006,
+            "return_rate": 27.41
+          },
+          {
+            "date": "2026-05-26",
+            "nav": 6.0245,
+            "return_rate": 27.8
+          },
+          {
+            "date": "2026-05-27",
+            "nav": 5.9588,
+            "return_rate": 26.41
+          },
+          {
+            "date": "2026-05-28",
+            "nav": 6.1293,
+            "return_rate": 30.02
+          },
+          {
+            "date": "2026-05-29",
+            "nav": 6.0276,
+            "return_rate": 27.87
+          },
+          {
+            "date": "2026-06-01",
+            "nav": 5.6817,
+            "return_rate": 20.53
+          },
+          {
+            "date": "2026-06-02",
+            "nav": 6.0133,
+            "return_rate": 27.56
+          },
+          {
+            "date": "2026-06-03",
+            "nav": 6.2712,
+            "return_rate": 33.03
+          },
+          {
+            "date": "2026-06-04",
+            "nav": 6.3312,
+            "return_rate": 34.31
+          },
+          {
+            "date": "2026-06-05",
+            "nav": 6.0509,
+            "return_rate": 28.36
+          },
+          {
+            "date": "2026-06-08",
+            "nav": 5.8115,
+            "return_rate": 23.28
+          },
+          {
+            "date": "2026-06-09",
+            "nav": 6.1368,
+            "return_rate": 30.18
+          },
+          {
+            "date": "2026-06-10",
+            "nav": 5.8934,
+            "return_rate": 25.02
+          }
+        ]
+      },
+      {
         "code": "001438",
         "name": "易方达瑞享混合E",
         "platform": "支付宝",
-        "current_nav": 10.1021,
-        "nav_date": "2026-06-10",
-        "daily_return": -3.77,
+        "current_nav": 9.881,
+        "nav_date": "2026-06-11 13:06",
+        "daily_return": -2.19,
         "nav_status": "confirmed",
         "data_source": "live",
         "latest_history_date": "2026-06-10",
@@ -2964,9 +3236,9 @@
         "holdings": {
           "total_invested": 142115.83,
           "total_shares": 18749.63,
-          "current_value": 189410.67,
-          "profit_loss": 47294.84,
-          "profit_loss_percent": 33.28,
+          "current_value": 185265.12,
+          "profit_loss": 43149.29,
+          "profit_loss_percent": 30.36,
           "purchases": [
             {
               "date": "2026-03-12",
@@ -3354,1176 +3626,12 @@
         ]
       },
       {
-        "code": "016665",
-        "name": "天弘全球高端制造混合(QDII)C",
-        "platform": "支付宝",
-        "current_nav": 3.3531,
-        "nav_date": "2026-06-09",
-        "daily_return": 3.99,
-        "nav_status": "delayed",
-        "data_source": "live",
-        "latest_history_date": "2026-06-09",
-        "latest_trading_day_nav": 3.3531,
-        "latest_trading_day_nav_date": "2026-06-09",
-        "latest_trading_day_return": 3.99,
-        "latest_trading_day_profit": 1117.13,
-        "day_before_latest_trading_day_return": -2.74,
-        "day_before_latest_trading_day_profit": -786.67,
-        "ytd_return": 54.21,
-        "ytd_profit": 10223.27,
-        "ytd_start_nav": 2.1744,
-        "holdings": {
-          "total_invested": 20000.0,
-          "total_shares": 8673.34,
-          "current_value": 29082.58,
-          "profit_loss": 9082.58,
-          "profit_loss_percent": 45.41,
-          "purchases": [
-            {
-              "date": "2026-03-12",
-              "amount": 10000,
-              "nav": 2.1451,
-              "shares": 4661.79,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 10000,
-              "nav": 2.4928,
-              "shares": 4011.55,
-              "type": "buy",
-              "nav_source": "exact"
-            }
-          ],
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 2.3059
-        },
-        "history": [
-          {
-            "date": "2026-03-05",
-            "nav": 2.1744,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-06",
-            "nav": 2.1355,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-09",
-            "nav": 2.1113,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-10",
-            "nav": 2.1857,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-11",
-            "nav": 2.1858,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-12",
-            "nav": 2.1451,
-            "return_rate": 0.0
-          },
-          {
-            "date": "2026-03-13",
-            "nav": 2.1205,
-            "return_rate": -1.15
-          },
-          {
-            "date": "2026-03-16",
-            "nav": 2.1661,
-            "return_rate": 0.98
-          },
-          {
-            "date": "2026-03-17",
-            "nav": 2.1326,
-            "return_rate": -0.58
-          },
-          {
-            "date": "2026-03-18",
-            "nav": 2.2055,
-            "return_rate": 2.82
-          },
-          {
-            "date": "2026-03-19",
-            "nav": 2.1776,
-            "return_rate": 1.52
-          },
-          {
-            "date": "2026-03-20",
-            "nav": 2.1539,
-            "return_rate": 0.41
-          },
-          {
-            "date": "2026-03-23",
-            "nav": 2.0912,
-            "return_rate": -2.51
-          },
-          {
-            "date": "2026-03-24",
-            "nav": 2.1568,
-            "return_rate": 0.55
-          },
-          {
-            "date": "2026-03-25",
-            "nav": 2.199,
-            "return_rate": 2.51
-          },
-          {
-            "date": "2026-03-26",
-            "nav": 2.1046,
-            "return_rate": -1.89
-          },
-          {
-            "date": "2026-03-27",
-            "nav": 2.0917,
-            "return_rate": -2.49
-          },
-          {
-            "date": "2026-03-30",
-            "nav": 2.0396,
-            "return_rate": -4.92
-          },
-          {
-            "date": "2026-03-31",
-            "nav": 2.0257,
-            "return_rate": -5.57
-          },
-          {
-            "date": "2026-04-01",
-            "nav": 2.1296,
-            "return_rate": -0.72
-          },
-          {
-            "date": "2026-04-02",
-            "nav": 2.0976,
-            "return_rate": -2.21
-          },
-          {
-            "date": "2026-04-03",
-            "nav": 2.1202,
-            "return_rate": -1.16
-          },
-          {
-            "date": "2026-04-07",
-            "nav": 2.1275,
-            "return_rate": -0.82
-          },
-          {
-            "date": "2026-04-08",
-            "nav": 2.3435,
-            "return_rate": 9.25
-          },
-          {
-            "date": "2026-04-09",
-            "nav": 2.3481,
-            "return_rate": 9.46
-          },
-          {
-            "date": "2026-04-10",
-            "nav": 2.4171,
-            "return_rate": 12.68
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 2.436,
-            "return_rate": 13.56
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 2.509,
-            "return_rate": 16.96
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 2.4928,
-            "return_rate": 8.1
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 2.5481,
-            "return_rate": 10.5
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 2.5838,
-            "return_rate": 12.05
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 2.5824,
-            "return_rate": 11.99
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 2.6463,
-            "return_rate": 14.76
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 2.7165,
-            "return_rate": 17.81
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 2.6902,
-            "return_rate": 16.67
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 2.7068,
-            "return_rate": 17.38
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 2.7229,
-            "return_rate": 18.08
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 2.6636,
-            "return_rate": 15.51
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 2.6917,
-            "return_rate": 16.73
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 2.7254,
-            "return_rate": 18.19
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 2.9235,
-            "return_rate": 26.78
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 2.9942,
-            "return_rate": 29.85
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 3.0379,
-            "return_rate": 31.74
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 3.1895,
-            "return_rate": 38.32
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 3.1613,
-            "return_rate": 37.1
-          },
-          {
-            "date": "2026-05-13",
-            "nav": 3.2847,
-            "return_rate": 42.45
-          },
-          {
-            "date": "2026-05-14",
-            "nav": 3.2444,
-            "return_rate": 40.7
-          },
-          {
-            "date": "2026-05-15",
-            "nav": 3.091,
-            "return_rate": 34.05
-          },
-          {
-            "date": "2026-05-18",
-            "nav": 3.0823,
-            "return_rate": 33.67
-          },
-          {
-            "date": "2026-05-19",
-            "nav": 3.0567,
-            "return_rate": 32.56
-          },
-          {
-            "date": "2026-05-20",
-            "nav": 3.103,
-            "return_rate": 34.57
-          },
-          {
-            "date": "2026-05-21",
-            "nav": 3.1259,
-            "return_rate": 35.56
-          },
-          {
-            "date": "2026-05-22",
-            "nav": 3.2323,
-            "return_rate": 40.17
-          },
-          {
-            "date": "2026-05-25",
-            "nav": 3.3033,
-            "return_rate": 43.25
-          },
-          {
-            "date": "2026-05-26",
-            "nav": 3.3343,
-            "return_rate": 44.6
-          },
-          {
-            "date": "2026-05-27",
-            "nav": 3.3912,
-            "return_rate": 47.07
-          },
-          {
-            "date": "2026-05-28",
-            "nav": 3.4384,
-            "return_rate": 49.11
-          },
-          {
-            "date": "2026-05-29",
-            "nav": 3.4075,
-            "return_rate": 47.77
-          },
-          {
-            "date": "2026-06-01",
-            "nav": 3.4091,
-            "return_rate": 47.84
-          },
-          {
-            "date": "2026-06-02",
-            "nav": 3.5069,
-            "return_rate": 52.08
-          },
-          {
-            "date": "2026-06-03",
-            "nav": 3.5949,
-            "return_rate": 55.9
-          },
-          {
-            "date": "2026-06-04",
-            "nav": 3.5491,
-            "return_rate": 53.91
-          },
-          {
-            "date": "2026-06-05",
-            "nav": 3.315,
-            "return_rate": 43.76
-          },
-          {
-            "date": "2026-06-08",
-            "nav": 3.2243,
-            "return_rate": 39.83
-          },
-          {
-            "date": "2026-06-09",
-            "nav": 3.3531,
-            "return_rate": 45.41
-          }
-        ]
-      },
-      {
-        "code": "002112",
-        "name": "德邦鑫星价值灵活配置混合C",
-        "platform": "支付宝",
-        "current_nav": 5.8934,
-        "nav_date": "2026-06-10",
-        "daily_return": -3.97,
-        "nav_status": "confirmed",
-        "data_source": "live",
-        "latest_history_date": "2026-06-10",
-        "latest_trading_day_nav": 5.8934,
-        "latest_trading_day_nav_date": "2026-06-10",
-        "latest_trading_day_return": -3.97,
-        "latest_trading_day_profit": -3614.32,
-        "day_before_latest_trading_day_return": 5.6,
-        "day_before_latest_trading_day_profit": 4830.47,
-        "ytd_return": 35.69,
-        "ytd_profit": 23017.88,
-        "ytd_start_nav": 4.3433,
-        "holdings": {
-          "total_invested": 70000.0,
-          "total_shares": 14849.29,
-          "current_value": 87512.82,
-          "profit_loss": 17512.82,
-          "profit_loss_percent": 25.02,
-          "purchases": [
-            {
-              "date": "2026-04-15",
-              "amount": 20000,
-              "nav": 4.5541,
-              "shares": 4391.65,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 20000,
-              "nav": 4.5541,
-              "shares": 4391.65,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-18",
-              "amount": 30000,
-              "nav": 4.9456,
-              "shares": 6066.0,
-              "type": "buy",
-              "nav_source": "next_trading_day"
-            }
-          ],
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 4.714
-        },
-        "history": [
-          {
-            "date": "2026-04-08",
-            "nav": 4.3433,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-09",
-            "nav": 4.3888,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-10",
-            "nav": 4.5067,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 4.5436,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 4.6479,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 4.5541,
-            "return_rate": 0.0
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 4.7371,
-            "return_rate": 4.02
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 4.9568,
-            "return_rate": 8.84
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 4.9456,
-            "return_rate": 4.91
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 4.971,
-            "return_rate": 5.45
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 5.1976,
-            "return_rate": 10.26
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 5.0644,
-            "return_rate": 7.43
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 4.9024,
-            "return_rate": 4.0
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 4.9353,
-            "return_rate": 4.69
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 4.8624,
-            "return_rate": 3.15
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 4.9173,
-            "return_rate": 4.31
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 4.9346,
-            "return_rate": 4.68
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 4.9677,
-            "return_rate": 5.38
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 5.2704,
-            "return_rate": 11.8
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 5.3056,
-            "return_rate": 12.55
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 5.4822,
-            "return_rate": 16.3
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 5.6052,
-            "return_rate": 18.9
-          },
-          {
-            "date": "2026-05-13",
-            "nav": 5.8258,
-            "return_rate": 23.58
-          },
-          {
-            "date": "2026-05-14",
-            "nav": 5.7165,
-            "return_rate": 21.27
-          },
-          {
-            "date": "2026-05-15",
-            "nav": 5.5963,
-            "return_rate": 18.72
-          },
-          {
-            "date": "2026-05-18",
-            "nav": 5.6275,
-            "return_rate": 19.38
-          },
-          {
-            "date": "2026-05-19",
-            "nav": 5.5357,
-            "return_rate": 17.43
-          },
-          {
-            "date": "2026-05-20",
-            "nav": 5.5868,
-            "return_rate": 18.51
-          },
-          {
-            "date": "2026-05-21",
-            "nav": 5.3496,
-            "return_rate": 13.48
-          },
-          {
-            "date": "2026-05-22",
-            "nav": 5.6925,
-            "return_rate": 20.76
-          },
-          {
-            "date": "2026-05-25",
-            "nav": 6.006,
-            "return_rate": 27.41
-          },
-          {
-            "date": "2026-05-26",
-            "nav": 6.0245,
-            "return_rate": 27.8
-          },
-          {
-            "date": "2026-05-27",
-            "nav": 5.9588,
-            "return_rate": 26.41
-          },
-          {
-            "date": "2026-05-28",
-            "nav": 6.1293,
-            "return_rate": 30.02
-          },
-          {
-            "date": "2026-05-29",
-            "nav": 6.0276,
-            "return_rate": 27.87
-          },
-          {
-            "date": "2026-06-01",
-            "nav": 5.6817,
-            "return_rate": 20.53
-          },
-          {
-            "date": "2026-06-02",
-            "nav": 6.0133,
-            "return_rate": 27.56
-          },
-          {
-            "date": "2026-06-03",
-            "nav": 6.2712,
-            "return_rate": 33.03
-          },
-          {
-            "date": "2026-06-04",
-            "nav": 6.3312,
-            "return_rate": 34.31
-          },
-          {
-            "date": "2026-06-05",
-            "nav": 6.0509,
-            "return_rate": 28.36
-          },
-          {
-            "date": "2026-06-08",
-            "nav": 5.8115,
-            "return_rate": 23.28
-          },
-          {
-            "date": "2026-06-09",
-            "nav": 6.1368,
-            "return_rate": 30.18
-          },
-          {
-            "date": "2026-06-10",
-            "nav": 5.8934,
-            "return_rate": 25.02
-          }
-        ]
-      },
-      {
-        "code": "018230",
-        "name": "易方达全球优质企业混合(QDII)C(人民币份额)",
-        "platform": "支付宝",
-        "current_nav": 2.184,
-        "nav_date": "2026-06-10 22:28",
-        "daily_return": -0.11,
-        "nav_status": "delayed",
-        "data_source": "live",
-        "latest_history_date": "2026-06-09",
-        "latest_trading_day_nav": 2.1864,
-        "latest_trading_day_nav_date": "2026-06-09",
-        "latest_trading_day_return": 2.86,
-        "latest_trading_day_profit": 2448.99,
-        "day_before_latest_trading_day_return": -1.57,
-        "day_before_latest_trading_day_profit": -1367.72,
-        "ytd_return": 29.18,
-        "ytd_profit": 19926.81,
-        "ytd_start_nav": 1.6925,
-        "holdings": {
-          "total_invested": 78000.0,
-          "total_shares": 40345.84,
-          "current_value": 88115.31,
-          "profit_loss": 10115.31,
-          "profit_loss_percent": 12.97,
-          "purchases": [
-            {
-              "date": "2026-03-12",
-              "amount": 1000,
-              "nav": 1.6912,
-              "shares": 591.3,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-13",
-              "amount": 1000,
-              "nav": 1.6696,
-              "shares": 598.95,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-16",
-              "amount": 1000,
-              "nav": 1.6926,
-              "shares": 590.81,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-17",
-              "amount": 1000,
-              "nav": 1.6593,
-              "shares": 602.66,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-18",
-              "amount": 1000,
-              "nav": 1.7212,
-              "shares": 580.99,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-19",
-              "amount": 1000,
-              "nav": 1.6844,
-              "shares": 593.68,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-20",
-              "amount": 1000,
-              "nav": 1.6628,
-              "shares": 601.4,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-23",
-              "amount": 1000,
-              "nav": 1.6141,
-              "shares": 619.54,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-24",
-              "amount": 1000,
-              "nav": 1.6778,
-              "shares": 596.02,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-25",
-              "amount": 1000,
-              "nav": 1.7087,
-              "shares": 585.24,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-26",
-              "amount": 1000,
-              "nav": 1.6398,
-              "shares": 609.83,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-27",
-              "amount": 1000,
-              "nav": 1.6203,
-              "shares": 617.17,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-30",
-              "amount": 1000,
-              "nav": 1.6108,
-              "shares": 620.81,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-03-31",
-              "amount": 1000,
-              "nav": 1.5945,
-              "shares": 627.16,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-01",
-              "amount": 1000,
-              "nav": 1.6569,
-              "shares": 603.54,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-02",
-              "amount": 1000,
-              "nav": 1.6322,
-              "shares": 612.67,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-08",
-              "amount": 1000,
-              "nav": 1.7503,
-              "shares": 571.33,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-09",
-              "amount": 1000,
-              "nav": 1.7787,
-              "shares": 562.21,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 10000,
-              "nav": 1.817,
-              "shares": 5503.58,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-05-07",
-              "amount": 50000,
-              "nav": 2.0784,
-              "shares": 24056.97,
-              "type": "buy",
-              "nav_source": "exact"
-            }
-          ],
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 1.9333
-        },
-        "history": [
-          {
-            "date": "2026-03-05",
-            "nav": 1.6925,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-06",
-            "nav": 1.6667,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-09",
-            "nav": 1.6793,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-10",
-            "nav": 1.7402,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-11",
-            "nav": 1.7234,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-12",
-            "nav": 1.6912,
-            "return_rate": 0.0
-          },
-          {
-            "date": "2026-03-13",
-            "nav": 1.6696,
-            "return_rate": -0.64
-          },
-          {
-            "date": "2026-03-16",
-            "nav": 1.6926,
-            "return_rate": 0.49
-          },
-          {
-            "date": "2026-03-17",
-            "nav": 1.6593,
-            "return_rate": -1.12
-          },
-          {
-            "date": "2026-03-18",
-            "nav": 1.7212,
-            "return_rate": 2.06
-          },
-          {
-            "date": "2026-03-19",
-            "nav": 1.6844,
-            "return_rate": -0.1
-          },
-          {
-            "date": "2026-03-20",
-            "nav": 1.6628,
-            "return_rate": -1.19
-          },
-          {
-            "date": "2026-03-23",
-            "nav": 1.6141,
-            "return_rate": -3.57
-          },
-          {
-            "date": "2026-03-24",
-            "nav": 1.6778,
-            "return_rate": 0.21
-          },
-          {
-            "date": "2026-03-25",
-            "nav": 1.7087,
-            "return_rate": 1.85
-          },
-          {
-            "date": "2026-03-26",
-            "nav": 1.6398,
-            "return_rate": -2.05
-          },
-          {
-            "date": "2026-03-27",
-            "nav": 1.6203,
-            "return_rate": -2.95
-          },
-          {
-            "date": "2026-03-30",
-            "nav": 1.6108,
-            "return_rate": -3.25
-          },
-          {
-            "date": "2026-03-31",
-            "nav": 1.5945,
-            "return_rate": -3.93
-          },
-          {
-            "date": "2026-04-01",
-            "nav": 1.6569,
-            "return_rate": -0.15
-          },
-          {
-            "date": "2026-04-02",
-            "nav": 1.6322,
-            "return_rate": -1.54
-          },
-          {
-            "date": "2026-04-03",
-            "nav": 1.6417,
-            "return_rate": -0.97
-          },
-          {
-            "date": "2026-04-07",
-            "nav": 1.6482,
-            "return_rate": -0.57
-          },
-          {
-            "date": "2026-04-08",
-            "nav": 1.7503,
-            "return_rate": 5.26
-          },
-          {
-            "date": "2026-04-09",
-            "nav": 1.7787,
-            "return_rate": 6.58
-          },
-          {
-            "date": "2026-04-10",
-            "nav": 1.8005,
-            "return_rate": 7.88
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 1.8047,
-            "return_rate": 8.13
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 1.8386,
-            "return_rate": 10.17
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 1.817,
-            "return_rate": 5.7
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 1.854,
-            "return_rate": 7.86
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 1.8651,
-            "return_rate": 8.5
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 1.8778,
-            "return_rate": 9.24
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 1.8879,
-            "return_rate": 9.83
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 1.9495,
-            "return_rate": 13.41
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 1.9347,
-            "return_rate": 12.55
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 1.9331,
-            "return_rate": 12.46
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 1.9289,
-            "return_rate": 12.21
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 1.8925,
-            "return_rate": 10.1
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 1.9329,
-            "return_rate": 12.45
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 1.9502,
-            "return_rate": 13.45
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 2.0612,
-            "return_rate": 19.91
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 2.0784,
-            "return_rate": 7.51
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 2.1028,
-            "return_rate": 8.77
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 2.1723,
-            "return_rate": 12.36
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 2.1304,
-            "return_rate": 10.2
-          },
-          {
-            "date": "2026-05-13",
-            "nav": 2.2116,
-            "return_rate": 14.4
-          },
-          {
-            "date": "2026-05-14",
-            "nav": 2.1831,
-            "return_rate": 12.92
-          },
-          {
-            "date": "2026-05-15",
-            "nav": 2.1151,
-            "return_rate": 9.4
-          },
-          {
-            "date": "2026-05-18",
-            "nav": 2.1065,
-            "return_rate": 8.96
-          },
-          {
-            "date": "2026-05-19",
-            "nav": 2.0984,
-            "return_rate": 8.54
-          },
-          {
-            "date": "2026-05-20",
-            "nav": 2.1321,
-            "return_rate": 10.28
-          },
-          {
-            "date": "2026-05-21",
-            "nav": 2.1152,
-            "return_rate": 9.41
-          },
-          {
-            "date": "2026-05-22",
-            "nav": 2.1741,
-            "return_rate": 12.46
-          },
-          {
-            "date": "2026-05-25",
-            "nav": 2.2393,
-            "return_rate": 15.83
-          },
-          {
-            "date": "2026-05-26",
-            "nav": 2.2546,
-            "return_rate": 16.62
-          },
-          {
-            "date": "2026-05-27",
-            "nav": 2.2375,
-            "return_rate": 15.74
-          },
-          {
-            "date": "2026-05-28",
-            "nav": 2.2506,
-            "return_rate": 16.41
-          },
-          {
-            "date": "2026-05-29",
-            "nav": 2.2253,
-            "return_rate": 15.1
-          },
-          {
-            "date": "2026-06-01",
-            "nav": 2.1894,
-            "return_rate": 13.25
-          },
-          {
-            "date": "2026-06-02",
-            "nav": 2.2635,
-            "return_rate": 17.08
-          },
-          {
-            "date": "2026-06-03",
-            "nav": 2.2916,
-            "return_rate": 18.53
-          },
-          {
-            "date": "2026-06-04",
-            "nav": 2.2924,
-            "return_rate": 18.58
-          },
-          {
-            "date": "2026-06-05",
-            "nav": 2.1596,
-            "return_rate": 11.71
-          },
-          {
-            "date": "2026-06-08",
-            "nav": 2.1257,
-            "return_rate": 9.95
-          },
-          {
-            "date": "2026-06-09",
-            "nav": 2.1864,
-            "return_rate": 13.09
-          }
-        ]
-      },
-      {
         "code": "017811",
         "name": "东方人工智能主题混合C",
         "platform": "支付宝",
-        "current_nav": 2.6797,
-        "nav_date": "2026-06-10",
-        "daily_return": 0.53,
+        "current_nav": 2.752,
+        "nav_date": "2026-06-11 13:06",
+        "daily_return": 2.7,
         "nav_status": "confirmed",
         "data_source": "live",
         "latest_history_date": "2026-06-10",
@@ -4539,9 +3647,9 @@
         "holdings": {
           "total_invested": 50000.0,
           "total_shares": 17220.6,
-          "current_value": 46146.03,
-          "profit_loss": -3853.97,
-          "profit_loss_percent": -7.71,
+          "current_value": 47391.08,
+          "profit_loss": -2608.92,
+          "profit_loss_percent": -5.22,
           "purchases": [
             {
               "date": "2026-05-20",
@@ -7327,6 +6435,898 @@
             "return_rate": -7.71
           }
         ]
+      },
+      {
+        "code": "018230",
+        "name": "易方达全球优质企业混合(QDII)C(人民币份额)",
+        "platform": "支付宝",
+        "current_nav": 2.1743,
+        "nav_date": "2026-06-11 04:00",
+        "daily_return": -0.55,
+        "nav_status": "delayed",
+        "data_source": "live",
+        "latest_history_date": "2026-06-09",
+        "latest_trading_day_nav": 2.1864,
+        "latest_trading_day_nav_date": "2026-06-09",
+        "latest_trading_day_return": 2.86,
+        "latest_trading_day_profit": 2448.99,
+        "day_before_latest_trading_day_return": -1.57,
+        "day_before_latest_trading_day_profit": -1367.72,
+        "ytd_return": 29.18,
+        "ytd_profit": 19926.81,
+        "ytd_start_nav": 1.6925,
+        "holdings": {
+          "total_invested": 78000.0,
+          "total_shares": 40345.84,
+          "current_value": 87723.95,
+          "profit_loss": 9723.95,
+          "profit_loss_percent": 12.47,
+          "purchases": [
+            {
+              "date": "2026-03-12",
+              "amount": 1000,
+              "nav": 1.6912,
+              "shares": 591.3,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-13",
+              "amount": 1000,
+              "nav": 1.6696,
+              "shares": 598.95,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-16",
+              "amount": 1000,
+              "nav": 1.6926,
+              "shares": 590.81,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-17",
+              "amount": 1000,
+              "nav": 1.6593,
+              "shares": 602.66,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-18",
+              "amount": 1000,
+              "nav": 1.7212,
+              "shares": 580.99,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-19",
+              "amount": 1000,
+              "nav": 1.6844,
+              "shares": 593.68,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-20",
+              "amount": 1000,
+              "nav": 1.6628,
+              "shares": 601.4,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-23",
+              "amount": 1000,
+              "nav": 1.6141,
+              "shares": 619.54,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-24",
+              "amount": 1000,
+              "nav": 1.6778,
+              "shares": 596.02,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-25",
+              "amount": 1000,
+              "nav": 1.7087,
+              "shares": 585.24,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-26",
+              "amount": 1000,
+              "nav": 1.6398,
+              "shares": 609.83,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-27",
+              "amount": 1000,
+              "nav": 1.6203,
+              "shares": 617.17,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-30",
+              "amount": 1000,
+              "nav": 1.6108,
+              "shares": 620.81,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-03-31",
+              "amount": 1000,
+              "nav": 1.5945,
+              "shares": 627.16,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-01",
+              "amount": 1000,
+              "nav": 1.6569,
+              "shares": 603.54,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-02",
+              "amount": 1000,
+              "nav": 1.6322,
+              "shares": 612.67,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-08",
+              "amount": 1000,
+              "nav": 1.7503,
+              "shares": 571.33,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-09",
+              "amount": 1000,
+              "nav": 1.7787,
+              "shares": 562.21,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 10000,
+              "nav": 1.817,
+              "shares": 5503.58,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-05-07",
+              "amount": 50000,
+              "nav": 2.0784,
+              "shares": 24056.97,
+              "type": "buy",
+              "nav_source": "exact"
+            }
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 1.9333
+        },
+        "history": [
+          {
+            "date": "2026-03-05",
+            "nav": 1.6925,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-06",
+            "nav": 1.6667,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-09",
+            "nav": 1.6793,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-10",
+            "nav": 1.7402,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-11",
+            "nav": 1.7234,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-12",
+            "nav": 1.6912,
+            "return_rate": 0.0
+          },
+          {
+            "date": "2026-03-13",
+            "nav": 1.6696,
+            "return_rate": -0.64
+          },
+          {
+            "date": "2026-03-16",
+            "nav": 1.6926,
+            "return_rate": 0.49
+          },
+          {
+            "date": "2026-03-17",
+            "nav": 1.6593,
+            "return_rate": -1.12
+          },
+          {
+            "date": "2026-03-18",
+            "nav": 1.7212,
+            "return_rate": 2.06
+          },
+          {
+            "date": "2026-03-19",
+            "nav": 1.6844,
+            "return_rate": -0.1
+          },
+          {
+            "date": "2026-03-20",
+            "nav": 1.6628,
+            "return_rate": -1.19
+          },
+          {
+            "date": "2026-03-23",
+            "nav": 1.6141,
+            "return_rate": -3.57
+          },
+          {
+            "date": "2026-03-24",
+            "nav": 1.6778,
+            "return_rate": 0.21
+          },
+          {
+            "date": "2026-03-25",
+            "nav": 1.7087,
+            "return_rate": 1.85
+          },
+          {
+            "date": "2026-03-26",
+            "nav": 1.6398,
+            "return_rate": -2.05
+          },
+          {
+            "date": "2026-03-27",
+            "nav": 1.6203,
+            "return_rate": -2.95
+          },
+          {
+            "date": "2026-03-30",
+            "nav": 1.6108,
+            "return_rate": -3.25
+          },
+          {
+            "date": "2026-03-31",
+            "nav": 1.5945,
+            "return_rate": -3.93
+          },
+          {
+            "date": "2026-04-01",
+            "nav": 1.6569,
+            "return_rate": -0.15
+          },
+          {
+            "date": "2026-04-02",
+            "nav": 1.6322,
+            "return_rate": -1.54
+          },
+          {
+            "date": "2026-04-03",
+            "nav": 1.6417,
+            "return_rate": -0.97
+          },
+          {
+            "date": "2026-04-07",
+            "nav": 1.6482,
+            "return_rate": -0.57
+          },
+          {
+            "date": "2026-04-08",
+            "nav": 1.7503,
+            "return_rate": 5.26
+          },
+          {
+            "date": "2026-04-09",
+            "nav": 1.7787,
+            "return_rate": 6.58
+          },
+          {
+            "date": "2026-04-10",
+            "nav": 1.8005,
+            "return_rate": 7.88
+          },
+          {
+            "date": "2026-04-13",
+            "nav": 1.8047,
+            "return_rate": 8.13
+          },
+          {
+            "date": "2026-04-14",
+            "nav": 1.8386,
+            "return_rate": 10.17
+          },
+          {
+            "date": "2026-04-15",
+            "nav": 1.817,
+            "return_rate": 5.7
+          },
+          {
+            "date": "2026-04-16",
+            "nav": 1.854,
+            "return_rate": 7.86
+          },
+          {
+            "date": "2026-04-17",
+            "nav": 1.8651,
+            "return_rate": 8.5
+          },
+          {
+            "date": "2026-04-20",
+            "nav": 1.8778,
+            "return_rate": 9.24
+          },
+          {
+            "date": "2026-04-21",
+            "nav": 1.8879,
+            "return_rate": 9.83
+          },
+          {
+            "date": "2026-04-22",
+            "nav": 1.9495,
+            "return_rate": 13.41
+          },
+          {
+            "date": "2026-04-23",
+            "nav": 1.9347,
+            "return_rate": 12.55
+          },
+          {
+            "date": "2026-04-24",
+            "nav": 1.9331,
+            "return_rate": 12.46
+          },
+          {
+            "date": "2026-04-27",
+            "nav": 1.9289,
+            "return_rate": 12.21
+          },
+          {
+            "date": "2026-04-28",
+            "nav": 1.8925,
+            "return_rate": 10.1
+          },
+          {
+            "date": "2026-04-29",
+            "nav": 1.9329,
+            "return_rate": 12.45
+          },
+          {
+            "date": "2026-04-30",
+            "nav": 1.9502,
+            "return_rate": 13.45
+          },
+          {
+            "date": "2026-05-06",
+            "nav": 2.0612,
+            "return_rate": 19.91
+          },
+          {
+            "date": "2026-05-07",
+            "nav": 2.0784,
+            "return_rate": 7.51
+          },
+          {
+            "date": "2026-05-08",
+            "nav": 2.1028,
+            "return_rate": 8.77
+          },
+          {
+            "date": "2026-05-11",
+            "nav": 2.1723,
+            "return_rate": 12.36
+          },
+          {
+            "date": "2026-05-12",
+            "nav": 2.1304,
+            "return_rate": 10.2
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 2.2116,
+            "return_rate": 14.4
+          },
+          {
+            "date": "2026-05-14",
+            "nav": 2.1831,
+            "return_rate": 12.92
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 2.1151,
+            "return_rate": 9.4
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 2.1065,
+            "return_rate": 8.96
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 2.0984,
+            "return_rate": 8.54
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 2.1321,
+            "return_rate": 10.28
+          },
+          {
+            "date": "2026-05-21",
+            "nav": 2.1152,
+            "return_rate": 9.41
+          },
+          {
+            "date": "2026-05-22",
+            "nav": 2.1741,
+            "return_rate": 12.46
+          },
+          {
+            "date": "2026-05-25",
+            "nav": 2.2393,
+            "return_rate": 15.83
+          },
+          {
+            "date": "2026-05-26",
+            "nav": 2.2546,
+            "return_rate": 16.62
+          },
+          {
+            "date": "2026-05-27",
+            "nav": 2.2375,
+            "return_rate": 15.74
+          },
+          {
+            "date": "2026-05-28",
+            "nav": 2.2506,
+            "return_rate": 16.41
+          },
+          {
+            "date": "2026-05-29",
+            "nav": 2.2253,
+            "return_rate": 15.1
+          },
+          {
+            "date": "2026-06-01",
+            "nav": 2.1894,
+            "return_rate": 13.25
+          },
+          {
+            "date": "2026-06-02",
+            "nav": 2.2635,
+            "return_rate": 17.08
+          },
+          {
+            "date": "2026-06-03",
+            "nav": 2.2916,
+            "return_rate": 18.53
+          },
+          {
+            "date": "2026-06-04",
+            "nav": 2.2924,
+            "return_rate": 18.58
+          },
+          {
+            "date": "2026-06-05",
+            "nav": 2.1596,
+            "return_rate": 11.71
+          },
+          {
+            "date": "2026-06-08",
+            "nav": 2.1257,
+            "return_rate": 9.95
+          },
+          {
+            "date": "2026-06-09",
+            "nav": 2.1864,
+            "return_rate": 13.09
+          }
+        ]
+      },
+      {
+        "code": "016665",
+        "name": "天弘全球高端制造混合(QDII)C",
+        "platform": "支付宝",
+        "current_nav": 3.3531,
+        "nav_date": "2026-06-09",
+        "daily_return": 3.99,
+        "nav_status": "delayed",
+        "data_source": "live",
+        "latest_history_date": "2026-06-09",
+        "latest_trading_day_nav": 3.3531,
+        "latest_trading_day_nav_date": "2026-06-09",
+        "latest_trading_day_return": 3.99,
+        "latest_trading_day_profit": 1117.13,
+        "day_before_latest_trading_day_return": -2.74,
+        "day_before_latest_trading_day_profit": -786.67,
+        "ytd_return": 54.21,
+        "ytd_profit": 10223.27,
+        "ytd_start_nav": 2.1744,
+        "holdings": {
+          "total_invested": 20000.0,
+          "total_shares": 8673.34,
+          "current_value": 29082.58,
+          "profit_loss": 9082.58,
+          "profit_loss_percent": 45.41,
+          "purchases": [
+            {
+              "date": "2026-03-12",
+              "amount": 10000,
+              "nav": 2.1451,
+              "shares": 4661.79,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 10000,
+              "nav": 2.4928,
+              "shares": 4011.55,
+              "type": "buy",
+              "nav_source": "exact"
+            }
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.3059
+        },
+        "history": [
+          {
+            "date": "2026-03-05",
+            "nav": 2.1744,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-06",
+            "nav": 2.1355,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-09",
+            "nav": 2.1113,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-10",
+            "nav": 2.1857,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-11",
+            "nav": 2.1858,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-12",
+            "nav": 2.1451,
+            "return_rate": 0.0
+          },
+          {
+            "date": "2026-03-13",
+            "nav": 2.1205,
+            "return_rate": -1.15
+          },
+          {
+            "date": "2026-03-16",
+            "nav": 2.1661,
+            "return_rate": 0.98
+          },
+          {
+            "date": "2026-03-17",
+            "nav": 2.1326,
+            "return_rate": -0.58
+          },
+          {
+            "date": "2026-03-18",
+            "nav": 2.2055,
+            "return_rate": 2.82
+          },
+          {
+            "date": "2026-03-19",
+            "nav": 2.1776,
+            "return_rate": 1.52
+          },
+          {
+            "date": "2026-03-20",
+            "nav": 2.1539,
+            "return_rate": 0.41
+          },
+          {
+            "date": "2026-03-23",
+            "nav": 2.0912,
+            "return_rate": -2.51
+          },
+          {
+            "date": "2026-03-24",
+            "nav": 2.1568,
+            "return_rate": 0.55
+          },
+          {
+            "date": "2026-03-25",
+            "nav": 2.199,
+            "return_rate": 2.51
+          },
+          {
+            "date": "2026-03-26",
+            "nav": 2.1046,
+            "return_rate": -1.89
+          },
+          {
+            "date": "2026-03-27",
+            "nav": 2.0917,
+            "return_rate": -2.49
+          },
+          {
+            "date": "2026-03-30",
+            "nav": 2.0396,
+            "return_rate": -4.92
+          },
+          {
+            "date": "2026-03-31",
+            "nav": 2.0257,
+            "return_rate": -5.57
+          },
+          {
+            "date": "2026-04-01",
+            "nav": 2.1296,
+            "return_rate": -0.72
+          },
+          {
+            "date": "2026-04-02",
+            "nav": 2.0976,
+            "return_rate": -2.21
+          },
+          {
+            "date": "2026-04-03",
+            "nav": 2.1202,
+            "return_rate": -1.16
+          },
+          {
+            "date": "2026-04-07",
+            "nav": 2.1275,
+            "return_rate": -0.82
+          },
+          {
+            "date": "2026-04-08",
+            "nav": 2.3435,
+            "return_rate": 9.25
+          },
+          {
+            "date": "2026-04-09",
+            "nav": 2.3481,
+            "return_rate": 9.46
+          },
+          {
+            "date": "2026-04-10",
+            "nav": 2.4171,
+            "return_rate": 12.68
+          },
+          {
+            "date": "2026-04-13",
+            "nav": 2.436,
+            "return_rate": 13.56
+          },
+          {
+            "date": "2026-04-14",
+            "nav": 2.509,
+            "return_rate": 16.96
+          },
+          {
+            "date": "2026-04-15",
+            "nav": 2.4928,
+            "return_rate": 8.1
+          },
+          {
+            "date": "2026-04-16",
+            "nav": 2.5481,
+            "return_rate": 10.5
+          },
+          {
+            "date": "2026-04-17",
+            "nav": 2.5838,
+            "return_rate": 12.05
+          },
+          {
+            "date": "2026-04-20",
+            "nav": 2.5824,
+            "return_rate": 11.99
+          },
+          {
+            "date": "2026-04-21",
+            "nav": 2.6463,
+            "return_rate": 14.76
+          },
+          {
+            "date": "2026-04-22",
+            "nav": 2.7165,
+            "return_rate": 17.81
+          },
+          {
+            "date": "2026-04-23",
+            "nav": 2.6902,
+            "return_rate": 16.67
+          },
+          {
+            "date": "2026-04-24",
+            "nav": 2.7068,
+            "return_rate": 17.38
+          },
+          {
+            "date": "2026-04-27",
+            "nav": 2.7229,
+            "return_rate": 18.08
+          },
+          {
+            "date": "2026-04-28",
+            "nav": 2.6636,
+            "return_rate": 15.51
+          },
+          {
+            "date": "2026-04-29",
+            "nav": 2.6917,
+            "return_rate": 16.73
+          },
+          {
+            "date": "2026-04-30",
+            "nav": 2.7254,
+            "return_rate": 18.19
+          },
+          {
+            "date": "2026-05-06",
+            "nav": 2.9235,
+            "return_rate": 26.78
+          },
+          {
+            "date": "2026-05-07",
+            "nav": 2.9942,
+            "return_rate": 29.85
+          },
+          {
+            "date": "2026-05-08",
+            "nav": 3.0379,
+            "return_rate": 31.74
+          },
+          {
+            "date": "2026-05-11",
+            "nav": 3.1895,
+            "return_rate": 38.32
+          },
+          {
+            "date": "2026-05-12",
+            "nav": 3.1613,
+            "return_rate": 37.1
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 3.2847,
+            "return_rate": 42.45
+          },
+          {
+            "date": "2026-05-14",
+            "nav": 3.2444,
+            "return_rate": 40.7
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 3.091,
+            "return_rate": 34.05
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 3.0823,
+            "return_rate": 33.67
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 3.0567,
+            "return_rate": 32.56
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 3.103,
+            "return_rate": 34.57
+          },
+          {
+            "date": "2026-05-21",
+            "nav": 3.1259,
+            "return_rate": 35.56
+          },
+          {
+            "date": "2026-05-22",
+            "nav": 3.2323,
+            "return_rate": 40.17
+          },
+          {
+            "date": "2026-05-25",
+            "nav": 3.3033,
+            "return_rate": 43.25
+          },
+          {
+            "date": "2026-05-26",
+            "nav": 3.3343,
+            "return_rate": 44.6
+          },
+          {
+            "date": "2026-05-27",
+            "nav": 3.3912,
+            "return_rate": 47.07
+          },
+          {
+            "date": "2026-05-28",
+            "nav": 3.4384,
+            "return_rate": 49.11
+          },
+          {
+            "date": "2026-05-29",
+            "nav": 3.4075,
+            "return_rate": 47.77
+          },
+          {
+            "date": "2026-06-01",
+            "nav": 3.4091,
+            "return_rate": 47.84
+          },
+          {
+            "date": "2026-06-02",
+            "nav": 3.5069,
+            "return_rate": 52.08
+          },
+          {
+            "date": "2026-06-03",
+            "nav": 3.5949,
+            "return_rate": 55.9
+          },
+          {
+            "date": "2026-06-04",
+            "nav": 3.5491,
+            "return_rate": 53.91
+          },
+          {
+            "date": "2026-06-05",
+            "nav": 3.315,
+            "return_rate": 43.76
+          },
+          {
+            "date": "2026-06-08",
+            "nav": 3.2243,
+            "return_rate": 39.83
+          },
+          {
+            "date": "2026-06-09",
+            "nav": 3.3531,
+            "return_rate": 45.41
+          }
+        ]
       }
     ],
     "理财通": [
@@ -7334,9 +7334,9 @@
         "code": "012922",
         "name": "易方达全球成长精选混合(QDII)人民币C",
         "platform": "理财通",
-        "current_nav": 4.3593,
-        "nav_date": "2026-06-10 22:28",
-        "daily_return": -0.17,
+        "current_nav": 4.3305,
+        "nav_date": "2026-06-11 04:00",
+        "daily_return": -0.82,
         "nav_status": "delayed",
         "data_source": "live",
         "latest_history_date": "2026-06-09",
@@ -7352,9 +7352,9 @@
         "holdings": {
           "total_invested": 1450.0,
           "total_shares": 506.89,
-          "current_value": 2209.68,
-          "profit_loss": 759.68,
-          "profit_loss_percent": 52.39,
+          "current_value": 2195.08,
+          "profit_loss": 745.08,
+          "profit_loss_percent": 51.39,
           "purchases": [
             {
               "date": "2026-03-04",
@@ -7951,284 +7951,12 @@
         ]
       },
       {
-        "code": "019018",
-        "name": "易方达信息产业混合C",
-        "platform": "理财通",
-        "current_nav": 8.748,
-        "nav_date": "2026-06-10",
-        "daily_return": -2.46,
-        "nav_status": "confirmed",
-        "data_source": "live",
-        "latest_history_date": "2026-06-10",
-        "latest_trading_day_nav": 8.748,
-        "latest_trading_day_nav_date": "2026-06-10",
-        "latest_trading_day_return": -2.46,
-        "latest_trading_day_profit": -39.05,
-        "day_before_latest_trading_day_return": 6.07,
-        "day_before_latest_trading_day_profit": 90.64,
-        "ytd_return": 43.25,
-        "ytd_profit": 466.64,
-        "ytd_start_nav": 6.107,
-        "holdings": {
-          "total_invested": 1155.3,
-          "total_shares": 176.69,
-          "current_value": 1545.7,
-          "profit_loss": 390.4,
-          "profit_loss_percent": 33.79,
-          "purchases": [
-            {
-              "date": "2026-04-15",
-              "amount": 1000,
-              "nav": 6.439,
-              "shares": 155.3,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-18",
-              "amount": 16.49,
-              "nav": 6.843,
-              "shares": 2.41,
-              "type": "buy",
-              "nav_source": "next_trading_day"
-            },
-            {
-              "date": "2026-05-01",
-              "amount": 138.81,
-              "nav": 7.314,
-              "shares": 18.98,
-              "type": "buy",
-              "nav_source": "next_trading_day"
-            }
-          ],
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 6.5385
-        },
-        "history": [
-          {
-            "date": "2026-04-08",
-            "nav": 6.107,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-09",
-            "nav": 6.165,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-10",
-            "nav": 6.34,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 6.374,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 6.493,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 6.439,
-            "return_rate": 0.0
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 6.604,
-            "return_rate": 2.56
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 6.868,
-            "return_rate": 6.66
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 6.843,
-            "return_rate": 6.17
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 6.939,
-            "return_rate": 7.66
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 7.211,
-            "return_rate": 11.88
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 7.087,
-            "return_rate": 9.96
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 6.998,
-            "return_rate": 8.58
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 7.078,
-            "return_rate": 9.82
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 6.987,
-            "return_rate": 8.41
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 7.071,
-            "return_rate": 9.71
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 7.129,
-            "return_rate": 10.61
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 7.314,
-            "return_rate": 11.86
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 7.59,
-            "return_rate": 16.08
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 7.573,
-            "return_rate": 15.82
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 7.785,
-            "return_rate": 19.06
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 7.898,
-            "return_rate": 20.79
-          },
-          {
-            "date": "2026-05-13",
-            "nav": 8.103,
-            "return_rate": 23.93
-          },
-          {
-            "date": "2026-05-14",
-            "nav": 7.978,
-            "return_rate": 22.02
-          },
-          {
-            "date": "2026-05-15",
-            "nav": 7.81,
-            "return_rate": 19.45
-          },
-          {
-            "date": "2026-05-18",
-            "nav": 7.884,
-            "return_rate": 20.58
-          },
-          {
-            "date": "2026-05-19",
-            "nav": 7.974,
-            "return_rate": 21.95
-          },
-          {
-            "date": "2026-05-20",
-            "nav": 8.151,
-            "return_rate": 24.66
-          },
-          {
-            "date": "2026-05-21",
-            "nav": 7.816,
-            "return_rate": 19.54
-          },
-          {
-            "date": "2026-05-22",
-            "nav": 8.228,
-            "return_rate": 25.84
-          },
-          {
-            "date": "2026-05-25",
-            "nav": 8.566,
-            "return_rate": 31.01
-          },
-          {
-            "date": "2026-05-26",
-            "nav": 8.531,
-            "return_rate": 30.47
-          },
-          {
-            "date": "2026-05-27",
-            "nav": 8.495,
-            "return_rate": 29.92
-          },
-          {
-            "date": "2026-05-28",
-            "nav": 8.799,
-            "return_rate": 34.57
-          },
-          {
-            "date": "2026-05-29",
-            "nav": 8.614,
-            "return_rate": 31.74
-          },
-          {
-            "date": "2026-06-01",
-            "nav": 8.239,
-            "return_rate": 26.01
-          },
-          {
-            "date": "2026-06-02",
-            "nav": 8.644,
-            "return_rate": 32.2
-          },
-          {
-            "date": "2026-06-03",
-            "nav": 8.921,
-            "return_rate": 36.44
-          },
-          {
-            "date": "2026-06-04",
-            "nav": 9.013,
-            "return_rate": 37.85
-          },
-          {
-            "date": "2026-06-05",
-            "nav": 8.651,
-            "return_rate": 32.31
-          },
-          {
-            "date": "2026-06-08",
-            "nav": 8.456,
-            "return_rate": 29.33
-          },
-          {
-            "date": "2026-06-09",
-            "nav": 8.969,
-            "return_rate": 37.17
-          },
-          {
-            "date": "2026-06-10",
-            "nav": 8.748,
-            "return_rate": 33.79
-          }
-        ]
-      },
-      {
         "code": "018147",
         "name": "建信新兴市场混合(QDII)C",
         "platform": "理财通",
-        "current_nav": 2.4901,
-        "nav_date": "2026-06-10 22:28",
-        "daily_return": -0.2,
+        "current_nav": 2.4707,
+        "nav_date": "2026-06-11 04:00",
+        "daily_return": -0.97,
         "nav_status": "delayed",
         "data_source": "live",
         "latest_history_date": "2026-06-09",
@@ -8244,9 +7972,9 @@
         "holdings": {
           "total_invested": 1770.0,
           "total_shares": 1028.6,
-          "current_value": 2561.31,
-          "profit_loss": 791.31,
-          "profit_loss_percent": 44.71,
+          "current_value": 2541.36,
+          "profit_loss": 771.36,
+          "profit_loss_percent": 43.58,
           "purchases": [
             {
               "date": "2026-03-01",
@@ -8831,6 +8559,278 @@
             "return_rate": 44.99
           }
         ]
+      },
+      {
+        "code": "019018",
+        "name": "易方达信息产业混合C",
+        "platform": "理财通",
+        "current_nav": 8.6199,
+        "nav_date": "2026-06-11 13:06",
+        "daily_return": -1.46,
+        "nav_status": "confirmed",
+        "data_source": "live",
+        "latest_history_date": "2026-06-10",
+        "latest_trading_day_nav": 8.748,
+        "latest_trading_day_nav_date": "2026-06-10",
+        "latest_trading_day_return": -2.46,
+        "latest_trading_day_profit": -39.05,
+        "day_before_latest_trading_day_return": 6.07,
+        "day_before_latest_trading_day_profit": 90.64,
+        "ytd_return": 43.25,
+        "ytd_profit": 466.64,
+        "ytd_start_nav": 6.107,
+        "holdings": {
+          "total_invested": 1155.3,
+          "total_shares": 176.69,
+          "current_value": 1523.07,
+          "profit_loss": 367.77,
+          "profit_loss_percent": 31.83,
+          "purchases": [
+            {
+              "date": "2026-04-15",
+              "amount": 1000,
+              "nav": 6.439,
+              "shares": 155.3,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-18",
+              "amount": 16.49,
+              "nav": 6.843,
+              "shares": 2.41,
+              "type": "buy",
+              "nav_source": "next_trading_day"
+            },
+            {
+              "date": "2026-05-01",
+              "amount": 138.81,
+              "nav": 7.314,
+              "shares": 18.98,
+              "type": "buy",
+              "nav_source": "next_trading_day"
+            }
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 6.5385
+        },
+        "history": [
+          {
+            "date": "2026-04-08",
+            "nav": 6.107,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-09",
+            "nav": 6.165,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-10",
+            "nav": 6.34,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-13",
+            "nav": 6.374,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-14",
+            "nav": 6.493,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-15",
+            "nav": 6.439,
+            "return_rate": 0.0
+          },
+          {
+            "date": "2026-04-16",
+            "nav": 6.604,
+            "return_rate": 2.56
+          },
+          {
+            "date": "2026-04-17",
+            "nav": 6.868,
+            "return_rate": 6.66
+          },
+          {
+            "date": "2026-04-20",
+            "nav": 6.843,
+            "return_rate": 6.17
+          },
+          {
+            "date": "2026-04-21",
+            "nav": 6.939,
+            "return_rate": 7.66
+          },
+          {
+            "date": "2026-04-22",
+            "nav": 7.211,
+            "return_rate": 11.88
+          },
+          {
+            "date": "2026-04-23",
+            "nav": 7.087,
+            "return_rate": 9.96
+          },
+          {
+            "date": "2026-04-24",
+            "nav": 6.998,
+            "return_rate": 8.58
+          },
+          {
+            "date": "2026-04-27",
+            "nav": 7.078,
+            "return_rate": 9.82
+          },
+          {
+            "date": "2026-04-28",
+            "nav": 6.987,
+            "return_rate": 8.41
+          },
+          {
+            "date": "2026-04-29",
+            "nav": 7.071,
+            "return_rate": 9.71
+          },
+          {
+            "date": "2026-04-30",
+            "nav": 7.129,
+            "return_rate": 10.61
+          },
+          {
+            "date": "2026-05-06",
+            "nav": 7.314,
+            "return_rate": 11.86
+          },
+          {
+            "date": "2026-05-07",
+            "nav": 7.59,
+            "return_rate": 16.08
+          },
+          {
+            "date": "2026-05-08",
+            "nav": 7.573,
+            "return_rate": 15.82
+          },
+          {
+            "date": "2026-05-11",
+            "nav": 7.785,
+            "return_rate": 19.06
+          },
+          {
+            "date": "2026-05-12",
+            "nav": 7.898,
+            "return_rate": 20.79
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 8.103,
+            "return_rate": 23.93
+          },
+          {
+            "date": "2026-05-14",
+            "nav": 7.978,
+            "return_rate": 22.02
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 7.81,
+            "return_rate": 19.45
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 7.884,
+            "return_rate": 20.58
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 7.974,
+            "return_rate": 21.95
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 8.151,
+            "return_rate": 24.66
+          },
+          {
+            "date": "2026-05-21",
+            "nav": 7.816,
+            "return_rate": 19.54
+          },
+          {
+            "date": "2026-05-22",
+            "nav": 8.228,
+            "return_rate": 25.84
+          },
+          {
+            "date": "2026-05-25",
+            "nav": 8.566,
+            "return_rate": 31.01
+          },
+          {
+            "date": "2026-05-26",
+            "nav": 8.531,
+            "return_rate": 30.47
+          },
+          {
+            "date": "2026-05-27",
+            "nav": 8.495,
+            "return_rate": 29.92
+          },
+          {
+            "date": "2026-05-28",
+            "nav": 8.799,
+            "return_rate": 34.57
+          },
+          {
+            "date": "2026-05-29",
+            "nav": 8.614,
+            "return_rate": 31.74
+          },
+          {
+            "date": "2026-06-01",
+            "nav": 8.239,
+            "return_rate": 26.01
+          },
+          {
+            "date": "2026-06-02",
+            "nav": 8.644,
+            "return_rate": 32.2
+          },
+          {
+            "date": "2026-06-03",
+            "nav": 8.921,
+            "return_rate": 36.44
+          },
+          {
+            "date": "2026-06-04",
+            "nav": 9.013,
+            "return_rate": 37.85
+          },
+          {
+            "date": "2026-06-05",
+            "nav": 8.651,
+            "return_rate": 32.31
+          },
+          {
+            "date": "2026-06-08",
+            "nav": 8.456,
+            "return_rate": 29.33
+          },
+          {
+            "date": "2026-06-09",
+            "nav": 8.969,
+            "return_rate": 37.17
+          },
+          {
+            "date": "2026-06-10",
+            "nav": 8.748,
+            "return_rate": 33.79
+          }
+        ]
       }
     ],
     "招商银行": [
@@ -8838,9 +8838,9 @@
         "code": "021277",
         "name": "广发全球精选股票(QDII)人民币C",
         "platform": "招商银行",
-        "current_nav": 6.4337,
-        "nav_date": "2026-06-10 22:28",
-        "daily_return": -0.2,
+        "current_nav": 6.3823,
+        "nav_date": "2026-06-11 04:00",
+        "daily_return": -1.0,
         "nav_status": "delayed",
         "data_source": "live",
         "latest_history_date": "2026-06-09",
@@ -8856,9 +8856,9 @@
         "holdings": {
           "total_invested": 91197.05,
           "total_shares": 15977.23,
-          "current_value": 102792.73,
-          "profit_loss": 11595.68,
-          "profit_loss_percent": 12.71,
+          "current_value": 101971.5,
+          "profit_loss": 10774.45,
+          "profit_loss_percent": 11.81,
           "purchases": [
             {
               "date": "2026-04-17",
@@ -9095,9 +9095,9 @@
         "code": "000390",
         "name": "华商优势行业混合A",
         "platform": "招商银行",
-        "current_nav": 3.441,
-        "nav_date": "2026-06-10",
-        "daily_return": -3.04,
+        "current_nav": 3.3789,
+        "nav_date": "2026-06-11 13:06",
+        "daily_return": -1.81,
         "nav_status": "confirmed",
         "data_source": "live",
         "latest_history_date": "2026-06-10",
@@ -9113,9 +9113,9 @@
         "holdings": {
           "total_invested": 49862.26,
           "total_shares": 18101.67,
-          "current_value": 62287.86,
-          "profit_loss": 12425.6,
-          "profit_loss_percent": 24.92,
+          "current_value": 61163.75,
+          "profit_loss": 11301.49,
+          "profit_loss_percent": 22.67,
           "purchases": [
             {
               "date": "2026-04-16",
@@ -9354,9 +9354,9 @@
         "code": "020723",
         "name": "国寿安保数字经济股票发起式C",
         "platform": "招商银行",
-        "current_nav": 3.0548,
-        "nav_date": "2026-06-10",
-        "daily_return": -3.32,
+        "current_nav": 3.0113,
+        "nav_date": "2026-06-11 13:06",
+        "daily_return": -1.42,
         "nav_status": "confirmed",
         "data_source": "live",
         "latest_history_date": "2026-06-10",
@@ -9372,9 +9372,9 @@
         "holdings": {
           "total_invested": 20000.0,
           "total_shares": 8078.85,
-          "current_value": 24679.27,
-          "profit_loss": 4679.27,
-          "profit_loss_percent": 23.4,
+          "current_value": 24327.84,
+          "profit_loss": 4327.84,
+          "profit_loss_percent": 21.64,
           "purchases": [
             {
               "date": "2026-04-13",
@@ -9615,19 +9615,19 @@
   },
   "summary": {
     "total_invested": 573410.75,
-    "total_value": 712881.3200000001,
-    "total_profit_loss": 139470.57,
-    "total_profit_loss_percent": 24.32,
+    "total_value": 705202.1900000001,
+    "total_profit_loss": 131791.44,
+    "total_profit_loss_percent": 22.98,
     "latest_trading_day_profit_loss": -10392.48,
-    "latest_trading_day_profit_loss_percent": -1.46,
+    "latest_trading_day_profit_loss_percent": -1.47,
     "latest_trading_day_profit_loss_diff": -33293.75,
-    "latest_trading_day_profit_loss_percent_diff": -4.67,
+    "latest_trading_day_profit_loss_percent_diff": -4.63,
     "yesterday_profit_loss": -10392.48,
-    "yesterday_profit_loss_percent": -1.46,
+    "yesterday_profit_loss_percent": -1.47,
     "yesterday_profit_loss_diff": -33293.75,
-    "yesterday_profit_loss_percent_diff": -4.67,
+    "yesterday_profit_loss_percent_diff": -4.63,
     "ytd_profit_loss": 206596.23,
-    "ytd_profit_loss_percent": 42.35,
+    "ytd_profit_loss_percent": 42.33,
     "total_realized_profit_loss": 26119.75
   }
 }

@@ -10,11 +10,7 @@
 
 ✅ 正确执行顺序：
     1. python fetch_fund_data.py      （必须先执行！获取最新净值、计算 FIFO 持仓）
-    2. python validate_records.py     （校验交易记录完整性）
-    3. python generate_holdings.py    （生成本脚本）
-
-🚀 简化方式：
-    python run_pipeline.py            （一键执行以上所有步骤）
+    2. python generate_holdings.py    （本脚本会自动校验交易记录完整性）
 
 📋 数据新鲜度检查：
     脚本会自动检查 funds_data.json 的更新时间，如果超过 24 小时，
@@ -84,7 +80,7 @@ def _check_funds_data_freshness():
             log("⚠️  请先运行: python fetch_fund_data.py", "error")
             log("   然后再运行: python generate_holdings.py", "error")
             log("", "error")
-            log("💡 或者一键运行: python run_pipeline.py", "error")
+            log("💡 建议: 先运行 python fetch_fund_data.py 再运行本脚本", "error")
             log("=" * 60, "error")
             log("", "error")
             return False
@@ -108,7 +104,19 @@ def generate_holdings_snapshot():
     if not _check_funds_data_freshness():
         log("[Error] 数据过期，中断执行", "error")
         sys.exit(1)
-    
+
+    # 校验交易记录完整性
+    try:
+        import validate_records
+        validate_records.validate()
+    except SystemExit as e:
+        if e.code != 0:
+            log("[Error] 交易记录校验失败，中断执行", "error")
+            sys.exit(1)
+    except Exception as e:
+        log(f"[Error] 交易记录校验异常: {e}", "error")
+        sys.exit(1)
+
     purchase_records = safe_load_json(PURCHASE_FILE)
     funds_data = safe_load_json(FUNDS_DATA_FILE)
 

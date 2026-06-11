@@ -152,7 +152,7 @@ REALTIME_API = "https://fundgz.1234567.com.cn/js/{}.js"
 
 def load_history_cache():
     """加载历史数据缓存。返回 {fund_code: [entries]} 或 {} if not found."""
-    cache = safe_load_json(HISTORY_CACHE_FILE, default={}, filter_keys=lambda k: k.startswith("_"))
+    cache = safe_load_json(HISTORY_CACHE_FILE, default={}, filter_keys=lambda k: k == "_meta")
     return cache if cache else {}
 
 

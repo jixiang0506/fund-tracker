@@ -2800,6 +2800,13 @@
                     }
                     state.fundConfig = dynamicFunds;
                     state.fundPlatforms = Object.keys(dynamicFunds);
+                    // 如果管理弹窗已打开，重新填充平台下拉列表（配置刚加载完成）
+                    if (DOM.manageModal.style.display === 'block') {
+                        populatePlatformSelect();
+                        if (DOM.recordType.value === 'sell') {
+                            onRecordTypeChange();
+                        }
+                    }
                     // 动态生成平台筛选按钮
                     renderFilterButtons();
                 } else {
@@ -2836,6 +2843,10 @@
                 const buffer = await response.arrayBuffer();
                 const text = new TextDecoder('utf-8').decode(buffer);
                 state.fundsData = JSON.parse(text);
+                // 如果管理弹窗已打开且为卖出模式，重新初始化卖出表单（数据刚加载完成）
+                if (DOM.manageModal.style.display === 'block' && DOM.recordType.value === 'sell') {
+                    onRecordTypeChange();
+                }
                 renderData();
             } catch (error) {
                 console.error('加载数据失败:', error);
@@ -3798,7 +3809,7 @@
 
             if (initialType === 'sell') {
                 DOM.recordType.value = 'sell';
-                onRecordTypeChange();
+                onRecordTypeChange(); // updateSellFundList 和 updateSellHoldingsInfo 已有空数据防护
             } else {
                 clearRecordForm();
             }

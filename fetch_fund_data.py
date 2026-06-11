@@ -851,8 +851,8 @@ def _calculate_latest_trading_day_metrics(history, holdings, today):
 
     # day_before uses offset+1
     day_before_idx = idx - 1
-    day_before_nav = history[day_before_idx].get("nav", 0) if len(history) >= -day_before_idx + 1 else latest_nav
-    day_before_prev_nav = history[day_before_idx - 1].get("nav", 0) if len(history) >= -day_before_idx + 2 else latest_nav
+    day_before_nav = history[day_before_idx].get("nav", 0) if len(history) >= -day_before_idx else latest_nav
+    day_before_prev_nav = history[day_before_idx - 1].get("nav", 0) if len(history) >= -day_before_idx + 1 else latest_nav
 
     def _calc_return(current, previous):
         return (current - previous) / previous * 100 if previous > 0 else 0
@@ -1361,10 +1361,10 @@ def update_benchmark_index_data():
 def fetch_fund_info_from_web(code, session=None):
     """
     从天天基金网获取基金基本信息（基金名称、类型）
+    使用搜索 API，不受交易时段限制
     返回: {"name": "基金名称", "is_qdii": True/False, "benchmark": "..."} 或 None
     """
-
-    url = "https://fundgz.1234567.com.cn/js/{}.js".format(code)
+    url = "https://searchapi.eastmoney.com/api/suggest/get?input={}&type=14&count=1".format(code)
 
     try:
         if session is None:
@@ -1372,10 +1372,10 @@ def fetch_fund_info_from_web(code, session=None):
 
         resp = session.get(url, timeout=10)
         if resp.status_code == 200:
-            # 解析 JSONP
-            data = _parse_jsonpgz(resp.text)
-            if data:
-                name = data.get("name", "")
+            data = resp.json()
+            items = data.get("QuotationCodeTable", {}).get("Data", [])
+            if items and items[0].get("Code", "") == code:
+                name = items[0].get("Name", "")
 
                 # 启发式判断是否为 QDII
                 qdii_keywords = ["纳斯达克", "标普", "美股", "QDII", "海外", "国际"]

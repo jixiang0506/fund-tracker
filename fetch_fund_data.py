@@ -962,9 +962,11 @@ def process_fund(platform, code, fund_start_date, http_session,
                 purchases = purchase_records.get(platform, {}).get(code, [])
 
                 # 确定昨日确认净值（优先用历史数据，兜底用缓存值）
+                # 注意：history[-1] 可能是今天的数据（含实时估值），需要用 offset 逻辑跳过
                 if history:
-                    confirmed_nav = history[-1]["nav"]
-                    confirmed_nav_date = history[-1]["date"]
+                    _cache_offset = 2 if history[-1].get("date", "") == today else 1
+                    confirmed_nav = history[-_cache_offset]["nav"]
+                    confirmed_nav_date = history[-_cache_offset]["date"]
                 else:
                     confirmed_nav = old_fund.get("current_nav", 0)
                     confirmed_nav_date = old_fund.get("nav_date", "")
@@ -1006,8 +1008,14 @@ def process_fund(platform, code, fund_start_date, http_session,
         purchases = purchase_records.get(platform, {}).get(code, [])
 
         # 使用昨日确认净值计算持仓收益，而非实时估值（保证与"昨日净值"展示一致）
-        confirmed_nav = history[-1]["nav"] if history else realtime["nav"]
-        confirmed_nav_date = history[-1]["date"] if history else realtime.get("nav_date", "")
+        # 注意：history[-1] 可能是今天的数据（含实时估值），需要用 offset 逻辑跳过
+        if history:
+            _offset = 2 if history[-1].get("date", "") == today else 1
+            confirmed_nav = history[-_offset]["nav"]
+            confirmed_nav_date = history[-_offset]["date"]
+        else:
+            confirmed_nav = realtime["nav"]
+            confirmed_nav_date = realtime.get("nav_date", "")
         holdings = calculate_holdings(purchases, confirmed_nav, history, fund_code=code)
 
         cumulative_returns = calculate_cumulative_returns(

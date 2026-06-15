@@ -959,12 +959,23 @@ def process_fund(platform, code, fund_start_date, http_session,
             if code in prev_fund_map:
                 # 用深拷贝避免修改 prev_fund_map 中的原始数据
                 old_fund = copy.deepcopy(prev_fund_map[code])
-                old_nav = old_fund.get("current_nav", 0)
-                # 用新的 purchase_records 重新计算 holdings，保留旧 NAV
                 purchases = purchase_records.get(platform, {}).get(code, [])
+
+                # 确定昨日确认净值（优先用历史数据，兜底用缓存值）
+                if history:
+                    confirmed_nav = history[-1]["nav"]
+                    confirmed_nav_date = history[-1]["date"]
+                else:
+                    confirmed_nav = old_fund.get("current_nav", 0)
+                    confirmed_nav_date = old_fund.get("nav_date", "")
+
                 if history and purchases:
-                    new_holdings = calculate_holdings(purchases, old_nav, history, fund_code=code)
+                    # 使用昨日确认净值计算持仓收益，而非缓存的实时估值
+                    new_holdings = calculate_holdings(purchases, confirmed_nav, history, fund_code=code)
                     old_fund["holdings"] = new_holdings
+                    old_fund["current_nav"] = confirmed_nav
+                    old_fund["nav_date"] = confirmed_nav_date
+                    old_fund["nav_status"] = "confirmed"
                     # 注意：calculate_holdings() 内部已计算 current_value，无需重复计算
                     # 重新计算累计收益率（使用路径2近似计算）
                     # 也传入原始交易记录和完整历史，使用精确FIFO模拟（路径1）
@@ -977,6 +988,12 @@ def process_fund(platform, code, fund_start_date, http_session,
                     old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
                     old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
                     old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
+                else:
+                    # 无历史数据或无交易记录时，仍更新 current_nav 保证字段一致性
+                    old_fund["current_nav"] = confirmed_nav
+                    old_fund["nav_date"] = confirmed_nav_date
+                    old_fund["nav_status"] = "confirmed" if history else old_fund.get("nav_status", "unknown")
+
                 old_fund["data_source"] = "cached"
                 return (old_fund, old_fund["holdings"]["total_invested"],
                         old_fund["holdings"]["current_value"], "使用缓存数据(已用新交易记录重新计算)")
@@ -988,7 +1005,10 @@ def process_fund(platform, code, fund_start_date, http_session,
         # --- 第3步:计算持仓和收益 ---
         purchases = purchase_records.get(platform, {}).get(code, [])
 
-        holdings = calculate_holdings(purchases, realtime["nav"], history, fund_code=code)
+        # 使用昨日确认净值计算持仓收益，而非实时估值（保证与"昨日净值"展示一致）
+        confirmed_nav = history[-1]["nav"] if history else realtime["nav"]
+        confirmed_nav_date = history[-1]["date"] if history else realtime.get("nav_date", "")
+        holdings = calculate_holdings(purchases, confirmed_nav, history, fund_code=code)
 
         cumulative_returns = calculate_cumulative_returns(
             history,
@@ -1007,10 +1027,10 @@ def process_fund(platform, code, fund_start_date, http_session,
             "code": code,
             "name": realtime["name"],
             "platform": platform,
-            "current_nav": realtime["nav"],
-            "nav_date": realtime["nav_date"],
-            "daily_return": realtime["change_percent"],
-            "nav_status": realtime.get("nav_status", "confirmed"),
+            "current_nav": confirmed_nav,
+            "nav_date": confirmed_nav_date,
+            "daily_return": m["latest_trading_day_return"],
+            "nav_status": "confirmed" if history else realtime.get("nav_status", "unknown"),
             "data_source": "live",
             "latest_history_date": latest_history_date,
             "latest_trading_day_nav": round(m["latest_trading_day_nav"], 4),

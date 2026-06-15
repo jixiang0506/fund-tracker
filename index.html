@@ -3982,6 +3982,7 @@
         }
 
         // 核心：渲染对比图表
+        // 使用统一日期对齐所有数据集，确保 tooltip 正确显示所有基金
         function renderCompareChart() {
             const canvas = document.getElementById('compareChart');
             if (!canvas) return;
@@ -4001,19 +4002,16 @@
             const period = activePeriodBtn ? activePeriodBtn.dataset.period : 'all';
             const startDate = buildComparePeriodCutoff(period);
 
-            // 收集所有数据集
-            const datasets = [];
-            const colorPalette = [
-                '#f56565',  // 红
-                '#48bb78',  // 绿
-                '#4299e1',  // 蓝
-                '#ed8936',  // 橙
-                '#9f7aea',  // 紫
-            ];
+            const colorPalette = ['#f56565', '#48bb78', '#4299e1', '#ed8936', '#9f7aea'];
+            const benchmarkColors = ['#ecc94b', '#00b5d8'];
+            const benchmarkNames = ['科创50', '纳斯达克100'];
 
-            // 1. 添加基金数据集
-            selectedCodes.forEach((code, idx) => {
-                // flatten 查找基金
+            // 先收集所有数据集的归一化值（用对象映射日期->值），同时收集所有日期
+            const allDataEntries = [];
+            const allDatesSet = new Set();
+
+            // 1. 基金数据集
+            selectedCodes.forEach((code) => {
                 let fund = null;
                 const fundGroups = state.fundsData?.funds || {};
                 for (const arr of Object.values(fundGroups)) {
@@ -4024,35 +4022,31 @@
                 }
                 if (!fund || !fund.history || fund.history.length === 0) return;
 
-                // 过滤日期范围
                 let data = fund.history.filter(h => !startDate || h.date >= startDate);
                 if (data.length === 0) return;
 
-                // 归一化：找到第一个有效 NAV，后续值除以该值
                 const baseNav = data.find(h => h.nav > 0)?.nav;
                 if (!baseNav || baseNav <= 0) return;
 
-                const normalizedData = data.map(h => ({
-                    x: h.date,
-                    y: h.nav / baseNav
-                }));
+                const valueMap = {};
+                data.forEach(h => {
+                    valueMap[h.date] = h.nav / baseNav;
+                    allDatesSet.add(h.date);
+                });
 
-                datasets.push({
+                allDataEntries.push({
                     label: `${fund.name || fund.code} (${fund.code})`,
-                    data: normalizedData,
-                    borderColor: colorPalette[idx % colorPalette.length],
-                    backgroundColor: 'transparent',
+                    valueMap,
+                    borderColor: colorPalette[allDataEntries.length % colorPalette.length],
                     borderWidth: 2,
                     pointRadius: 0,
                     pointHoverRadius: 4,
-                    tension: 0.1
+                    tension: 0.1,
+                    spanGaps: true
                 });
             });
 
-            // 2. 添加基准指数数据集（始终显示两个业绩比较基准）
-            const benchmarkColors = ['#ecc94b', '#00b5d8'];
-            const benchmarkNames = ['科创50', '纳斯达克100'];
-            let bIdx = 0;
+            // 2. 基准指数数据集
             benchmarkNames.forEach(bmKey => {
                 const indexCode = BENCHMARK_INDEX_MAP[bmKey];
                 if (!indexCode || !state.benchmarkIndexData?.[indexCode]) return;
@@ -4069,23 +4063,37 @@
                 const baseVal = filtered.find(d => d.value > 0)?.value;
                 if (!baseVal || baseVal <= 0) return;
 
-                const normalizedBm = filtered.map(d => ({
-                    x: d.date,
-                    y: d.value / baseVal
-                }));
+                const valueMap = {};
+                filtered.forEach(d => {
+                    valueMap[d.date] = d.value / baseVal;
+                    allDatesSet.add(d.date);
+                });
 
-                datasets.push({
+                allDataEntries.push({
                     label: `📈 ${bmKey}（基准）`,
-                    data: normalizedBm,
-                    borderColor: benchmarkColors[bIdx % benchmarkColors.length],
-                    backgroundColor: 'transparent',
+                    valueMap,
+                    borderColor: benchmarkColors[benchmarkNames.indexOf(bmKey) % benchmarkColors.length],
                     borderWidth: 1.5,
                     borderDash: [5, 5],
                     pointRadius: 0,
                     pointHoverRadius: 3,
-                    tension: 0.1
+                    tension: 0.1,
+                    spanGaps: true
                 });
-                bIdx++;
+            });
+
+            if (allDataEntries.length === 0) return;
+
+            // 统一日期轴：所有日期去重排序
+            const labels = [...allDatesSet].sort();
+
+            // 将每个数据集映射到统一日期轴
+            const datasets = allDataEntries.map(entry => {
+                const { valueMap, ...rest } = entry;
+                return {
+                    ...rest,
+                    data: labels.map(date => valueMap[date] !== undefined ? valueMap[date] : null)
+                };
             });
 
             // 销毁旧图表
@@ -4096,7 +4104,7 @@
             // 创建新图表
             window._compareChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: { datasets },
+                data: { labels, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -4106,12 +4114,13 @@
                     },
                     plugins: {
                         legend: {
-                            display: false  // 禁用 Chart.js 内置图例，使用下方自定义图例
+                            display: false
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(ctx) {
-                                    const val = ctx.raw.y;
+                                    if (ctx.parsed.y === null || ctx.parsed.y === undefined) return null;
+                                    const val = ctx.parsed.y;
                                     const pct = ((val - 1) * 100).toFixed(2);
                                     const sign = pct >= 0 ? '+' : '';
                                     return `${ctx.dataset.label}: ${sign}${pct}%`;
@@ -4121,16 +4130,8 @@
                     },
                     scales: {
                         x: {
-                            type: 'time',
-                            time: {
-                                tooltipFormat: 'yyyy-MM-dd',
-                                displayFormats: {
-                                    day: 'MM-dd',
-                                    week: 'MM-dd',
-                                    month: 'yyyy-MM'
-                                }
-                            },
                             ticks: {
+                                maxTicksLimit: 8,
                                 color: '#a0aec0'
                             },
                             grid: {

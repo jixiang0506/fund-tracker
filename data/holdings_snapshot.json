@@ -1,28 +1,8 @@
 {
   "format_version": "1.0",
-  "generated_at": "2026-06-18T00:43:14+08:00",
+  "generated_at": "2026-06-18T00:46:28+08:00",
   "funds": {
     "支付宝": {
-      "270023": {
-        "fund_name": "广发全球精选股票(QDII)人民币A",
-        "current_nav": 6.9684,
-        "nav_date": "2026-06-16",
-        "data_source": "live",
-        "holdings": {
-          "total_shares": 11745.34,
-          "total_invested": 47860.3,
-          "current_value": 81846.24,
-          "profit_loss": 33985.94,
-          "profit_loss_percent": 71.01,
-          "realized_profit_loss": 26119.75,
-          "avg_cost_nav": 4.0748,
-          "daily_return": -1.41,
-          "daily_profit_loss": -1168.66
-        },
-        "transactions_count": 17,
-        "first_purchase_date": "2024-03-06",
-        "last_update": "2026-06-18T00:43:14+08:00"
-      },
       "001438": {
         "fund_name": "易方达瑞享混合E",
         "current_nav": 11.46,
@@ -41,27 +21,7 @@
         },
         "transactions_count": 6,
         "first_purchase_date": "2026-03-12",
-        "last_update": "2026-06-18T00:43:14+08:00"
-      },
-      "002112": {
-        "fund_name": "德邦鑫星价值灵活配置混合C",
-        "current_nav": 6.5765,
-        "nav_date": "2026-06-17",
-        "data_source": "live",
-        "holdings": {
-          "total_shares": 14849.29,
-          "total_invested": 70000.0,
-          "current_value": 97656.37,
-          "profit_loss": 27656.37,
-          "profit_loss_percent": 39.51,
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 4.714,
-          "daily_return": 1.45,
-          "daily_profit_loss": 1400.29
-        },
-        "transactions_count": 3,
-        "first_purchase_date": "2026-04-15",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
       },
       "016665": {
         "fund_name": "天弘全球高端制造混合(QDII)C",
@@ -81,7 +41,27 @@
         },
         "transactions_count": 2,
         "first_purchase_date": "2026-03-12",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
+      },
+      "270023": {
+        "fund_name": "广发全球精选股票(QDII)人民币A",
+        "current_nav": 6.9684,
+        "nav_date": "2026-06-16",
+        "data_source": "live",
+        "holdings": {
+          "total_shares": 11745.34,
+          "total_invested": 47860.3,
+          "current_value": 81846.24,
+          "profit_loss": 33985.94,
+          "profit_loss_percent": 71.01,
+          "realized_profit_loss": 26119.75,
+          "avg_cost_nav": 4.0748,
+          "daily_return": -1.41,
+          "daily_profit_loss": -1168.66
+        },
+        "transactions_count": 17,
+        "first_purchase_date": "2024-03-06",
+        "last_update": "2026-06-18T00:46:28+08:00"
       },
       "018230": {
         "fund_name": "易方达全球优质企业混合(QDII)C(人民币份额)",
@@ -101,7 +81,27 @@
         },
         "transactions_count": 20,
         "first_purchase_date": "2026-03-12",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
+      },
+      "002112": {
+        "fund_name": "德邦鑫星价值灵活配置混合C",
+        "current_nav": 6.5765,
+        "nav_date": "2026-06-17",
+        "data_source": "live",
+        "holdings": {
+          "total_shares": 14849.29,
+          "total_invested": 70000.0,
+          "current_value": 97656.37,
+          "profit_loss": 27656.37,
+          "profit_loss_percent": 39.51,
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 4.714,
+          "daily_return": 1.45,
+          "daily_profit_loss": 1400.29
+        },
+        "transactions_count": 3,
+        "first_purchase_date": "2026-04-15",
+        "last_update": "2026-06-18T00:46:28+08:00"
       },
       "017811": {
         "fund_name": "东方人工智能主题混合C",
@@ -121,7 +121,7 @@
         },
         "transactions_count": 2,
         "first_purchase_date": "2026-05-20",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
       }
     },
     "理财通": {
@@ -143,7 +143,7 @@
         },
         "transactions_count": 29,
         "first_purchase_date": "2026-03-04",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
       },
       "019018": {
         "fund_name": "易方达信息产业混合C",
@@ -163,7 +163,7 @@
         },
         "transactions_count": 3,
         "first_purchase_date": "2026-04-15",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
       },
       "018147": {
         "fund_name": "建信新兴市场混合(QDII)C",
@@ -183,30 +183,10 @@
         },
         "transactions_count": 29,
         "first_purchase_date": "2026-03-01",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
       }
     },
     "招商银行": {
-      "000390": {
-        "fund_name": "华商优势行业混合A",
-        "current_nav": 3.363,
-        "nav_date": "2026-06-17",
-        "data_source": "live",
-        "holdings": {
-          "total_shares": 18101.67,
-          "total_invested": 49862.26,
-          "current_value": 60875.93,
-          "profit_loss": 11013.67,
-          "profit_loss_percent": 22.09,
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 2.7546,
-          "daily_return": 2.37,
-          "daily_profit_loss": 1411.93
-        },
-        "transactions_count": 2,
-        "first_purchase_date": "2026-04-16",
-        "last_update": "2026-06-18T00:43:14+08:00"
-      },
       "021277": {
         "fund_name": "广发全球精选股票(QDII)人民币C",
         "current_nav": 6.8793,
@@ -225,7 +205,27 @@
         },
         "transactions_count": 3,
         "first_purchase_date": "2026-04-17",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
+      },
+      "000390": {
+        "fund_name": "华商优势行业混合A",
+        "current_nav": 3.363,
+        "nav_date": "2026-06-17",
+        "data_source": "live",
+        "holdings": {
+          "total_shares": 18101.67,
+          "total_invested": 49862.26,
+          "current_value": 60875.93,
+          "profit_loss": 11013.67,
+          "profit_loss_percent": 22.09,
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.7546,
+          "daily_return": 2.37,
+          "daily_profit_loss": 1411.93
+        },
+        "transactions_count": 2,
+        "first_purchase_date": "2026-04-16",
+        "last_update": "2026-06-18T00:46:28+08:00"
       },
       "020723": {
         "fund_name": "国寿安保数字经济股票发起式C",
@@ -245,7 +245,7 @@
         },
         "transactions_count": 1,
         "first_purchase_date": "2026-04-13",
-        "last_update": "2026-06-18T00:43:14+08:00"
+        "last_update": "2026-06-18T00:46:28+08:00"
       }
     }
   },

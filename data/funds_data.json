@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-06-18 00:19:39",
+  "update_time": "2026-06-18 00:43:14",
   "funds": {
     "支付宝": [
       {
@@ -3701,6 +3701,405 @@
         ]
       },
       {
+        "code": "016665",
+        "name": "天弘全球高端制造混合(QDII)C",
+        "platform": "支付宝",
+        "current_nav": 3.6184,
+        "nav_date": "2026-06-16",
+        "daily_return": 0.53,
+        "nav_status": "confirmed",
+        "data_source": "live",
+        "latest_history_date": "2026-06-16",
+        "latest_trading_day_nav": 3.6184,
+        "latest_trading_day_nav_date": "2026-06-16",
+        "latest_trading_day_return": 0.53,
+        "latest_trading_day_profit": 165.66,
+        "day_before_latest_trading_day_return": 7.26,
+        "day_before_latest_trading_day_profit": 2113.69,
+        "ytd_return": 66.41,
+        "ytd_profit": 12524.3,
+        "ytd_start_nav": 2.1744,
+        "holdings": {
+          "total_invested": 20000.0,
+          "total_shares": 8673.34,
+          "current_value": 31383.62,
+          "profit_loss": 11383.62,
+          "profit_loss_percent": 56.92,
+          "purchases": [
+            {
+              "date": "2026-03-12",
+              "amount": 10000,
+              "nav": 2.1451,
+              "shares": 4661.79,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-15",
+              "amount": 10000,
+              "nav": 2.4928,
+              "shares": 4011.55,
+              "type": "buy",
+              "nav_source": "exact"
+            }
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 2.3059
+        },
+        "history": [
+          {
+            "date": "2026-03-05",
+            "nav": 2.1744,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-06",
+            "nav": 2.1355,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-09",
+            "nav": 2.1113,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-10",
+            "nav": 2.1857,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-11",
+            "nav": 2.1858,
+            "return_rate": null
+          },
+          {
+            "date": "2026-03-12",
+            "nav": 2.1451,
+            "return_rate": 0.0
+          },
+          {
+            "date": "2026-03-13",
+            "nav": 2.1205,
+            "return_rate": -1.15
+          },
+          {
+            "date": "2026-03-16",
+            "nav": 2.1661,
+            "return_rate": 0.98
+          },
+          {
+            "date": "2026-03-17",
+            "nav": 2.1326,
+            "return_rate": -0.58
+          },
+          {
+            "date": "2026-03-18",
+            "nav": 2.2055,
+            "return_rate": 2.82
+          },
+          {
+            "date": "2026-03-19",
+            "nav": 2.1776,
+            "return_rate": 1.52
+          },
+          {
+            "date": "2026-03-20",
+            "nav": 2.1539,
+            "return_rate": 0.41
+          },
+          {
+            "date": "2026-03-23",
+            "nav": 2.0912,
+            "return_rate": -2.51
+          },
+          {
+            "date": "2026-03-24",
+            "nav": 2.1568,
+            "return_rate": 0.55
+          },
+          {
+            "date": "2026-03-25",
+            "nav": 2.199,
+            "return_rate": 2.51
+          },
+          {
+            "date": "2026-03-26",
+            "nav": 2.1046,
+            "return_rate": -1.89
+          },
+          {
+            "date": "2026-03-27",
+            "nav": 2.0917,
+            "return_rate": -2.49
+          },
+          {
+            "date": "2026-03-30",
+            "nav": 2.0396,
+            "return_rate": -4.92
+          },
+          {
+            "date": "2026-03-31",
+            "nav": 2.0257,
+            "return_rate": -5.57
+          },
+          {
+            "date": "2026-04-01",
+            "nav": 2.1296,
+            "return_rate": -0.72
+          },
+          {
+            "date": "2026-04-02",
+            "nav": 2.0976,
+            "return_rate": -2.21
+          },
+          {
+            "date": "2026-04-03",
+            "nav": 2.1202,
+            "return_rate": -1.16
+          },
+          {
+            "date": "2026-04-07",
+            "nav": 2.1275,
+            "return_rate": -0.82
+          },
+          {
+            "date": "2026-04-08",
+            "nav": 2.3435,
+            "return_rate": 9.25
+          },
+          {
+            "date": "2026-04-09",
+            "nav": 2.3481,
+            "return_rate": 9.46
+          },
+          {
+            "date": "2026-04-10",
+            "nav": 2.4171,
+            "return_rate": 12.68
+          },
+          {
+            "date": "2026-04-13",
+            "nav": 2.436,
+            "return_rate": 13.56
+          },
+          {
+            "date": "2026-04-14",
+            "nav": 2.509,
+            "return_rate": 16.96
+          },
+          {
+            "date": "2026-04-15",
+            "nav": 2.4928,
+            "return_rate": 8.1
+          },
+          {
+            "date": "2026-04-16",
+            "nav": 2.5481,
+            "return_rate": 10.5
+          },
+          {
+            "date": "2026-04-17",
+            "nav": 2.5838,
+            "return_rate": 12.05
+          },
+          {
+            "date": "2026-04-20",
+            "nav": 2.5824,
+            "return_rate": 11.99
+          },
+          {
+            "date": "2026-04-21",
+            "nav": 2.6463,
+            "return_rate": 14.76
+          },
+          {
+            "date": "2026-04-22",
+            "nav": 2.7165,
+            "return_rate": 17.81
+          },
+          {
+            "date": "2026-04-23",
+            "nav": 2.6902,
+            "return_rate": 16.67
+          },
+          {
+            "date": "2026-04-24",
+            "nav": 2.7068,
+            "return_rate": 17.38
+          },
+          {
+            "date": "2026-04-27",
+            "nav": 2.7229,
+            "return_rate": 18.08
+          },
+          {
+            "date": "2026-04-28",
+            "nav": 2.6636,
+            "return_rate": 15.51
+          },
+          {
+            "date": "2026-04-29",
+            "nav": 2.6917,
+            "return_rate": 16.73
+          },
+          {
+            "date": "2026-04-30",
+            "nav": 2.7254,
+            "return_rate": 18.19
+          },
+          {
+            "date": "2026-05-06",
+            "nav": 2.9235,
+            "return_rate": 26.78
+          },
+          {
+            "date": "2026-05-07",
+            "nav": 2.9942,
+            "return_rate": 29.85
+          },
+          {
+            "date": "2026-05-08",
+            "nav": 3.0379,
+            "return_rate": 31.74
+          },
+          {
+            "date": "2026-05-11",
+            "nav": 3.1895,
+            "return_rate": 38.32
+          },
+          {
+            "date": "2026-05-12",
+            "nav": 3.1613,
+            "return_rate": 37.1
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 3.2847,
+            "return_rate": 42.45
+          },
+          {
+            "date": "2026-05-14",
+            "nav": 3.2444,
+            "return_rate": 40.7
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 3.091,
+            "return_rate": 34.05
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 3.0823,
+            "return_rate": 33.67
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 3.0567,
+            "return_rate": 32.56
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 3.103,
+            "return_rate": 34.57
+          },
+          {
+            "date": "2026-05-21",
+            "nav": 3.1259,
+            "return_rate": 35.56
+          },
+          {
+            "date": "2026-05-22",
+            "nav": 3.2323,
+            "return_rate": 40.17
+          },
+          {
+            "date": "2026-05-25",
+            "nav": 3.3033,
+            "return_rate": 43.25
+          },
+          {
+            "date": "2026-05-26",
+            "nav": 3.3343,
+            "return_rate": 44.6
+          },
+          {
+            "date": "2026-05-27",
+            "nav": 3.3912,
+            "return_rate": 47.07
+          },
+          {
+            "date": "2026-05-28",
+            "nav": 3.4384,
+            "return_rate": 49.11
+          },
+          {
+            "date": "2026-05-29",
+            "nav": 3.4075,
+            "return_rate": 47.77
+          },
+          {
+            "date": "2026-06-01",
+            "nav": 3.4091,
+            "return_rate": 47.84
+          },
+          {
+            "date": "2026-06-02",
+            "nav": 3.5069,
+            "return_rate": 52.08
+          },
+          {
+            "date": "2026-06-03",
+            "nav": 3.5949,
+            "return_rate": 55.9
+          },
+          {
+            "date": "2026-06-04",
+            "nav": 3.5491,
+            "return_rate": 53.91
+          },
+          {
+            "date": "2026-06-05",
+            "nav": 3.315,
+            "return_rate": 43.76
+          },
+          {
+            "date": "2026-06-08",
+            "nav": 3.2243,
+            "return_rate": 39.83
+          },
+          {
+            "date": "2026-06-09",
+            "nav": 3.3531,
+            "return_rate": 45.41
+          },
+          {
+            "date": "2026-06-10",
+            "nav": 3.2256,
+            "return_rate": 39.88
+          },
+          {
+            "date": "2026-06-11",
+            "nav": 3.3233,
+            "return_rate": 44.12
+          },
+          {
+            "date": "2026-06-12",
+            "nav": 3.3556,
+            "return_rate": 45.52
+          },
+          {
+            "date": "2026-06-15",
+            "nav": 3.5993,
+            "return_rate": 56.09
+          },
+          {
+            "date": "2026-06-16",
+            "nav": 3.6184,
+            "return_rate": 56.92
+          }
+        ]
+      },
+      {
         "code": "018230",
         "name": "易方达全球优质企业混合(QDII)C(人民币份额)",
         "platform": "支付宝",
@@ -4259,9 +4658,9 @@
         "latest_trading_day_profit": 4820.03,
         "day_before_latest_trading_day_return": -0.3,
         "day_before_latest_trading_day_profit": -190.01,
-        "ytd_return": 89.07,
-        "ytd_profit": 31669.06,
-        "ytd_start_nav": 1.6841,
+        "ytd_return": 29.11,
+        "ytd_profit": 15158.93,
+        "ytd_start_nav": 2.4661,
         "holdings": {
           "total_invested": 60000.0,
           "total_shares": 21112.71,
@@ -4290,2671 +4689,6 @@
           "avg_cost_nav": 2.8419
         },
         "history": [
-          {
-            "date": "2024-02-28",
-            "nav": 0.8309,
-            "return_rate": null
-          },
-          {
-            "date": "2024-02-29",
-            "nav": 0.912,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-01",
-            "nav": 0.9201,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-04",
-            "nav": 0.9313,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-05",
-            "nav": 0.9127,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-06",
-            "nav": 0.9035,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-07",
-            "nav": 0.8978,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-08",
-            "nav": 0.9187,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-11",
-            "nav": 0.9253,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-12",
-            "nav": 0.9294,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-13",
-            "nav": 0.9207,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-14",
-            "nav": 0.9018,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-15",
-            "nav": 0.9079,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-18",
-            "nav": 0.9262,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-19",
-            "nav": 0.9177,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-20",
-            "nav": 0.9264,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-21",
-            "nav": 0.9374,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-22",
-            "nav": 0.9517,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-25",
-            "nav": 0.9377,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-26",
-            "nav": 0.9215,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-27",
-            "nav": 0.8858,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-28",
-            "nav": 0.8847,
-            "return_rate": null
-          },
-          {
-            "date": "2024-03-29",
-            "nav": 0.8909,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-01",
-            "nav": 0.8852,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-02",
-            "nav": 0.8659,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-03",
-            "nav": 0.8545,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-08",
-            "nav": 0.8443,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-09",
-            "nav": 0.8502,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-10",
-            "nav": 0.8172,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-11",
-            "nav": 0.8086,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-12",
-            "nav": 0.8026,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-15",
-            "nav": 0.8311,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-16",
-            "nav": 0.8027,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-17",
-            "nav": 0.8306,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-18",
-            "nav": 0.8229,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-19",
-            "nav": 0.7884,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-22",
-            "nav": 0.7903,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-23",
-            "nav": 0.8035,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-24",
-            "nav": 0.8153,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-25",
-            "nav": 0.8121,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-26",
-            "nav": 0.8377,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-29",
-            "nav": 0.8634,
-            "return_rate": null
-          },
-          {
-            "date": "2024-04-30",
-            "nav": 0.8425,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-06",
-            "nav": 0.8517,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-07",
-            "nav": 0.8379,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-08",
-            "nav": 0.82,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-09",
-            "nav": 0.845,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-10",
-            "nav": 0.8147,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-13",
-            "nav": 0.7998,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-14",
-            "nav": 0.7949,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-15",
-            "nav": 0.7942,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-16",
-            "nav": 0.7972,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-17",
-            "nav": 0.8106,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-20",
-            "nav": 0.81,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-21",
-            "nav": 0.8171,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-22",
-            "nav": 0.8123,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-23",
-            "nav": 0.8069,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-24",
-            "nav": 0.7871,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-27",
-            "nav": 0.8213,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-28",
-            "nav": 0.8149,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-29",
-            "nav": 0.8086,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-30",
-            "nav": 0.8253,
-            "return_rate": null
-          },
-          {
-            "date": "2024-05-31",
-            "nav": 0.8139,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-03",
-            "nav": 0.8367,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-04",
-            "nav": 0.8347,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-05",
-            "nav": 0.8351,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-06",
-            "nav": 0.8406,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-07",
-            "nav": 0.8577,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-11",
-            "nav": 0.9026,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-12",
-            "nav": 0.898,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-13",
-            "nav": 0.9039,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-14",
-            "nav": 0.8807,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-17",
-            "nav": 0.8953,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-18",
-            "nav": 0.8842,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-19",
-            "nav": 0.8802,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-20",
-            "nav": 0.8895,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-21",
-            "nav": 0.8866,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-24",
-            "nav": 0.8522,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-25",
-            "nav": 0.8161,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-26",
-            "nav": 0.8335,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-27",
-            "nav": 0.8146,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-28",
-            "nav": 0.8029,
-            "return_rate": null
-          },
-          {
-            "date": "2024-06-30",
-            "nav": 0.8028,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-01",
-            "nav": 0.8046,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-02",
-            "nav": 0.7945,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-03",
-            "nav": 0.8079,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-04",
-            "nav": 0.7883,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-05",
-            "nav": 0.7867,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-08",
-            "nav": 0.7781,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-09",
-            "nav": 0.804,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-10",
-            "nav": 0.7965,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-11",
-            "nav": 0.801,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-12",
-            "nav": 0.8187,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-15",
-            "nav": 0.8259,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-16",
-            "nav": 0.8386,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-17",
-            "nav": 0.851,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-18",
-            "nav": 0.8848,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-19",
-            "nav": 0.8876,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-22",
-            "nav": 0.885,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-23",
-            "nav": 0.8308,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-24",
-            "nav": 0.8066,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-25",
-            "nav": 0.801,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-26",
-            "nav": 0.813,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-29",
-            "nav": 0.8046,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-30",
-            "nav": 0.8156,
-            "return_rate": null
-          },
-          {
-            "date": "2024-07-31",
-            "nav": 0.853,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-01",
-            "nav": 0.8688,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-02",
-            "nav": 0.8451,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-05",
-            "nav": 0.8116,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-06",
-            "nav": 0.8286,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-07",
-            "nav": 0.8235,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-08",
-            "nav": 0.8394,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-09",
-            "nav": 0.8338,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-12",
-            "nav": 0.8288,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-13",
-            "nav": 0.8298,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-14",
-            "nav": 0.8056,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-15",
-            "nav": 0.8031,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-16",
-            "nav": 0.8017,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-19",
-            "nav": 0.7933,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-20",
-            "nav": 0.778,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-21",
-            "nav": 0.7743,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-22",
-            "nav": 0.7685,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-23",
-            "nav": 0.7582,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-26",
-            "nav": 0.7608,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-27",
-            "nav": 0.7595,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-28",
-            "nav": 0.7648,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-29",
-            "nav": 0.7742,
-            "return_rate": null
-          },
-          {
-            "date": "2024-08-30",
-            "nav": 0.8006,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-02",
-            "nav": 0.7606,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-03",
-            "nav": 0.7636,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-04",
-            "nav": 0.7627,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-05",
-            "nav": 0.7622,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-06",
-            "nav": 0.7389,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-09",
-            "nav": 0.7385,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-10",
-            "nav": 0.7477,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-11",
-            "nav": 0.7507,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-12",
-            "nav": 0.7416,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-13",
-            "nav": 0.7322,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-18",
-            "nav": 0.7349,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-19",
-            "nav": 0.7323,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-20",
-            "nav": 0.7268,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-23",
-            "nav": 0.704,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-24",
-            "nav": 0.7367,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-25",
-            "nav": 0.7344,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-26",
-            "nav": 0.7662,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-27",
-            "nav": 0.8214,
-            "return_rate": null
-          },
-          {
-            "date": "2024-09-30",
-            "nav": 0.949,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-08",
-            "nav": 1.1014,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-09",
-            "nav": 1.0734,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-10",
-            "nav": 0.9956,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-11",
-            "nav": 0.9246,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-14",
-            "nav": 0.9494,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-15",
-            "nav": 0.9387,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-16",
-            "nav": 0.9218,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-17",
-            "nav": 0.9197,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-18",
-            "nav": 1.0158,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-21",
-            "nav": 1.0178,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-22",
-            "nav": 0.9978,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-23",
-            "nav": 0.9832,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-24",
-            "nav": 0.9835,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-25",
-            "nav": 1.0048,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-28",
-            "nav": 0.9957,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-29",
-            "nav": 0.983,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-30",
-            "nav": 0.9829,
-            "return_rate": null
-          },
-          {
-            "date": "2024-10-31",
-            "nav": 1.032,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-01",
-            "nav": 1.0069,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-04",
-            "nav": 1.0435,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-05",
-            "nav": 1.0735,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-06",
-            "nav": 1.0917,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-07",
-            "nav": 1.1205,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-08",
-            "nav": 1.1796,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-11",
-            "nav": 1.2927,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-12",
-            "nav": 1.256,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-13",
-            "nav": 1.2557,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-14",
-            "nav": 1.2064,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-15",
-            "nav": 1.129,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-18",
-            "nav": 1.1261,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-19",
-            "nav": 1.1605,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-20",
-            "nav": 1.1598,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-21",
-            "nav": 1.1683,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-22",
-            "nav": 1.1302,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-25",
-            "nav": 1.1279,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-26",
-            "nav": 1.12,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-27",
-            "nav": 1.1386,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-28",
-            "nav": 1.1456,
-            "return_rate": null
-          },
-          {
-            "date": "2024-11-29",
-            "nav": 1.1708,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-02",
-            "nav": 1.1761,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-03",
-            "nav": 1.1519,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-04",
-            "nav": 1.1337,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-05",
-            "nav": 1.1271,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-06",
-            "nav": 1.1396,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-09",
-            "nav": 1.112,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-10",
-            "nav": 1.1246,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-11",
-            "nav": 1.1139,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-12",
-            "nav": 1.1168,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-13",
-            "nav": 1.0895,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-16",
-            "nav": 1.0612,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-17",
-            "nav": 1.0536,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-18",
-            "nav": 1.0678,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-19",
-            "nav": 1.0743,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-20",
-            "nav": 1.108,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-23",
-            "nav": 1.0849,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-24",
-            "nav": 1.0949,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-25",
-            "nav": 1.0731,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-26",
-            "nav": 1.0793,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-27",
-            "nav": 1.0801,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-30",
-            "nav": 1.0687,
-            "return_rate": null
-          },
-          {
-            "date": "2024-12-31",
-            "nav": 1.0238,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-02",
-            "nav": 0.9853,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-03",
-            "nav": 0.9695,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-06",
-            "nav": 0.9666,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-07",
-            "nav": 0.983,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-08",
-            "nav": 0.9787,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-09",
-            "nav": 0.9728,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-10",
-            "nav": 0.965,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-13",
-            "nav": 0.9725,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-14",
-            "nav": 1.0197,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-15",
-            "nav": 1.0058,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-16",
-            "nav": 1.0129,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-17",
-            "nav": 1.0239,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-20",
-            "nav": 1.0155,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-21",
-            "nav": 1.0155,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-22",
-            "nav": 1.0004,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-23",
-            "nav": 0.9948,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-24",
-            "nav": 1.0064,
-            "return_rate": null
-          },
-          {
-            "date": "2025-01-27",
-            "nav": 0.9794,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-05",
-            "nav": 0.9862,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-06",
-            "nav": 1.0518,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-07",
-            "nav": 1.0453,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-10",
-            "nav": 1.0577,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-11",
-            "nav": 1.047,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-12",
-            "nav": 1.0707,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-13",
-            "nav": 1.046,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-14",
-            "nav": 1.0326,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-17",
-            "nav": 1.047,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-18",
-            "nav": 1.0574,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-19",
-            "nav": 1.0996,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-20",
-            "nav": 1.091,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-21",
-            "nav": 1.1236,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-24",
-            "nav": 1.1336,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-25",
-            "nav": 1.1388,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-26",
-            "nav": 1.1376,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-27",
-            "nav": 1.12,
-            "return_rate": null
-          },
-          {
-            "date": "2025-02-28",
-            "nav": 1.0824,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-03",
-            "nav": 1.0697,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-04",
-            "nav": 1.0824,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-05",
-            "nav": 1.0761,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-06",
-            "nav": 1.135,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-07",
-            "nav": 1.1392,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-10",
-            "nav": 1.1278,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-11",
-            "nav": 1.1349,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-12",
-            "nav": 1.1031,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-13",
-            "nav": 1.0825,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-14",
-            "nav": 1.1073,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-17",
-            "nav": 1.1133,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-18",
-            "nav": 1.1121,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-19",
-            "nav": 1.098,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-20",
-            "nav": 1.0872,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-21",
-            "nav": 1.0732,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-24",
-            "nav": 1.0954,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-25",
-            "nav": 1.0823,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-26",
-            "nav": 1.0761,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-27",
-            "nav": 1.1043,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-28",
-            "nav": 1.0832,
-            "return_rate": null
-          },
-          {
-            "date": "2025-03-31",
-            "nav": 1.0885,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-01",
-            "nav": 1.1161,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-02",
-            "nav": 1.1036,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-03",
-            "nav": 1.1042,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-07",
-            "nav": 1.0276,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-08",
-            "nav": 1.0317,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-09",
-            "nav": 1.0797,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-10",
-            "nav": 1.0903,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-11",
-            "nav": 1.1168,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-14",
-            "nav": 1.1089,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-15",
-            "nav": 1.0946,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-16",
-            "nav": 1.097,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-17",
-            "nav": 1.0876,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-18",
-            "nav": 1.0693,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-21",
-            "nav": 1.083,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-22",
-            "nav": 1.0878,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-23",
-            "nav": 1.0822,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-24",
-            "nav": 1.0746,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-25",
-            "nav": 1.0836,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-28",
-            "nav": 1.0773,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-29",
-            "nav": 1.0744,
-            "return_rate": null
-          },
-          {
-            "date": "2025-04-30",
-            "nav": 1.0656,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-06",
-            "nav": 1.0936,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-07",
-            "nav": 1.0915,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-08",
-            "nav": 1.0918,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-09",
-            "nav": 1.0584,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-12",
-            "nav": 1.0606,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-13",
-            "nav": 1.0584,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-14",
-            "nav": 1.0637,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-15",
-            "nav": 1.0381,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-16",
-            "nav": 1.0312,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-19",
-            "nav": 1.0465,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-20",
-            "nav": 1.0482,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-21",
-            "nav": 1.0326,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-22",
-            "nav": 1.0223,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-23",
-            "nav": 1.0123,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-26",
-            "nav": 1.03,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-27",
-            "nav": 1.0207,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-28",
-            "nav": 1.008,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-29",
-            "nav": 1.0292,
-            "return_rate": null
-          },
-          {
-            "date": "2025-05-30",
-            "nav": 1.0102,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-03",
-            "nav": 1.0345,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-04",
-            "nav": 1.0286,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-05",
-            "nav": 1.0413,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-06",
-            "nav": 1.0498,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-09",
-            "nav": 1.0498,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-10",
-            "nav": 1.0211,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-11",
-            "nav": 1.0193,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-12",
-            "nav": 1.0031,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-13",
-            "nav": 1.0119,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-16",
-            "nav": 1.0156,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-17",
-            "nav": 1.0079,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-18",
-            "nav": 1.028,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-19",
-            "nav": 1.0373,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-20",
-            "nav": 1.0438,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-23",
-            "nav": 1.0736,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-24",
-            "nav": 1.0759,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-25",
-            "nav": 1.0821,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-26",
-            "nav": 1.0682,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-27",
-            "nav": 1.0782,
-            "return_rate": null
-          },
-          {
-            "date": "2025-06-30",
-            "nav": 1.0932,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-01",
-            "nav": 1.1057,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-02",
-            "nav": 1.0787,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-03",
-            "nav": 1.0764,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-04",
-            "nav": 1.0894,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-07",
-            "nav": 1.0962,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-08",
-            "nav": 1.0989,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-09",
-            "nav": 1.0977,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-10",
-            "nav": 1.0872,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-11",
-            "nav": 1.0951,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-14",
-            "nav": 1.0798,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-15",
-            "nav": 1.074,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-16",
-            "nav": 1.0742,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-17",
-            "nav": 1.0742,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-18",
-            "nav": 1.0862,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-21",
-            "nav": 1.0818,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-22",
-            "nav": 1.0902,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-23",
-            "nav": 1.1258,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-24",
-            "nav": 1.147,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-25",
-            "nav": 1.1604,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-28",
-            "nav": 1.1543,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-29",
-            "nav": 1.1739,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-30",
-            "nav": 1.1613,
-            "return_rate": null
-          },
-          {
-            "date": "2025-07-31",
-            "nav": 1.1425,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-01",
-            "nav": 1.1277,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-04",
-            "nav": 1.1388,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-05",
-            "nav": 1.1403,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-06",
-            "nav": 1.1404,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-07",
-            "nav": 1.1368,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-08",
-            "nav": 1.1164,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-11",
-            "nav": 1.1217,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-12",
-            "nav": 1.1272,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-13",
-            "nav": 1.1373,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-14",
-            "nav": 1.1338,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-15",
-            "nav": 1.1534,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-18",
-            "nav": 1.1817,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-19",
-            "nav": 1.159,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-20",
-            "nav": 1.2072,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-21",
-            "nav": 1.202,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-22",
-            "nav": 1.2957,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-25",
-            "nav": 1.2952,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-26",
-            "nav": 1.3162,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-27",
-            "nav": 1.2894,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-28",
-            "nav": 1.3504,
-            "return_rate": null
-          },
-          {
-            "date": "2025-08-29",
-            "nav": 1.3151,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-01",
-            "nav": 1.3314,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-02",
-            "nav": 1.2811,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-03",
-            "nav": 1.2831,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-04",
-            "nav": 1.2067,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-05",
-            "nav": 1.2387,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-08",
-            "nav": 1.2645,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-09",
-            "nav": 1.2224,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-10",
-            "nav": 1.2238,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-11",
-            "nav": 1.2611,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-12",
-            "nav": 1.2618,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-15",
-            "nav": 1.2733,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-16",
-            "nav": 1.2719,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-17",
-            "nav": 1.3215,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-18",
-            "nav": 1.3652,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-19",
-            "nav": 1.3588,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-22",
-            "nav": 1.3723,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-23",
-            "nav": 1.4225,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-24",
-            "nav": 1.5545,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-25",
-            "nav": 1.5504,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-26",
-            "nav": 1.5464,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-29",
-            "nav": 1.6006,
-            "return_rate": null
-          },
-          {
-            "date": "2025-09-30",
-            "nav": 1.5884,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-09",
-            "nav": 1.6217,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-10",
-            "nav": 1.5942,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-13",
-            "nav": 1.6575,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-14",
-            "nav": 1.5397,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-15",
-            "nav": 1.5299,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-16",
-            "nav": 1.5059,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-17",
-            "nav": 1.4486,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-20",
-            "nav": 1.4407,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-21",
-            "nav": 1.4653,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-22",
-            "nav": 1.4582,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-23",
-            "nav": 1.4541,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-24",
-            "nav": 1.5159,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-27",
-            "nav": 1.5683,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-28",
-            "nav": 1.5637,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-29",
-            "nav": 1.5559,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-30",
-            "nav": 1.537,
-            "return_rate": null
-          },
-          {
-            "date": "2025-10-31",
-            "nav": 1.457,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-03",
-            "nav": 1.4401,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-04",
-            "nav": 1.4651,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-05",
-            "nav": 1.4619,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-06",
-            "nav": 1.5153,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-07",
-            "nav": 1.5287,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-10",
-            "nav": 1.5561,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-11",
-            "nav": 1.5196,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-12",
-            "nav": 1.5087,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-13",
-            "nav": 1.4988,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-14",
-            "nav": 1.4716,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-17",
-            "nav": 1.4402,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-18",
-            "nav": 1.4831,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-19",
-            "nav": 1.4642,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-20",
-            "nav": 1.4302,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-21",
-            "nav": 1.3734,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-24",
-            "nav": 1.3902,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-25",
-            "nav": 1.3902,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-26",
-            "nav": 1.3985,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-27",
-            "nav": 1.3891,
-            "return_rate": null
-          },
-          {
-            "date": "2025-11-28",
-            "nav": 1.4324,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-01",
-            "nav": 1.4336,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-02",
-            "nav": 1.4136,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-03",
-            "nav": 1.4155,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-04",
-            "nav": 1.46,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-05",
-            "nav": 1.475,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-08",
-            "nav": 1.4929,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-09",
-            "nav": 1.4953,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-10",
-            "nav": 1.5051,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-11",
-            "nav": 1.5155,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-12",
-            "nav": 1.5809,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-15",
-            "nav": 1.5549,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-16",
-            "nav": 1.5534,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-17",
-            "nav": 1.5755,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-18",
-            "nav": 1.5465,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-19",
-            "nav": 1.5463,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-22",
-            "nav": 1.6189,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-23",
-            "nav": 1.6447,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-24",
-            "nav": 1.6381,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-25",
-            "nav": 1.6299,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-26",
-            "nav": 1.6124,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-29",
-            "nav": 1.5965,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-30",
-            "nav": 1.5998,
-            "return_rate": null
-          },
-          {
-            "date": "2025-12-31",
-            "nav": 1.6062,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-05",
-            "nav": 1.6841,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-06",
-            "nav": 1.7504,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-07",
-            "nav": 1.8641,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-08",
-            "nav": 1.8744,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-09",
-            "nav": 1.8616,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-12",
-            "nav": 1.8731,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-13",
-            "nav": 1.8066,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-14",
-            "nav": 1.8509,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-15",
-            "nav": 1.946,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-16",
-            "nav": 2.0485,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-19",
-            "nav": 2.0688,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-20",
-            "nav": 2.0431,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-21",
-            "nav": 2.0492,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-22",
-            "nav": 2.0037,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-23",
-            "nav": 2.0227,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-26",
-            "nav": 1.9631,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-27",
-            "nav": 2.0188,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-28",
-            "nav": 2.0445,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-29",
-            "nav": 1.9525,
-            "return_rate": null
-          },
-          {
-            "date": "2026-01-30",
-            "nav": 1.9471,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-02",
-            "nav": 1.8508,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-03",
-            "nav": 1.8917,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-04",
-            "nav": 1.8923,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-05",
-            "nav": 1.8976,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-06",
-            "nav": 1.8741,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-09",
-            "nav": 1.9175,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-10",
-            "nav": 1.9178,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-11",
-            "nav": 1.8928,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-12",
-            "nav": 1.8916,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-13",
-            "nav": 1.9448,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-24",
-            "nav": 1.9305,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-25",
-            "nav": 2.0422,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-26",
-            "nav": 2.0754,
-            "return_rate": null
-          },
-          {
-            "date": "2026-02-27",
-            "nav": 2.0199,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-02",
-            "nav": 1.9887,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-03",
-            "nav": 1.8915,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-04",
-            "nav": 1.8776,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-05",
-            "nav": 1.9077,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-06",
-            "nav": 1.8787,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-09",
-            "nav": 1.8297,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-10",
-            "nav": 1.8623,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-11",
-            "nav": 1.8285,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-12",
-            "nav": 1.8044,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-13",
-            "nav": 1.7818,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-16",
-            "nav": 1.805,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-17",
-            "nav": 1.7511,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-18",
-            "nav": 1.7816,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-19",
-            "nav": 1.7369,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-20",
-            "nav": 1.7434,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-23",
-            "nav": 1.6719,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-24",
-            "nav": 1.7134,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-25",
-            "nav": 1.7529,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-26",
-            "nav": 1.7175,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-27",
-            "nav": 1.752,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-30",
-            "nav": 1.8081,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-31",
-            "nav": 1.7349,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-01",
-            "nav": 1.7695,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-02",
-            "nav": 1.6985,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-03",
-            "nav": 1.6862,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-07",
-            "nav": 1.7019,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-08",
-            "nav": 1.8255,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-09",
-            "nav": 1.8525,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-10",
-            "nav": 1.8635,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 1.8319,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 1.9182,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 1.8868,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 1.9025,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 1.8915,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 1.8946,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 1.8586,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 1.9262,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 1.8845,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 1.8962,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 2.0518,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 2.0302,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 2.0465,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 2.1603,
-            "return_rate": null
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 2.1735,
-            "return_rate": null
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 2.2248,
-            "return_rate": null
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 2.1609,
-            "return_rate": null
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 2.2724,
-            "return_rate": null
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 2.3928,
-            "return_rate": null
-          },
           {
             "date": "2026-05-13",
             "nav": 2.4661,
@@ -7084,405 +4818,6 @@
             "date": "2026-06-17",
             "nav": 3.1841,
             "return_rate": 12.04
-          }
-        ]
-      },
-      {
-        "code": "016665",
-        "name": "天弘全球高端制造混合(QDII)C",
-        "platform": "支付宝",
-        "current_nav": 3.6184,
-        "nav_date": "2026-06-16",
-        "daily_return": 0.53,
-        "nav_status": "confirmed",
-        "data_source": "live",
-        "latest_history_date": "2026-06-16",
-        "latest_trading_day_nav": 3.6184,
-        "latest_trading_day_nav_date": "2026-06-16",
-        "latest_trading_day_return": 0.53,
-        "latest_trading_day_profit": 165.66,
-        "day_before_latest_trading_day_return": 7.26,
-        "day_before_latest_trading_day_profit": 2113.69,
-        "ytd_return": 66.41,
-        "ytd_profit": 12524.3,
-        "ytd_start_nav": 2.1744,
-        "holdings": {
-          "total_invested": 20000.0,
-          "total_shares": 8673.34,
-          "current_value": 31383.62,
-          "profit_loss": 11383.62,
-          "profit_loss_percent": 56.92,
-          "purchases": [
-            {
-              "date": "2026-03-12",
-              "amount": 10000,
-              "nav": 2.1451,
-              "shares": 4661.79,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-15",
-              "amount": 10000,
-              "nav": 2.4928,
-              "shares": 4011.55,
-              "type": "buy",
-              "nav_source": "exact"
-            }
-          ],
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 2.3059
-        },
-        "history": [
-          {
-            "date": "2026-03-05",
-            "nav": 2.1744,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-06",
-            "nav": 2.1355,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-09",
-            "nav": 2.1113,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-10",
-            "nav": 2.1857,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-11",
-            "nav": 2.1858,
-            "return_rate": null
-          },
-          {
-            "date": "2026-03-12",
-            "nav": 2.1451,
-            "return_rate": 0.0
-          },
-          {
-            "date": "2026-03-13",
-            "nav": 2.1205,
-            "return_rate": -1.15
-          },
-          {
-            "date": "2026-03-16",
-            "nav": 2.1661,
-            "return_rate": 0.98
-          },
-          {
-            "date": "2026-03-17",
-            "nav": 2.1326,
-            "return_rate": -0.58
-          },
-          {
-            "date": "2026-03-18",
-            "nav": 2.2055,
-            "return_rate": 2.82
-          },
-          {
-            "date": "2026-03-19",
-            "nav": 2.1776,
-            "return_rate": 1.52
-          },
-          {
-            "date": "2026-03-20",
-            "nav": 2.1539,
-            "return_rate": 0.41
-          },
-          {
-            "date": "2026-03-23",
-            "nav": 2.0912,
-            "return_rate": -2.51
-          },
-          {
-            "date": "2026-03-24",
-            "nav": 2.1568,
-            "return_rate": 0.55
-          },
-          {
-            "date": "2026-03-25",
-            "nav": 2.199,
-            "return_rate": 2.51
-          },
-          {
-            "date": "2026-03-26",
-            "nav": 2.1046,
-            "return_rate": -1.89
-          },
-          {
-            "date": "2026-03-27",
-            "nav": 2.0917,
-            "return_rate": -2.49
-          },
-          {
-            "date": "2026-03-30",
-            "nav": 2.0396,
-            "return_rate": -4.92
-          },
-          {
-            "date": "2026-03-31",
-            "nav": 2.0257,
-            "return_rate": -5.57
-          },
-          {
-            "date": "2026-04-01",
-            "nav": 2.1296,
-            "return_rate": -0.72
-          },
-          {
-            "date": "2026-04-02",
-            "nav": 2.0976,
-            "return_rate": -2.21
-          },
-          {
-            "date": "2026-04-03",
-            "nav": 2.1202,
-            "return_rate": -1.16
-          },
-          {
-            "date": "2026-04-07",
-            "nav": 2.1275,
-            "return_rate": -0.82
-          },
-          {
-            "date": "2026-04-08",
-            "nav": 2.3435,
-            "return_rate": 9.25
-          },
-          {
-            "date": "2026-04-09",
-            "nav": 2.3481,
-            "return_rate": 9.46
-          },
-          {
-            "date": "2026-04-10",
-            "nav": 2.4171,
-            "return_rate": 12.68
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 2.436,
-            "return_rate": 13.56
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 2.509,
-            "return_rate": 16.96
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 2.4928,
-            "return_rate": 8.1
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 2.5481,
-            "return_rate": 10.5
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 2.5838,
-            "return_rate": 12.05
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 2.5824,
-            "return_rate": 11.99
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 2.6463,
-            "return_rate": 14.76
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 2.7165,
-            "return_rate": 17.81
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 2.6902,
-            "return_rate": 16.67
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 2.7068,
-            "return_rate": 17.38
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 2.7229,
-            "return_rate": 18.08
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 2.6636,
-            "return_rate": 15.51
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 2.6917,
-            "return_rate": 16.73
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 2.7254,
-            "return_rate": 18.19
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 2.9235,
-            "return_rate": 26.78
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 2.9942,
-            "return_rate": 29.85
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 3.0379,
-            "return_rate": 31.74
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 3.1895,
-            "return_rate": 38.32
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 3.1613,
-            "return_rate": 37.1
-          },
-          {
-            "date": "2026-05-13",
-            "nav": 3.2847,
-            "return_rate": 42.45
-          },
-          {
-            "date": "2026-05-14",
-            "nav": 3.2444,
-            "return_rate": 40.7
-          },
-          {
-            "date": "2026-05-15",
-            "nav": 3.091,
-            "return_rate": 34.05
-          },
-          {
-            "date": "2026-05-18",
-            "nav": 3.0823,
-            "return_rate": 33.67
-          },
-          {
-            "date": "2026-05-19",
-            "nav": 3.0567,
-            "return_rate": 32.56
-          },
-          {
-            "date": "2026-05-20",
-            "nav": 3.103,
-            "return_rate": 34.57
-          },
-          {
-            "date": "2026-05-21",
-            "nav": 3.1259,
-            "return_rate": 35.56
-          },
-          {
-            "date": "2026-05-22",
-            "nav": 3.2323,
-            "return_rate": 40.17
-          },
-          {
-            "date": "2026-05-25",
-            "nav": 3.3033,
-            "return_rate": 43.25
-          },
-          {
-            "date": "2026-05-26",
-            "nav": 3.3343,
-            "return_rate": 44.6
-          },
-          {
-            "date": "2026-05-27",
-            "nav": 3.3912,
-            "return_rate": 47.07
-          },
-          {
-            "date": "2026-05-28",
-            "nav": 3.4384,
-            "return_rate": 49.11
-          },
-          {
-            "date": "2026-05-29",
-            "nav": 3.4075,
-            "return_rate": 47.77
-          },
-          {
-            "date": "2026-06-01",
-            "nav": 3.4091,
-            "return_rate": 47.84
-          },
-          {
-            "date": "2026-06-02",
-            "nav": 3.5069,
-            "return_rate": 52.08
-          },
-          {
-            "date": "2026-06-03",
-            "nav": 3.5949,
-            "return_rate": 55.9
-          },
-          {
-            "date": "2026-06-04",
-            "nav": 3.5491,
-            "return_rate": 53.91
-          },
-          {
-            "date": "2026-06-05",
-            "nav": 3.315,
-            "return_rate": 43.76
-          },
-          {
-            "date": "2026-06-08",
-            "nav": 3.2243,
-            "return_rate": 39.83
-          },
-          {
-            "date": "2026-06-09",
-            "nav": 3.3531,
-            "return_rate": 45.41
-          },
-          {
-            "date": "2026-06-10",
-            "nav": 3.2256,
-            "return_rate": 39.88
-          },
-          {
-            "date": "2026-06-11",
-            "nav": 3.3233,
-            "return_rate": 44.12
-          },
-          {
-            "date": "2026-06-12",
-            "nav": 3.3556,
-            "return_rate": 45.52
-          },
-          {
-            "date": "2026-06-15",
-            "nav": 3.5993,
-            "return_rate": 56.09
-          },
-          {
-            "date": "2026-06-16",
-            "nav": 3.6184,
-            "return_rate": 56.92
           }
         ]
       }
@@ -9068,288 +6403,6 @@
     ],
     "招商银行": [
       {
-        "code": "021277",
-        "name": "广发全球精选股票(QDII)人民币C",
-        "platform": "招商银行",
-        "current_nav": 6.8793,
-        "nav_date": "2026-06-16",
-        "daily_return": -1.41,
-        "nav_status": "confirmed",
-        "data_source": "live",
-        "latest_history_date": "2026-06-16",
-        "latest_trading_day_nav": 6.8793,
-        "latest_trading_day_nav_date": "2026-06-16",
-        "latest_trading_day_return": -1.41,
-        "latest_trading_day_profit": -1570.56,
-        "day_before_latest_trading_day_return": 5.63,
-        "day_before_latest_trading_day_profit": 5940.33,
-        "ytd_return": 27.79,
-        "ytd_profit": 23900.34,
-        "ytd_start_nav": 5.3834,
-        "holdings": {
-          "total_invested": 91197.05,
-          "total_shares": 15977.23,
-          "current_value": 109912.18,
-          "profit_loss": 18715.13,
-          "profit_loss_percent": 20.52,
-          "purchases": [
-            {
-              "date": "2026-04-17",
-              "amount": 15000,
-              "nav": 5.5943,
-              "shares": 2681.3,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-22",
-              "amount": 71197.05,
-              "nav": 5.7309,
-              "shares": 12423.36,
-              "type": "buy",
-              "nav_source": "exact"
-            },
-            {
-              "date": "2026-04-27",
-              "amount": 5000,
-              "nav": 5.7302,
-              "shares": 872.57,
-              "type": "buy",
-              "nav_source": "exact"
-            }
-          ],
-          "realized_profit_loss": 0,
-          "avg_cost_nav": 5.7079
-        },
-        "history": [
-          {
-            "date": "2026-04-10",
-            "nav": 5.3834,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-13",
-            "nav": 5.4495,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-14",
-            "nav": 5.5501,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-15",
-            "nav": 5.4952,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-16",
-            "nav": 5.5479,
-            "return_rate": null
-          },
-          {
-            "date": "2026-04-17",
-            "nav": 5.5943,
-            "return_rate": 0.0
-          },
-          {
-            "date": "2026-04-20",
-            "nav": 5.6201,
-            "return_rate": 0.46
-          },
-          {
-            "date": "2026-04-21",
-            "nav": 5.5951,
-            "return_rate": 0.01
-          },
-          {
-            "date": "2026-04-22",
-            "nav": 5.7309,
-            "return_rate": 0.42
-          },
-          {
-            "date": "2026-04-23",
-            "nav": 5.6802,
-            "return_rate": -0.46
-          },
-          {
-            "date": "2026-04-24",
-            "nav": 5.7138,
-            "return_rate": 0.13
-          },
-          {
-            "date": "2026-04-27",
-            "nav": 5.7302,
-            "return_rate": 0.39
-          },
-          {
-            "date": "2026-04-28",
-            "nav": 5.6026,
-            "return_rate": -1.85
-          },
-          {
-            "date": "2026-04-29",
-            "nav": 5.6206,
-            "return_rate": -1.53
-          },
-          {
-            "date": "2026-04-30",
-            "nav": 5.721,
-            "return_rate": 0.23
-          },
-          {
-            "date": "2026-05-06",
-            "nav": 6.0326,
-            "return_rate": 5.69
-          },
-          {
-            "date": "2026-05-07",
-            "nav": 6.0478,
-            "return_rate": 5.95
-          },
-          {
-            "date": "2026-05-08",
-            "nav": 6.1839,
-            "return_rate": 8.34
-          },
-          {
-            "date": "2026-05-11",
-            "nav": 6.2866,
-            "return_rate": 10.14
-          },
-          {
-            "date": "2026-05-12",
-            "nav": 6.2101,
-            "return_rate": 8.8
-          },
-          {
-            "date": "2026-05-13",
-            "nav": 6.4388,
-            "return_rate": 12.8
-          },
-          {
-            "date": "2026-05-14",
-            "nav": 6.3763,
-            "return_rate": 11.71
-          },
-          {
-            "date": "2026-05-15",
-            "nav": 6.2032,
-            "return_rate": 8.68
-          },
-          {
-            "date": "2026-05-18",
-            "nav": 6.1754,
-            "return_rate": 8.19
-          },
-          {
-            "date": "2026-05-19",
-            "nav": 6.1091,
-            "return_rate": 7.03
-          },
-          {
-            "date": "2026-05-20",
-            "nav": 6.2388,
-            "return_rate": 9.3
-          },
-          {
-            "date": "2026-05-21",
-            "nav": 6.3049,
-            "return_rate": 10.46
-          },
-          {
-            "date": "2026-05-22",
-            "nav": 6.4591,
-            "return_rate": 13.16
-          },
-          {
-            "date": "2026-05-25",
-            "nav": 6.5391,
-            "return_rate": 14.56
-          },
-          {
-            "date": "2026-05-26",
-            "nav": 6.6738,
-            "return_rate": 16.92
-          },
-          {
-            "date": "2026-05-27",
-            "nav": 6.6739,
-            "return_rate": 16.92
-          },
-          {
-            "date": "2026-05-28",
-            "nav": 6.7427,
-            "return_rate": 18.13
-          },
-          {
-            "date": "2026-05-29",
-            "nav": 6.746,
-            "return_rate": 18.19
-          },
-          {
-            "date": "2026-06-01",
-            "nav": 6.7489,
-            "return_rate": 18.24
-          },
-          {
-            "date": "2026-06-02",
-            "nav": 6.8223,
-            "return_rate": 19.52
-          },
-          {
-            "date": "2026-06-03",
-            "nav": 6.8747,
-            "return_rate": 20.44
-          },
-          {
-            "date": "2026-06-04",
-            "nav": 6.7843,
-            "return_rate": 18.86
-          },
-          {
-            "date": "2026-06-05",
-            "nav": 6.4228,
-            "return_rate": 12.52
-          },
-          {
-            "date": "2026-06-08",
-            "nav": 6.4611,
-            "return_rate": 13.2
-          },
-          {
-            "date": "2026-06-09",
-            "nav": 6.4466,
-            "return_rate": 12.94
-          },
-          {
-            "date": "2026-06-10",
-            "nav": 6.2615,
-            "return_rate": 9.7
-          },
-          {
-            "date": "2026-06-11",
-            "nav": 6.518,
-            "return_rate": 14.19
-          },
-          {
-            "date": "2026-06-12",
-            "nav": 6.6058,
-            "return_rate": 15.73
-          },
-          {
-            "date": "2026-06-15",
-            "nav": 6.9776,
-            "return_rate": 22.24
-          },
-          {
-            "date": "2026-06-16",
-            "nav": 6.8793,
-            "return_rate": 20.52
-          }
-        ]
-      },
-      {
         "code": "000390",
         "name": "华商优势行业混合A",
         "platform": "招商银行",
@@ -9630,6 +6683,288 @@
             "date": "2026-06-17",
             "nav": 3.363,
             "return_rate": 22.09
+          }
+        ]
+      },
+      {
+        "code": "021277",
+        "name": "广发全球精选股票(QDII)人民币C",
+        "platform": "招商银行",
+        "current_nav": 6.8793,
+        "nav_date": "2026-06-16",
+        "daily_return": -1.41,
+        "nav_status": "confirmed",
+        "data_source": "live",
+        "latest_history_date": "2026-06-16",
+        "latest_trading_day_nav": 6.8793,
+        "latest_trading_day_nav_date": "2026-06-16",
+        "latest_trading_day_return": -1.41,
+        "latest_trading_day_profit": -1570.56,
+        "day_before_latest_trading_day_return": 5.63,
+        "day_before_latest_trading_day_profit": 5940.33,
+        "ytd_return": 27.79,
+        "ytd_profit": 23900.34,
+        "ytd_start_nav": 5.3834,
+        "holdings": {
+          "total_invested": 91197.05,
+          "total_shares": 15977.23,
+          "current_value": 109912.18,
+          "profit_loss": 18715.13,
+          "profit_loss_percent": 20.52,
+          "purchases": [
+            {
+              "date": "2026-04-17",
+              "amount": 15000,
+              "nav": 5.5943,
+              "shares": 2681.3,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-22",
+              "amount": 71197.05,
+              "nav": 5.7309,
+              "shares": 12423.36,
+              "type": "buy",
+              "nav_source": "exact"
+            },
+            {
+              "date": "2026-04-27",
+              "amount": 5000,
+              "nav": 5.7302,
+              "shares": 872.57,
+              "type": "buy",
+              "nav_source": "exact"
+            }
+          ],
+          "realized_profit_loss": 0,
+          "avg_cost_nav": 5.7079
+        },
+        "history": [
+          {
+            "date": "2026-04-10",
+            "nav": 5.3834,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-13",
+            "nav": 5.4495,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-14",
+            "nav": 5.5501,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-15",
+            "nav": 5.4952,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-16",
+            "nav": 5.5479,
+            "return_rate": null
+          },
+          {
+            "date": "2026-04-17",
+            "nav": 5.5943,
+            "return_rate": 0.0
+          },
+          {
+            "date": "2026-04-20",
+            "nav": 5.6201,
+            "return_rate": 0.46
+          },
+          {
+            "date": "2026-04-21",
+            "nav": 5.5951,
+            "return_rate": 0.01
+          },
+          {
+            "date": "2026-04-22",
+            "nav": 5.7309,
+            "return_rate": 0.42
+          },
+          {
+            "date": "2026-04-23",
+            "nav": 5.6802,
+            "return_rate": -0.46
+          },
+          {
+            "date": "2026-04-24",
+            "nav": 5.7138,
+            "return_rate": 0.13
+          },
+          {
+            "date": "2026-04-27",
+            "nav": 5.7302,
+            "return_rate": 0.39
+          },
+          {
+            "date": "2026-04-28",
+            "nav": 5.6026,
+            "return_rate": -1.85
+          },
+          {
+            "date": "2026-04-29",
+            "nav": 5.6206,
+            "return_rate": -1.53
+          },
+          {
+            "date": "2026-04-30",
+            "nav": 5.721,
+            "return_rate": 0.23
+          },
+          {
+            "date": "2026-05-06",
+            "nav": 6.0326,
+            "return_rate": 5.69
+          },
+          {
+            "date": "2026-05-07",
+            "nav": 6.0478,
+            "return_rate": 5.95
+          },
+          {
+            "date": "2026-05-08",
+            "nav": 6.1839,
+            "return_rate": 8.34
+          },
+          {
+            "date": "2026-05-11",
+            "nav": 6.2866,
+            "return_rate": 10.14
+          },
+          {
+            "date": "2026-05-12",
+            "nav": 6.2101,
+            "return_rate": 8.8
+          },
+          {
+            "date": "2026-05-13",
+            "nav": 6.4388,
+            "return_rate": 12.8
+          },
+          {
+            "date": "2026-05-14",
+            "nav": 6.3763,
+            "return_rate": 11.71
+          },
+          {
+            "date": "2026-05-15",
+            "nav": 6.2032,
+            "return_rate": 8.68
+          },
+          {
+            "date": "2026-05-18",
+            "nav": 6.1754,
+            "return_rate": 8.19
+          },
+          {
+            "date": "2026-05-19",
+            "nav": 6.1091,
+            "return_rate": 7.03
+          },
+          {
+            "date": "2026-05-20",
+            "nav": 6.2388,
+            "return_rate": 9.3
+          },
+          {
+            "date": "2026-05-21",
+            "nav": 6.3049,
+            "return_rate": 10.46
+          },
+          {
+            "date": "2026-05-22",
+            "nav": 6.4591,
+            "return_rate": 13.16
+          },
+          {
+            "date": "2026-05-25",
+            "nav": 6.5391,
+            "return_rate": 14.56
+          },
+          {
+            "date": "2026-05-26",
+            "nav": 6.6738,
+            "return_rate": 16.92
+          },
+          {
+            "date": "2026-05-27",
+            "nav": 6.6739,
+            "return_rate": 16.92
+          },
+          {
+            "date": "2026-05-28",
+            "nav": 6.7427,
+            "return_rate": 18.13
+          },
+          {
+            "date": "2026-05-29",
+            "nav": 6.746,
+            "return_rate": 18.19
+          },
+          {
+            "date": "2026-06-01",
+            "nav": 6.7489,
+            "return_rate": 18.24
+          },
+          {
+            "date": "2026-06-02",
+            "nav": 6.8223,
+            "return_rate": 19.52
+          },
+          {
+            "date": "2026-06-03",
+            "nav": 6.8747,
+            "return_rate": 20.44
+          },
+          {
+            "date": "2026-06-04",
+            "nav": 6.7843,
+            "return_rate": 18.86
+          },
+          {
+            "date": "2026-06-05",
+            "nav": 6.4228,
+            "return_rate": 12.52
+          },
+          {
+            "date": "2026-06-08",
+            "nav": 6.4611,
+            "return_rate": 13.2
+          },
+          {
+            "date": "2026-06-09",
+            "nav": 6.4466,
+            "return_rate": 12.94
+          },
+          {
+            "date": "2026-06-10",
+            "nav": 6.2615,
+            "return_rate": 9.7
+          },
+          {
+            "date": "2026-06-11",
+            "nav": 6.518,
+            "return_rate": 14.19
+          },
+          {
+            "date": "2026-06-12",
+            "nav": 6.6058,
+            "return_rate": 15.73
+          },
+          {
+            "date": "2026-06-15",
+            "nav": 6.9776,
+            "return_rate": 22.24
+          },
+          {
+            "date": "2026-06-16",
+            "nav": 6.8793,
+            "return_rate": 20.52
           }
         ]
       },
@@ -9934,8 +7269,8 @@
     "yesterday_profit_loss_percent": 1.16,
     "yesterday_profit_loss_diff": -22577.62,
     "yesterday_profit_loss_percent_diff": -3.01,
-    "ytd_profit_loss": 277779.94,
-    "ytd_profit_loss_percent": 57.13,
+    "ytd_profit_loss": 261269.81,
+    "ytd_profit_loss_percent": 52.04,
     "total_realized_profit_loss": 26119.75
   }
 }

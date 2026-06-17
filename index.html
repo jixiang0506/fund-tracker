@@ -3585,9 +3585,12 @@
                 fundHistory = fund.history.filter(h => h.date >= cutoffDate);
                 if (fundHistory.length < 2) fundHistory = fund.history;
             } else {
-                // 全部模式：从第一笔买入日起展示（买入前的走势对持有收益无意义）
+                // 全部模式：从第一笔买入日前7天起展示（给用户看买入前后的完整走势）
                 if (firstBuyDate) {
-                    fundHistory = fund.history.filter(h => h.date >= firstBuyDate);
+                    const buyDate = new Date(firstBuyDate);
+                    const cutoffDate = new Date(buyDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    const cutoffStr = cutoffDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+                    fundHistory = fund.history.filter(h => h.date >= cutoffStr);
                 }
                 if (fundHistory.length < 2) fundHistory = fund.history;
             }

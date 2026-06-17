@@ -3552,27 +3552,31 @@
             if (!fund || !fund.history || fund.history.length === 0) return;
 
             // 根据周期过滤历史数据（使用北京时间）
+            const purchases = fund.holdings?.purchases || [];
+            const buyRecords = purchases.filter(p => p.type !== 'sell');
+            const firstPurchase = buyRecords.sort((a, b) => a.date.localeCompare(b.date))[0];
+            const firstBuyDate = firstPurchase?.date;
+
             let fundHistory = fund.history;
             if (period !== 'all') {
                 const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365 };
                 const days = daysMap[period] || 365;
-                const now = getBeijingNow();  // ✅ 使用北京时间
+                const now = getBeijingNow();
                 const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-                // ✅ 使用北京时间格式化日期，避免 toISOString() 的 UTC 转换问题
                 const cutoffDate = cutoff.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
                 fundHistory = fund.history.filter(h => h.date >= cutoffDate);
-                // 如果没有数据，使用全部
+                if (fundHistory.length < 2) fundHistory = fund.history;
+            } else {
+                // 全部模式：从第一笔买入日起展示（买入前的走势对持有收益无意义）
+                if (firstBuyDate) {
+                    fundHistory = fund.history.filter(h => h.date >= firstBuyDate);
+                }
                 if (fundHistory.length < 2) fundHistory = fund.history;
             }
 
-            const purchases = fund.holdings?.purchases || [];
-
             // 以第一笔买入净值为基准，计算累计收益率
-            // 周期模式下：以周期起始日净值为基准，实现起点归零
-            const buyRecords = purchases.filter(p => p.type !== 'sell');
-            const firstPurchase = buyRecords.sort((a, b) => a.date.localeCompare(b.date))[0];
-            const baseNav = (period !== 'all') 
-                ? (fundHistory[0]?.nav ?? 1) 
+            const baseNav = (period !== 'all')
+                ? (fundHistory[0]?.nav ?? 1)
                 : (firstPurchase?.nav ?? fundHistory[0]?.nav ?? 1);
 
             const labels = fundHistory.map(h => h.date);

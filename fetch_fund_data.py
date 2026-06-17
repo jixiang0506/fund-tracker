@@ -800,6 +800,14 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
             else:
                 return (None, "历史数据为空，且无缓存")
 
+        # 截断 history 到 fund_start_date 及之后（避免展示买入前的全量历史）
+        history = [e for e in history if e.get("date", "") >= fund_start_date]
+        if not history:
+            if cached_history:
+                history = cached_history
+            else:
+                return (None, "历史数据为空，且无缓存")
+
         with history_cache_lock:
             history_cache[code] = history
 

@@ -2915,7 +2915,15 @@
             try {
                 DOM.updateTime.textContent = `最后更新: ${state.fundsData.update_time}`;
 
-                let html = renderSummary(state.fundsData.summary);
+                // 计算所有基金中最新的净值日期（用于判断数据时效）
+                let latestNavDate = '';
+                for (const platform in state.fundsData.funds) {
+                    for (const fnd of state.fundsData.funds[platform]) {
+                        const nd = fnd.latest_trading_day_nav_date || fnd.yesterday_nav_date || '';
+                        if (nd > latestNavDate) latestNavDate = nd;
+                    }
+                }
+                let html = renderSummary(state.fundsData.summary, latestNavDate);
 
                 // 为所有平台创建基金卡片
                 for (const platform in state.fundsData.funds) {
@@ -2967,7 +2975,7 @@
 
 
         // 渲染总体统计
-        function renderSummary(summary) {
+        function renderSummary(summary, latestNavDate) {
             const totalInvested = summary.total_invested || 0;
             const totalValue = summary.total_value || 0;
             const totalProfit = summary.total_profit_loss || 0;
@@ -2989,6 +2997,12 @@
             const percentDiffArrow = yesterdayPercentDiff >= 0 ? '↑' : '↓';
             const percentDiffClass = yesterdayPercentDiff >= 0 ? 'positive' : 'negative';
 
+            // 判断数据日期是否昨日或今日，用于动态标签
+            const today = getBeijingToday();
+            const yesterday = getBeijingYesterday();
+            const isTodayOrYesterday = latestNavDate === today || latestNavDate === yesterday;
+            const latestLabel = isTodayOrYesterday ? '昨日' : '最新';
+
             // 本年数据（YTD）
             const ytdProfit = summary.ytd_profit_loss || 0;
             const ytdProfitPercent = summary.ytd_profit_loss_percent || 0;
@@ -3005,14 +3019,14 @@
                         <div class="value">¥${totalValue.toFixed(2)}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">昨日收益率</div>
+                        <div class="label">${latestLabel}收益率${!isTodayOrYesterday && latestNavDate ? ` <span style="font-size:10px;color:var(--color-text-muted);">(${latestNavDate})</span>` : ''}</div>
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfitPercent >= 0 ? '+' : ''}${yesterdayProfitPercent.toFixed(2)}%
                             ${yesterdayPercentDiff !== 0 ? `<br><span class="${percentDiffClass}" style="font-size:12px;">（较前日 ${percentDiffSign}${Math.abs(yesterdayPercentDiff).toFixed(2)}% ${percentDiffArrow}）</span>` : ''}
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">昨日盈亏</div>
+                        <div class="label">${latestLabel}盈亏${!isTodayOrYesterday && latestNavDate ? ` <span style="font-size:10px;color:var(--color-text-muted);">(${latestNavDate})</span>` : ''}</div>
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}
                             ${yesterdayProfitDiff !== 0 ? `<br><span class="${diffClass}" style="font-size:12px;">（较前日 ${diffSign}¥${Math.abs(yesterdayProfitDiff).toFixed(2)} ${diffArrow}）</span>` : ''}
@@ -3062,10 +3076,14 @@
                 const yesterdayReturn = fnd.latest_trading_day_return || fnd.yesterday_return || 0;
                 const yesterdayProfit = fnd.latest_trading_day_profit || fnd.yesterday_profit || 0;
                 const yesterdayClass = yesterdayReturn >= 0 ? 'positive' : 'negative';
-                const navDateLabel = getNavDateLabel(
-                    fnd.latest_trading_day_nav_date || fnd.yesterday_nav_date || '',
-                    fnd.nav_status
-                );
+                const navDate = fnd.latest_trading_day_nav_date || fnd.yesterday_nav_date || '';
+                const navDateLabel = getNavDateLabel(navDate, fnd.nav_status);
+
+                // 判断最新数据是否为昨日或今日的数据，用于动态调整表头标签
+                const today = getBeijingToday();
+                const yesterday = getBeijingYesterday();
+                const isTodayOrYesterday = navDate === today || navDate === yesterday;
+                const latestLabel = isTodayOrYesterday ? '昨日' : '最新';
 
                 html += `
                     <div class="fund-card" data-platform="${encAttr(platformName)}" data-code="${encAttr(fnd.code)}">
@@ -3081,9 +3099,9 @@
                         ` : ''}
                         <table class="fund-metrics">
                             <tr class="metric-labels">
-                                <td>昨日净值</td>
-                                <td>昨日收益率</td>
-                                <td>昨日收益</td>
+                                <td>${latestLabel}净值</td>
+                                <td>${latestLabel}收益率</td>
+                                <td>${latestLabel}收益</td>
                                 <td>累计收益率</td>
                                 <td>持仓收益</td>
                             </tr>

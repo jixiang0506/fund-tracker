@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-07-05 21:47:51",
+  "update_time": "2026-07-05 23:15:59",
   "funds": {
     "支付宝": [
       {
@@ -7918,7 +7918,7 @@
   },
   "summary": {
     "total_invested": 583410.74,
-    "total_value": 768277.07,
+    "total_value": 768277.0699999998,
     "total_profit_loss": 184866.33,
     "total_profit_loss_percent": 31.69,
     "latest_trading_day_profit_loss": -24297.38,

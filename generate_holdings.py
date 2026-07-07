@@ -128,8 +128,7 @@ def generate_holdings_snapshot():
     data_update_time = funds_data.get('update_time', '未知')
     log(f"📋 基于 funds_data.json (更新时间: {data_update_time}) 生成快照", "info")
 
-    # 继承主数据的时间戳，避免单独运行时产生误导性时间戳
-    data_update_time = funds_data.get('update_time', '')
+    # data_update_time 已在上方（L128）赋值，此处无需重复
     # 格式转换：funds_data.json 是 "%Y-%m-%d %H:%M:%S"，快照需要 ISO 8601 格式
     # 支持多种常见格式，任一失败则回退到当前时间
     snapshot_time = None

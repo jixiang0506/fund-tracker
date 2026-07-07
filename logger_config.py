@@ -115,7 +115,8 @@ def _cleanup_old_logs(log_dir, days=30):
                 pass  # 清理失败不阻塞主流程
 
 
-# 创建默认 logger
+# 创建默认 logger（必须先确保 stdout/stderr 已包装为 UTF-8，避免 Windows 控制台中文乱码/崩溃）
+setup_encoding()
 logger = setup_logger()
 
 

@@ -800,13 +800,8 @@ def _fetch_and_merge_history(code, fund_start_date, http_session,
             else:
                 return (None, "历史数据为空，且无缓存")
 
-        # 截断 history 到 fund_start_date 及之后（避免展示买入前的全量历史）
-        history = [e for e in history if e.get("date", "") >= fund_start_date]
-        if not history:
-            if cached_history:
-                history = cached_history
-            else:
-                return (None, "历史数据为空，且无缓存")
+        # 注意：不再按 fund_start_date 截断历史，后端存储全量历史；
+        # 前端 renderFundChart() 负责按"首次买入日 - 7天"过滤展示范围。
 
         with history_cache_lock:
             history_cache[code] = history
@@ -847,17 +842,17 @@ def _apply_nav_correction(code, history, realtime, today, qdii_codes):
             realtime["nav_status"] = "confirmed"
 
 
-def _calculate_latest_trading_day_metrics(history, holdings, today):
+def _calculate_latest_trading_day_metrics(history, holdings):
     if not history or len(history) < 2:
         return {"latest_trading_day_nav": 0, "latest_trading_day_nav_date": "",
                 "latest_trading_day_return": 0, "latest_trading_day_profit": 0,
                 "day_before_latest_trading_day_return": 0,
                 "day_before_latest_trading_day_profit": 0}
 
-    # offset=1: latest history date != today → use history[-1] as latest trading day
-    # offset=2: latest history date == today → use history[-2] (yesterday) as latest
-    offset = 2 if history[-1].get("date", "") == today else 1
-    idx = -offset
+    # 脚本在每日 20:00 之后运行，此时当日净值已确认并写入 history 最后一条，
+    # 直接以最新一条（当日）作为“最新交易日”计算日涨跌/日盈亏。
+    # 前端会依据当前北京时间(是否>=20:00)与 navDate 决定标注“已更新至今日”还是“昨日”。
+    idx = -1
 
     latest_nav = history[idx].get("nav", 0)
     latest_date = history[idx].get("date", "")
@@ -969,18 +964,17 @@ def process_fund(platform, code, fund_start_date, http_session,
                 old_fund = copy.deepcopy(prev_fund_map[code])
                 purchases = purchase_records.get(platform, {}).get(code, [])
 
-                # 确定昨日确认净值（优先用历史数据，兜底用缓存值）
-                # 注意：history[-1] 可能是今天的数据（含实时估值），需要用 offset 逻辑跳过
+                # 确定确认净值（优先用历史数据，兜底用缓存值）
+                # history 来自确认净值 API，history[-1] 即最新已确认净值（当日已公布则为今日）
                 if history:
-                    _cache_offset = 2 if history[-1].get("date", "") == today else 1
-                    confirmed_nav = history[-_cache_offset]["nav"]
-                    confirmed_nav_date = history[-_cache_offset]["date"]
+                    confirmed_nav = history[-1]["nav"]
+                    confirmed_nav_date = history[-1]["date"]
                 else:
                     confirmed_nav = old_fund.get("current_nav", 0)
                     confirmed_nav_date = old_fund.get("nav_date", "")
 
                 if history and purchases:
-                    # 使用昨日确认净值计算持仓收益，而非缓存的实时估值
+                    # 使用历史中的确认净值（而非缓存的实时估算）重新计算持仓
                     new_holdings = calculate_holdings(purchases, confirmed_nav, history, fund_code=code)
                     old_fund["holdings"] = new_holdings
                     old_fund["current_nav"] = confirmed_nav
@@ -994,7 +988,7 @@ def process_fund(platform, code, fund_start_date, http_session,
                         original_purchases=purchases, history_for_nav=history
                     )
                     # 更新昨日收益指标（使用旧 NAV）
-                    m = _calculate_latest_trading_day_metrics(history, new_holdings, today)
+                    m = _calculate_latest_trading_day_metrics(history, new_holdings)
                     old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
                     old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
                     old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
@@ -1015,12 +1009,10 @@ def process_fund(platform, code, fund_start_date, http_session,
         # --- 第3步:计算持仓和收益 ---
         purchases = purchase_records.get(platform, {}).get(code, [])
 
-        # 使用昨日确认净值计算持仓收益，而非实时估值（保证与"昨日净值"展示一致）
-        # 注意：history[-1] 可能是今天的数据（含实时估值），需要用 offset 逻辑跳过
+        # 使用最新确认净值计算持仓收益（history 来自确认净值 API，history[-1] 即最新已确认净值）
         if history:
-            _offset = 2 if history[-1].get("date", "") == today else 1
-            confirmed_nav = history[-_offset]["nav"]
-            confirmed_nav_date = history[-_offset]["date"]
+            confirmed_nav = history[-1]["nav"]
+            confirmed_nav_date = history[-1]["date"]
         else:
             confirmed_nav = realtime["nav"]
             confirmed_nav_date = realtime.get("nav_date", "")
@@ -1032,7 +1024,7 @@ def process_fund(platform, code, fund_start_date, http_session,
         )
 
         # 计算昨日净值、昨日收益率、昨日收益
-        m = _calculate_latest_trading_day_metrics(history, holdings, today)
+        m = _calculate_latest_trading_day_metrics(history, holdings)
 
         # 计算本年(YTD)数据
         ytd = _calculate_year_to_date_metrics(history, holdings, today)
@@ -1046,7 +1038,7 @@ def process_fund(platform, code, fund_start_date, http_session,
             "current_nav": confirmed_nav,
             "nav_date": confirmed_nav_date,
             "daily_return": m["latest_trading_day_return"],
-            "nav_status": "confirmed" if history else realtime.get("nav_status", "unknown"),
+            "nav_status": realtime.get("nav_status", "unknown"),
             "data_source": "live",
             "latest_history_date": latest_history_date,
             "latest_trading_day_nav": round(m["latest_trading_day_nav"], 4),
@@ -1079,17 +1071,8 @@ def main():
 
     # 解析命令行参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--skip-summary', action='store_true', help='跳过汇总更新（仅更新基金数据）')
     parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式:忽略历史缓存，全量获取')
     args = parser.parse_args()
-
-    # 自动判断是否需要跳过汇总更新
-    # 北京时间 20:00-23:59 的更新不更新汇总
-    beijing_now = get_beijing_time()
-    if 20 <= beijing_now.hour <= 23:
-        if not args.skip_summary:
-            args.skip_summary = True
-            log(f"⏭ 当前为 {beijing_now.strftime('%H:%M')} 北京时间，自动跳过汇总更新")
 
     # 自动检测新基金（在加载配置之前执行）
     auto_detect_new_funds()
@@ -1481,8 +1464,14 @@ def auto_detect_new_funds():
 
     existing_codes = set()
     for platform, fund_list in config.get("funds", {}).items():
+        if not isinstance(fund_list, list):
+            continue
         for fund in fund_list:
-            existing_codes.add(fund["code"])
+            code = fund.get("code") if isinstance(fund, dict) else None
+            if not code:
+                log(f"[WARN] fund_config.json 平台 '{platform}' 存在缺 code 的基金条目，已跳过", "warning")
+                continue
+            existing_codes.add(code)
 
     new_codes = all_fund_codes - existing_codes
     if not new_codes:

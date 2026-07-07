@@ -2911,11 +2911,9 @@
             const percentDiffArrow = yesterdayPercentDiff >= 0 ? '↑' : '↓';
             const percentDiffClass = yesterdayPercentDiff >= 0 ? 'positive' : 'negative';
 
-            // 判断数据日期是否昨日或今日，用于动态标签
-            const today = getBeijingToday();
-            const yesterday = getBeijingYesterday();
-            const isTodayOrYesterday = latestNavDate === today || latestNavDate === yesterday;
-            const latestLabel = isTodayOrYesterday ? '昨日' : '最新';
+            // 依据当前北京时间(是否>=20:00)与净值日期，动态决定表头标签（昨日 / 已更新至今日）
+            const daily = getDailyInfo(latestNavDate);
+            const latestLabel = daily.label;
 
             // 本年数据（YTD）
             const ytdProfit = summary.ytd_profit_loss || 0;
@@ -2933,14 +2931,14 @@
                         <div class="value">¥${totalValue.toFixed(2)}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">${latestLabel}收益率${!isTodayOrYesterday && latestNavDate ? ` <span style="font-size:10px;color:var(--color-text-muted);">(${latestNavDate})</span>` : ''}</div>
+                        <div class="label">${latestLabel}收益率${daily.badge}</div>
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfitPercent >= 0 ? '+' : ''}${yesterdayProfitPercent.toFixed(2)}%
                             ${yesterdayPercentDiff !== 0 ? `<br><span class="${percentDiffClass}" style="font-size:12px;">（较前日 ${percentDiffSign}${Math.abs(yesterdayPercentDiff).toFixed(2)}% ${percentDiffArrow}）</span>` : ''}
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">${latestLabel}盈亏${!isTodayOrYesterday && latestNavDate ? ` <span style="font-size:10px;color:var(--color-text-muted);">(${latestNavDate})</span>` : ''}</div>
+                        <div class="label">${latestLabel}盈亏${daily.badge}</div>
                         <div class="value ${yesterdayClass}">
                             ${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}
                             ${yesterdayProfitDiff !== 0 ? `<br><span class="${diffClass}" style="font-size:12px;">（较前日 ${diffSign}¥${Math.abs(yesterdayProfitDiff).toFixed(2)} ${diffArrow}）</span>` : ''}
@@ -2993,11 +2991,9 @@
                 const navDate = fnd.latest_trading_day_nav_date || fnd.yesterday_nav_date || '';
                 const navDateLabel = getNavDateLabel(navDate, fnd.nav_status);
 
-                // 判断最新数据是否为昨日或今日的数据，用于动态调整表头标签
-                const today = getBeijingToday();
-                const yesterday = getBeijingYesterday();
-                const isTodayOrYesterday = navDate === today || navDate === yesterday;
-                const latestLabel = isTodayOrYesterday ? '昨日' : '最新';
+                // 依据当前北京时间(是否>=20:00)与净值日期，动态决定表头标签（昨日 / 已更新至今日）
+                const daily = getDailyInfo(navDate);
+                const latestLabel = daily.label;
 
                 html += `
                     <div class="fund-card" data-platform="${encAttr(platformName)}" data-code="${encAttr(fnd.code)}">
@@ -3413,11 +3409,16 @@
         // 生成净值日期标签（根据北京时间判断显示策略）
         function getNavDateLabel(navDate, navStatus) {
             if (!navDate) return '';
+            const now = getBeijingNow();
+            const isAfter20 = now.getHours() >= 20;
             const today = getBeijingToday();
             const yesterday = getBeijingYesterday();
 
             if (navDate === today) {
-                return '<span style="font-size:10px;color:var(--color-info);">(已根据今日净值更新)</span>';
+                // 20:00 后当日净值已确认，标注“已更新至今日”；盘中则仅标“今日”
+                return isAfter20
+                    ? '<span style="font-size:10px;color:var(--color-info);">(已更新至今日)</span>'
+                    : '<span style="font-size:10px;color:var(--color-text-muted);">(今日)</span>';
             }
             if (navDate === yesterday) {
                 return ''; // 昨日净值不显示日期标签
@@ -3428,6 +3429,24 @@
                 html += '<span style="color:var(--color-warning);font-weight:bold;font-size:10px;margin-left:2px;">(延迟)</span>';
             }
             return html;
+        }
+
+        // 根据当前北京时间 + 净值日期，决定“最新交易日”卡片的表头标签与角标
+        // 0:00-20:00 → 显示上一交易日数据，标注“昨日”
+        // 20:00-23:59 且已获取到当日净值 → 标注“已更新至今日”
+        function getDailyInfo(navDate) {
+            if (!navDate) return { label: '最新', badge: '' };
+            const now = getBeijingNow();
+            const isAfter20 = now.getHours() >= 20;
+            const today = getBeijingToday();
+            const yesterday = getBeijingYesterday();
+            if (isAfter20 && navDate === today) {
+                return { label: '今日', badge: ' <span style="font-size:10px;color:var(--color-info);">(已更新至今日)</span>' };
+            }
+            if (navDate === today || navDate === yesterday) {
+                return { label: '昨日', badge: '' };
+            }
+            return { label: '最新', badge: ` <span style="font-size:10px;color:var(--color-text-muted);">(${navDate})</span>` };
         }
         
         // 转义HTML特殊字符（防XSS）

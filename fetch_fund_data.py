@@ -742,7 +742,12 @@ def calculate_cumulative_returns(history, original_purchases=None, history_for_n
             nav_on_date = nav_result["nav"]
 
             if trans_type == "sell":
-                sell_shares = p["amount"] / nav_on_date
+                # 与 calculate_holdings() 保持一致：优先使用 shares 字段（实际卖出份额），否则从 amount / nav 计算
+                raw_shares = p.get("shares")
+                if raw_shares is not None and raw_shares > 0:
+                    sell_shares = raw_shares
+                else:
+                    sell_shares = p["amount"] / nav_on_date
                 remaining_sell = sell_shares
                 deducted_cost = 0.0
                 for buy in buy_queue:

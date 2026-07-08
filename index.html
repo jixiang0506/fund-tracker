@@ -5523,16 +5523,12 @@ function refreshFundInfo() {
                     console.log('配置自动上传成功');
                 }).catch(err => {
                     console.error('配置自动上传失败:', err);
-                }).finally(() => {
-                    if (btn) btn.classList.remove('btn-loading');
                 });
             } else {
                 showMessage(`基金 ${fundCode} 不在当前配置中，请先添加`, 'warning');
-                if (btn) btn.classList.remove('btn-loading');
             }
         } else {
             showMessage(`无法获取基金 ${fundCode} 的信息`, 'error');
-            if (btn) btn.classList.remove('btn-loading');
         }
     });
 }
@@ -6068,23 +6064,32 @@ function deletePurchaseRecord(platform, fundCode, index) {
             const body = document.getElementById('confirmDialogBody');
             if (!dialog || !body) return;
 
-            // 统计待保存的记录
+            // 统计待保存的记录（purchaseRecords 为双层结构：平台 -> 基金代码 -> 记录列表）
             const records = state.purchaseRecords || {};
-            const fundCodes = Object.keys(records);
             let totalCount = 0;
-            fundCodes.forEach(code => {
-                if (Array.isArray(records[code])) totalCount += records[code].length;
-            });
+            const flatFunds = [];  // 展平后的 [{code, list}]
+            for (const platform of Object.keys(records)) {
+                const platformFunds = records[platform];
+                if (!platformFunds || typeof platformFunds !== 'object') continue;
+                for (const code of Object.keys(platformFunds)) {
+                    const list = platformFunds[code];
+                    if (Array.isArray(list)) {
+                        totalCount += list.length;
+                        flatFunds.push({ code, list });
+                    }
+                }
+            }
 
             // 构建确认内容
             let html = '<div style="margin-bottom:12px;">确认将以下交易记录保存并同步到 GitHub？</div>';
             html += '<div style="background:var(--color-bg-secondary);border-radius:6px;padding:12px;margin-bottom:12px;font-size:13px;max-height:200px;overflow-y:auto;">';
-            if (fundCodes.length === 0) {
+            if (flatFunds.length === 0) {
                 html += '<div style="color:var(--color-text-muted);">暂无交易记录</div>';
             } else {
-                html += '<div style="margin-bottom:6px;">共 <b>' + fundCodes.length + '</b> 只基金，<b>' + totalCount + '</b> 条记录</div>';
-                fundCodes.forEach(code => {
-                    const list = records[code] || [];
+                html += '<div style="margin-bottom:6px;">共 <b>' + flatFunds.length + '</b> 只基金，<b>' + totalCount + '</b> 条记录</div>';
+                flatFunds.forEach(fund => {
+                    const code = fund.code;
+                    const list = fund.list;
                     // 从 fundConfig 中查找基金名称（按平台分组，需遍历）
                     let fundName = code;
                     if (state.fundConfig) {

@@ -2924,48 +2924,48 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="label">总投入金额</div>
-                        <div class="value">¥${totalInvested.toFixed(2)}</div>
+                        <div class="value">${fmtYuan(totalInvested)}</div>
                     </div>
                     <div class="stat-card">
                         <div class="label">当前总市值</div>
-                        <div class="value">¥${totalValue.toFixed(2)}</div>
+                        <div class="value">${fmtYuan(totalValue)}</div>
                     </div>
                     <div class="stat-card">
                         <div class="label">${latestLabel}收益率${daily.badge}</div>
                         <div class="value ${yesterdayClass}">
-                            ${yesterdayProfitPercent >= 0 ? '+' : ''}${yesterdayProfitPercent.toFixed(2)}%
-                            ${yesterdayPercentDiff !== 0 ? `<br><span class="${percentDiffClass}" style="font-size:12px;">（较前日 ${percentDiffSign}${Math.abs(yesterdayPercentDiff).toFixed(2)}% ${percentDiffArrow}）</span>` : ''}
+                            ${fmtPct(yesterdayProfitPercent)}
+                            ${yesterdayPercentDiff !== 0 ? `<br><span class="${percentDiffClass}" style="font-size:12px;">（较前日 ${percentDiffSign}${fmtNum(Math.abs(yesterdayPercentDiff))}% ${percentDiffArrow}）</span>` : ''}
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">${latestLabel}盈亏${daily.badge}</div>
                         <div class="value ${yesterdayClass}">
-                            ${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}
-                            ${yesterdayProfitDiff !== 0 ? `<br><span class="${diffClass}" style="font-size:12px;">（较前日 ${diffSign}¥${Math.abs(yesterdayProfitDiff).toFixed(2)} ${diffArrow}）</span>` : ''}
+                            ${yesterdayProfit >= 0 ? '+' : ''}${fmtYuan(yesterdayProfit)}
+                            ${yesterdayProfitDiff !== 0 ? `<br><span class="${diffClass}" style="font-size:12px;">（较前日 ${diffSign}¥${fmtNum(Math.abs(yesterdayProfitDiff))} ${diffArrow}）</span>` : ''}
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">本年收益率</div>
                         <div class="value ${ytdClass}">
-                            ${ytdProfitPercent >= 0 ? '+' : ''}${ytdProfitPercent.toFixed(2)}%
+                            ${fmtPct(ytdProfitPercent)}
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">本年盈亏</div>
                         <div class="value ${ytdClass}">
-                            ${ytdProfit >= 0 ? '+' : ''}¥${ytdProfit.toFixed(2)}
+                            ${ytdProfit >= 0 ? '+' : ''}${fmtYuan(ytdProfit)}
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">总收益率</div>
                         <div class="value ${totalProfitPercent >= 0 ? 'positive' : 'negative'}">
-                            ${totalProfitPercent >= 0 ? '+' : ''}${totalProfitPercent.toFixed(2)}%
+                            ${fmtPct(totalProfitPercent)}
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="label">总盈亏</div>
                         <div class="value ${totalProfit >= 0 ? 'positive' : 'negative'}">
-                            ${totalProfit >= 0 ? '+' : ''}¥${totalProfit.toFixed(2)}
+                            ${totalProfit >= 0 ? '+' : ''}${fmtYuan(totalProfit)}
                         </div>
                     </div>
                 </div>
@@ -3017,27 +3017,27 @@
                             </tr>
                             <tr class="metric-values">
                                 <td>
-                                    <div>${yesterdayNav.toFixed(4)}</div>
+                                    <div>${fmtNum(yesterdayNav, 4)}</div>
                                     ${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}
                                 </td>
                                 <td class="${yesterdayClass}">
-                                    <div>${yesterdayReturn >= 0 ? '+' : ''}${yesterdayReturn.toFixed(2)}%</div>
+                                    <div>${fmtPct(yesterdayReturn)}</div>
                                     ${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}
                                 </td>
                                 <td class="${yesterdayClass}">
                                     ${fnd.holdings
-                                        ? `<div>${yesterdayProfit >= 0 ? '+' : ''}¥${yesterdayProfit.toFixed(2)}</div>${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}`
+                                        ? `<div>${yesterdayProfit >= 0 ? '+' : ''}${fmtYuan(yesterdayProfit)}</div>${navDateLabel ? `<div class="metric-date-label">${navDateLabel}</div>` : ''}`
                                         : '-'}
                                 </td>
-                                <td class="${profitClass}">${fnd.holdings ? ((fnd.holdings.profit_loss_percent >= 0 ? '+' : '') + fnd.holdings.profit_loss_percent.toFixed(2) + '%') : '-'}</td>
-                                <td class="${profitClass}">${fnd.holdings ? ((profit >= 0 ? '+' : '') + '¥' + profit.toFixed(2)) : '-'}</td>
+                                <td class="${profitClass}">${fnd.holdings ? (fmtPct(fnd.holdings.profit_loss_percent)) : '-'}</td>
+                                <td class="${profitClass}">${fnd.holdings ? ((profit >= 0 ? '+' : '') + '¥' + fmtNum(profit)) : '-'}</td>
                             </tr>
                         </table>
                         ${fnd.holdings && fnd.holdings.realized_profit_loss !== 0 ? `
                         <div class="realized-profit" style="margin-top: 8px; padding: 8px; background: var(--color-bg-secondary); border-radius: 5px; font-size: 13px;">
                             <span style="color: var(--color-text-secondary);">已实现盈亏：</span>
                             <span style="font-weight: bold; color: ${fnd.holdings.realized_profit_loss >= 0 ? 'var(--color-profit)' : 'var(--color-loss)'};">
-                                ${fnd.holdings.realized_profit_loss >= 0 ? '+' : ''}¥${fnd.holdings.realized_profit_loss.toFixed(2)}
+                                ${fnd.holdings.realized_profit_loss >= 0 ? '+' : ''}${fmtYuan(fnd.holdings.realized_profit_loss)}
                             </span>
                         </div>
                         ` : ''}
@@ -3045,7 +3045,7 @@
                         <div class="avg-cost" style="margin-top: 8px; padding: 8px; background: var(--color-bg-secondary); border-radius: 5px; font-size: 13px;">
                             <span style="color: var(--color-text-secondary);">持仓成本：</span>
                             <span style="font-weight: bold; color: var(--color-text-primary);">
-                                ${fnd.holdings.avg_cost_nav.toFixed(4)}
+                                ${fmtNum(fnd.holdings.avg_cost_nav, 4)}
                             </span>
                         </div>
                         ` : ''}
@@ -3090,11 +3090,11 @@
                             <tr>
                                 <td>${escapeHtml(p.date)}</td>
                                 <td class="${typeClass}" style="font-weight: bold;">${typeLabel}</td>
-                                <td class="${typeClass}">¥${amountPrefix}${Math.abs(p.amount).toFixed(2)}</td>
-                                <td>${p.nav.toFixed(4)}${p.nav_source === 'next_trading_day' ? ' <span style="font-size:10px;color:var(--color-warning);" title="非交易日，按下一交易日净值确认">(延)</span>' : ''}</td>
-                                <td class="${typeClass}">${isSell ? '-' : '+'}${Math.abs(p.shares).toFixed(2)}</td>
+                                <td class="${typeClass}">¥${amountPrefix}${fmtNum(Math.abs(p.amount))}</td>
+                                <td>${fmtNum(p.nav, 4)}${p.nav_source === 'next_trading_day' ? ' <span style="font-size:10px;color:var(--color-warning);" title="非交易日，按下一交易日净值确认">(延)</span>' : ''}</td>
+                                <td class="${typeClass}">${isSell ? '-' : '+'}${fmtNum(Math.abs(p.shares))}</td>
                                 <td class="${isSell && p.realized_profit !== undefined ? (p.realized_profit >= 0 ? 'positive' : 'negative') : ''}">
-                                    ${isSell && p.realized_profit !== undefined ? ((p.realized_profit >= 0 ? '+' : '') + '¥' + p.realized_profit.toFixed(2)) : '-'}
+                                    ${isSell && p.realized_profit !== undefined ? ((p.realized_profit >= 0 ? '+' : '') + '¥' + fmtNum(p.realized_profit)) : '-'}
                                 </td>
                             </tr>
                         `;
@@ -3106,9 +3106,9 @@
                     html += `
                             <tr style="background: var(--color-bg-secondary); font-weight: bold;">
                                 <td colspan="2" style="text-align: right; color: var(--color-text-secondary);">投入总金额：</td>
-                                <td style="color: var(--color-text-primary);">¥${totalInvested.toFixed(2)}</td>
+                                <td style="color: var(--color-text-primary);">${fmtYuan(totalInvested)}</td>
                                 <td style="text-align: right; color: var(--color-text-secondary);">持有总份额：</td>
-                                <td style="color: var(--color-text-primary);">${totalShares.toFixed(2)}</td>
+                                <td style="color: var(--color-text-primary);">${fmtNum(totalShares)}</td>
                             </tr>
                     `;
 
@@ -3322,7 +3322,7 @@
                                     label: function(context) {
                                         const v = context.parsed.y;
                                         const sign = v >= 0 ? '+' : '';
-                                        return context.dataset.label + ': ' + sign + v.toFixed(2) + '%';
+                                        return context.dataset.label + ': ' + sign + fmtNum(v) + '%';
                                     }
                                 }
                             }
@@ -3340,7 +3340,7 @@
                                 beginAtZero: false,
                                 ticks: {
                                     callback: function(value) {
-                                        return value.toFixed(1) + '%';
+                                        return fmtNum(value, 1) + '%';
                                     },
                                     font: { size: 11 },
                                     color: '#a0aec0'
@@ -3455,6 +3455,14 @@
             div.textContent = str;
             return div.innerHTML;
         }
+
+        // 统一数字格式化（消除散落的 .toFixed 调用）
+        function fmtNum(v, d = 2) {
+            const n = (typeof v === 'number' && isFinite(v)) ? v : 0;
+            return n.toFixed(d);
+        }
+        function fmtYuan(v) { return '¥' + fmtNum(v); }
+        function fmtPct(v, d = 2) { return (v >= 0 ? '+' : '') + fmtNum(v, d) + '%'; }
 
         // 属性值编码/解码（防XSS属性注入）
         function encAttr(str) { return encodeURIComponent(String(str)); }
@@ -3696,7 +3704,7 @@
                                         const value = context.parsed.y;
                                         if (value !== null) {
                                             const sign = value >= 0 ? '+' : '';
-                                            return `业绩基准: ${sign}${value.toFixed(2)}%`;
+                                            return `业绩基准: ${sign}${fmtNum(value)}%`;
                                         }
                                         return null;
                                     }
@@ -3706,7 +3714,7 @@
                                         const nav = fundHistory[idx].nav;
                                         const returnRate = dataPoints[idx];
                                         const sign = returnRate >= 0 ? '+' : '';
-                                        const lines = [`收益率: ${sign}${returnRate.toFixed(2)}%`, `净值: ${nav.toFixed(4)}`];
+                                        const lines = [`收益率: ${sign}${fmtNum(returnRate)}%`, `净值: ${fmtNum(nav, 4)}`];
                                         const trades = tradeInfo[idx];
                                         if (trades && trades.length > 0) {
                                             // 按买入/卖出分组汇总
@@ -3714,11 +3722,11 @@
                                             const sells = trades.filter(t => t.type === 'sell');
                                             if (buys.length > 0) {
                                                 const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount),0);
-                                                lines.push(`买入: ¥${totalBuy.toFixed(2)}（${buys.length}笔）`);
+                                                lines.push(`买入: ${fmtYuan(totalBuy)}（${buys.length}笔）`);
                                             }
                                             if (sells.length > 0) {
                                                 const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount),0);
-                                                lines.push(`卖出: ¥${totalSell.toFixed(2)}（${sells.length}笔）`);
+                                                lines.push(`卖出: ${fmtYuan(totalSell)}（${sells.length}笔）`);
                                             }
                                         }
                                         return lines;
@@ -3726,7 +3734,7 @@
                                     
                                     // 如果是持仓成本线
                                     if (datasetLabel === '持仓成本') {
-                                        return `持仓成本: ${costReturnRate.toFixed(2)}%`;
+                                        return `持仓成本: ${fmtNum(costReturnRate)}%`;
                                     }
                                 
                                     return null;
@@ -3746,7 +3754,7 @@
                         y: {
                             ticks: {
                                 callback: function(value) {
-                                    return (value >= 0 ? '+' : '') + value.toFixed(0) + '%';
+                                    return (value >= 0 ? '+' : '') + fmtNum(value, 0) + '%';
                                 },
                                 font: { size: 11 },
                                 color: '#a0aec0'
@@ -4079,7 +4087,7 @@
                                 label: function(ctx) {
                                     if (ctx.parsed.y === null || ctx.parsed.y === undefined) return null;
                                     const val = ctx.parsed.y;
-                                    const pct = ((val - 1) * 100).toFixed(2);
+                                    const pct = fmtNum((val - 1) * 100);
                                     const sign = pct >= 0 ? '+' : '';
                                     return `${ctx.dataset.label}: ${sign}${pct}%`;
                                 }
@@ -4100,7 +4108,7 @@
                             ticks: {
                                 color: '#a0aec0',
                                 callback: function(val) {
-                                    return ((val - 1) * 100).toFixed(0) + '%';
+                                    return fmtNum((val - 1) * 100, 0) + '%';
                                 }
                             },
                             grid: {
@@ -4520,10 +4528,10 @@
             }
 
             const shares = holdingsShares * percent;
-            DOM.recordShares.value = shares.toFixed(2);
+            DOM.recordShares.value = fmtNum(shares);
             const hintAmount = shares * sellState.nav;
-            DOM.sharesHint.textContent = `预计卖出金额 ≈ ¥${hintAmount.toFixed(2)}`;
-            DOM.sellQuickHint.textContent = percent === 1 ? '全部卖出' : `卖出 ${(percent*100).toFixed(0)}%，约 ${shares.toFixed(2)} 份`;
+            DOM.sharesHint.textContent = `预计卖出金额 ≈ ${fmtYuan(hintAmount)}`;
+            DOM.sellQuickHint.textContent = percent === 1 ? '全部卖出' : `卖出 ${fmtNum(percent*100, 0)}%，约 ${fmtNum(shares)} 份`;
             DOM.sellQuickHint.style.display = 'block';
         }
 
@@ -4636,9 +4644,9 @@
                 const shares = fund.holdings.total_shares || 0;
                 const nav = fund.current_nav || 0;
 
-                DOM.holdingsValue.textContent = '¥' + value.toFixed(2);
-                DOM.holdingsShares.textContent = shares.toFixed(2) + ' 份';
-                DOM.holdingsNav.textContent = nav.toFixed(4);
+                DOM.holdingsValue.textContent = '¥' + fmtNum(value);
+                DOM.holdingsShares.textContent = fmtNum(shares) + ' 份';
+                DOM.holdingsNav.textContent = fmtNum(nav, 4);
                 sellState.nav = nav;
             } else {
                 DOM.holdingsValue.textContent = '-';
@@ -4671,7 +4679,7 @@
 
             if (nav > 0 && shares > 0) {
                 const amount = shares * nav;
-                DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥' + amount.toFixed(2);
+                DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥' + fmtNum(amount);
             } else {
                 DOM.sharesHint.textContent = '预计卖出金额 ≈ ¥0.00';
             }
@@ -4691,7 +4699,7 @@
             }
 
             const nav = parseFloat(navVal);
-            DOM.navHint.textContent = '使用手动输入净值: ' + nav.toFixed(4);
+            DOM.navHint.textContent = '使用手动输入净值: ' + fmtNum(nav, 4);
 
             if (isSell) {
                 // 卖出：重新计算份额对应的金额提示
@@ -4701,7 +4709,7 @@
                 const amount = parseFloat(DOM.recordAmount.value) || 0;
                 if (amount > 0 && nav > 0) {
                     const shares = amount / nav;
-                    DOM.navHint.textContent += ' (≈ ' + shares.toFixed(2) + ' 份)';
+                    DOM.navHint.textContent += ' (≈ ' + fmtNum(shares) + ' 份)';
                 }
             }
         }
@@ -4732,10 +4740,10 @@
             const record = fund.history.find(h => h.date === date);
 
             if (record && record.nav > 0) {
-                const navStr = record.nav.toFixed(4);
+                const navStr = fmtNum(record.nav, 4);
                 // 若净值输入框为空，自动填充
                 if (!DOM.recordNav.value) {
-                    DOM.recordNav.value = record.nav.toFixed(4);
+                    DOM.recordNav.value = fmtNum(record.nav, 4);
                     DOM.navHint.textContent = date + ' 净值: ' + navStr + '（已自动填充）';
                 } else {
                     DOM.navHint.textContent = date + ' 净值: ' + navStr + '（当前为手动输入值）';
@@ -5739,14 +5747,14 @@ function renderRecordsList() {
         const typeLabel = isSell ? '卖出' : '买入';
         const typeColor = isSell ? 'var(--color-loss)' : 'var(--color-profit)';
         const amountPrefix = isSell ? '-' : '';
-        const amountValue = typeof record.amount === 'number' ? record.amount.toFixed(2) : '0.00';
+        const amountValue = typeof record.amount === 'number' ? fmtNum(record.amount) : '0.00';
 
         let extraInfo = '';
         if (record.shares !== undefined && record.shares > 0) {
-            extraInfo += `，份额: ${record.shares.toFixed(2)}`;
+            extraInfo += `，份额: ${fmtNum(record.shares)}`;
         }
         if (record.nav !== undefined && record.nav > 0) {
-            extraInfo += `，净值: ${record.nav.toFixed(4)}`;
+            extraInfo += `，净值: ${fmtNum(record.nav, 4)}`;
         }
 
         html += `

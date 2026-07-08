@@ -6121,19 +6121,17 @@ function deletePurchaseRecord(platform, fundCode, index) {
         }
 
         // 2. 执行保存并同步
-        function executeSaveAndSync() {
+        async function executeSaveAndSync() {
             closeConfirmDialog();
             const btn = document.getElementById('confirmSaveBtn');
             if (btn) btn.classList.add('btn-loading');
-            // 调用保存函数
+            // 调用保存函数（await 确保保存完成后再移除 loading 状态）
             if (typeof savePurchaseRecords === 'function') {
-                savePurchaseRecords();
-                // savePurchaseRecords 内部会调用 pushToGitHub，用 setTimeout 兜底移除 loading
-                setTimeout(() => { if (btn) btn.classList.remove('btn-loading'); }, 5000);
+                await savePurchaseRecords();
             } else {
                 showMessage('⚠️ 保存函数未找到', 'error');
-                if (btn) btn.classList.remove('btn-loading');
             }
+            if (btn) btn.classList.remove('btn-loading');
         }
 
         // 3. 保存快速配置（GitHub Token）

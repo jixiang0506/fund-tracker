@@ -27,6 +27,9 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from logger_config import get_beijing_time, safe_load_json, log, setup_encoding
 
+# HTTP 请求超时（秒）：实时估值 / 历史净值 / 基准指数外的常规抓取共用
+REQUEST_TIMEOUT = 10
+
 # 线程锁:保护 history_cache 的读写（ThreadPoolExecutor 并行访问）
 history_cache_lock = threading.Lock()
 
@@ -222,7 +225,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
     for attempt in range(1, max_retries + 1):
         try:
             url = REALTIME_API.format(fund_code)
-            response = session.get(url, timeout=10)
+            response = session.get(url, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
 
             # 解析JSONP响应
@@ -273,7 +276,7 @@ def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, sess
             "startDate": "2020-01-01",
             "endDate": today
         }
-        response = session.get(HISTORY_API, params=params, timeout=10)
+        response = session.get(HISTORY_API, params=params, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -360,7 +363,7 @@ def fetch_fund_history(fund_code, start_date="2020-01-01", max_pages=200, sessio
                 "endDate": get_beijing_time().strftime("%Y-%m-%d")
             }
 
-            response = session.get(HISTORY_API, params=params, timeout=10)
+            response = session.get(HISTORY_API, params=params, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
 
             result = response.json()
@@ -1417,7 +1420,7 @@ def fetch_fund_info_from_web(code, session=None):
         if session is None:
             session = _create_session()
 
-        resp = session.get(url, timeout=10)
+        resp = session.get(url, timeout=REQUEST_TIMEOUT)
         if resp.status_code == 200:
             data = resp.json()
             items = data.get("QuotationCodeTable", {}).get("Data", [])

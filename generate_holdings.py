@@ -29,10 +29,28 @@ FUNDS_DATA_FILE = os.path.join(DATA_DIR, 'funds_data.json')
 OUTPUT_FILE = os.path.join(DATA_DIR, 'holdings_snapshot.json')
 
 # 数据新鲜度阈值（小时）
-FRESHNESS_THRESHOLD_HOURS = 24
+# 注：GitHub Actions 两次成功抓取的最大自然间隔为 11.5h（北京时间 08:30→20:00），
+# 故阈值设为 12h——既比原 24h 收紧一半，又不会在正常间隔下误报。
+FRESHNESS_THRESHOLD_HOURS = 12
 
 # 北京时间时区（UTC+8）
 BEIJING_TZ = timezone(timedelta(hours=8))
+
+# funds_data.json 的 update_time 支持多种时间格式，统一在此列出
+TIME_FORMATS = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y/%m/%d %H:%M:%S"]
+
+
+def _parse_fund_time(time_str):
+    """解析 funds_data.json 的时间字符串为 naive datetime（北京时间）。
+
+    兼容多种格式，解析失败返回 None。供新鲜度检查与快照时间转换复用。
+    """
+    for fmt in TIME_FORMATS:
+        try:
+            return datetime.strptime(time_str, fmt)
+        except ValueError:
+            continue
+    return None
 
 
 def _check_funds_data_freshness():
@@ -54,15 +72,10 @@ def _check_funds_data_freshness():
             return True
         
         # 解析时间戳（支持多种格式，并添加北京时间时区）
-        data_time = None
-        for fmt in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y/%m/%d %H:%M:%S"]:
-            try:
-                data_time = datetime.strptime(update_time, fmt).replace(tzinfo=BEIJING_TZ)
-                break
-            except ValueError:
-                continue
-        
-        if not data_time:
+        data_time = _parse_fund_time(update_time)
+        if data_time:
+            data_time = data_time.replace(tzinfo=BEIJING_TZ)
+        else:
             log(f"[Warning] 无法解析 funds_data.json 的时间戳: {update_time}", "warning")
             return True
         
@@ -133,13 +146,9 @@ def generate_holdings_snapshot():
     # 支持多种常见格式，任一失败则回退到当前时间
     snapshot_time = None
     if data_update_time:
-        for fmt in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y/%m/%d %H:%M:%S"]:
-            try:
-                dt = datetime.strptime(data_update_time, fmt)
-                snapshot_time = dt.strftime("%Y-%m-%dT%H:%M:%S+08:00")
-                break
-            except ValueError:
-                continue
+        dt = _parse_fund_time(data_update_time)
+        if dt:
+            snapshot_time = dt.strftime("%Y-%m-%dT%H:%M:%S+08:00")
         if not snapshot_time:
             log(f"[Warning] 无法解析时间戳格式: {data_update_time}，使用当前时间", "warning")
     if not snapshot_time:

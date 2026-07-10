@@ -1333,8 +1333,34 @@ def main():
         log("[Warning] 基准指数数据更新失败: {}".format(e))
 
 
+def _fetch_one_index(code, info, url, params_template, session):
+    """抓取单个基准指数的K线数据（并行 worker，返回 {date: close} 或 None）"""
+    try:
+        params = dict(params_template, secid=info["secid"])
+        resp = session.get(url, params=params, timeout=15)
+        resp.raise_for_status()
+        result = resp.json()
+        klines = result.get("data", {}).get("klines", [])
+        if not klines:
+            log(f"  ⚠ {code} ({info['name']}) 未获取到数据")
+            return None
+        new_data = {}
+        for kline in klines:
+            parts = kline.split(",")
+            if len(parts) >= 3:
+                new_data[parts[0]] = float(parts[2])
+        if not new_data:
+            log(f"  ⚠ {code} ({info['name']}) 解析数据为空")
+            return None
+        log(f"  ✓ {code} ({info['name']}): {len(klines)} 条K线, 最新 {list(new_data.keys())[-1]} 收盘 {list(new_data.values())[-1]}")
+        return new_data
+    except Exception as e:
+        log(f"  ⚠ {code} ({info['name']}) 获取失败: {e}", "warning")
+        return None
+
+
 def update_benchmark_index_data():
-    """从东方财富 API 更新基准指数数据（科创50 sh000688, 纳斯达克100 us.NDX）"""
+    """从东方财富 API 更新基准指数数据（科创50 sh000688, 纳斯达克100 us.NDX），并行抓取缩短耗时"""
     url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
     params_template = {
         "fields1": "f1,f2,f3",
@@ -1355,31 +1381,22 @@ def update_benchmark_index_data():
             existing = {}
     session = _create_session()
     updated = False
-    for code, info in BENCHMARK_INDICES.items():
-        try:
-            params = dict(params_template, secid=info["secid"])
-            resp = session.get(url, params=params, timeout=15)
-            resp.raise_for_status()
-            result = resp.json()
-            klines = result.get("data", {}).get("klines", [])
-            if not klines:
-                log(f"  ⚠ {code} ({info['name']}) 未获取到数据")
-                continue
-            new_data = {}
-            for kline in klines:
-                parts = kline.split(",")
-                if len(parts) >= 3:
-                    new_data[parts[0]] = float(parts[2])
+    # 并行抓取所有基准指数（共享 session 复用连接池，主线程串行合并避免竞争）
+    with ThreadPoolExecutor(max_workers=len(BENCHMARK_INDICES)) as executor:
+        future_to_code = {
+            executor.submit(_fetch_one_index, code, info, url, params_template, session): code
+            for code, info in BENCHMARK_INDICES.items()
+        }
+        for future in as_completed(future_to_code):
+            code = future_to_code[future]
+            info = BENCHMARK_INDICES[code]
+            new_data = future.result()
             if not new_data:
-                log(f"  ⚠ {code} ({info['name']}) 解析数据为空")
                 continue
             old_data = existing.get(code, {}).get("data", {})
             old_data.update(new_data)
             existing[code] = {"name": info["name"], "data": old_data}
-            log(f"  ✓ {code} ({info['name']}): {len(klines)} 条K线, 最新 {list(new_data.keys())[-1]} 收盘 {list(new_data.values())[-1]}")
             updated = True
-        except Exception as e:
-            log(f"  ⚠ {code} ({info['name']}) 获取失败: {e}", "warning")
     if updated:
         _atomic_write_json(INDEX_CACHE_FILE, existing)
         total_entries = sum(len(v.get("data", {})) for v in existing.values())

@@ -71,13 +71,20 @@ def _parse_jsonpgz(text):
     return None
 
 
-def _atomic_write_json(path, data):
-    """原子写入 JSON 文件（tempfile.mkstemp + os.replace 防止中断损坏）。"""
+def _atomic_write_json(path, data, indent=None):
+    """原子写入 JSON 文件（tempfile.mkstemp + os.replace 防止中断损坏）。
+
+    indent=None 时使用紧凑格式（separators=(",",":")），保持历史缓存等小文件紧凑；
+    传入 indent（如 2）则按可读格式写入（如 funds_data.json）。
+    """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+            if indent is None:
+                json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+            else:
+                json.dump(data, f, ensure_ascii=False, indent=indent)
         os.replace(tmp_path, path)
     except Exception:
         if os.path.exists(tmp_path):
@@ -1335,11 +1342,10 @@ def _compute_summary(all_data, stale_funds, failed_funds):
 
 def _save_outputs(all_data):
     """保存数据文件、生成持仓快照、更新基准指数数据。"""
-    # 保存数据
+    # 保存数据（原子写入，避免写入中断导致 JSON 损坏）
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     try:
-        with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, ensure_ascii=False, indent=2)
+        _atomic_write_json(output_file, all_data, indent=2)
         log(f"\n✓ 数据已保存到 {output_file}")
         log(f"  更新时间: {all_data['update_time']}")
     except Exception as e:

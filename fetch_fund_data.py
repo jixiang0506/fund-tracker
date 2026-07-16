@@ -556,6 +556,98 @@ def load_purchase_records():
         log(f"❌ 加载持仓记录失败: {e}")
         return None
 
+def _process_fifo_transaction(purchase, history, buy_queue, fund_code="", log_fifo=False):
+    """处理单笔交易（买入或卖出），原地更新 buy_queue（FIFO 队列）。
+
+    从 calculate_holdings() 与 calculate_cumulative_returns() 抽出的共享核心逻辑，
+    保证两处 FIFO 行为一致。
+
+    参数:
+        purchase: 交易记录 dict（含 date/amount/type/before_15/shares）
+        history: 历史净值列表（升序）
+        buy_queue: FIFO 队列（list of dict），原地修改
+        fund_code: 仅用于日志
+        log_fifo: 是否输出逐笔抵扣日志（calculate_holdings 用 True，cumulative 用 False）
+
+    返回:
+        dict: 标准化交易结果；净值无效时返回 None（调用方应跳过该笔）
+        - trans_type: "buy" / "sell"
+        - nav_on_date / nav_source
+        - shares: 实际成交份额（卖出已扣除超卖部分）
+        - cost:   实际成交成本（卖出已扣除超卖部分）
+        - amount: 实际成交金额（卖出已修正超卖）
+        - requested_shares: 卖出请求的份额（超卖前）
+        - is_oversell: 是否发生超卖
+        - date
+    """
+    date = purchase["date"]
+    amount = purchase["amount"]
+    trans_type = purchase.get("type", "buy")
+    before_15 = purchase.get("before_15", True)
+    nav_result = get_nav_from_history(history, date, before_15)
+    if not nav_result or nav_result["nav"] <= 0:
+        return None
+
+    nav_on_date = nav_result["nav"]
+    nav_source = nav_result.get("nav_source", "exact")
+
+    if trans_type == "sell":
+        raw_shares = purchase.get("shares")
+        if raw_shares is not None and raw_shares > 0:
+            sell_shares = raw_shares
+        else:
+            sell_shares = amount / nav_on_date
+
+        remaining = sell_shares
+        deducted_cost = 0.0
+        for buy in buy_queue:
+            if remaining <= 0:
+                break
+            if buy["remaining_shares"] <= 0:
+                continue
+            deduct = min(remaining, buy["remaining_shares"])
+            deduct_amount = deduct * buy["nav"]
+            deducted_cost += deduct_amount
+            buy["remaining_shares"] -= deduct
+            remaining -= deduct
+            if log_fifo:
+                sell_value = deduct * nav_on_date
+                log(f"    FIFO抵扣: 从 {buy['date']} 买入记录抵扣 {deduct:.2f} 份, 成本 ¥{deduct_amount:.2f}, 卖出 ¥{sell_value:.2f}, 盈亏 ¥{sell_value - deduct_amount:.2f}")
+
+        is_oversell = remaining > 0.0001
+        actual_shares = sell_shares - remaining
+        actual_amount = actual_shares * nav_on_date
+        return {
+            "trans_type": "sell",
+            "nav_on_date": nav_on_date,
+            "nav_source": nav_source,
+            "shares": actual_shares,
+            "cost": deducted_cost,
+            "amount": actual_amount,
+            "requested_shares": sell_shares,
+            "is_oversell": is_oversell,
+            "date": date,
+        }
+    else:
+        shares = amount / nav_on_date
+        buy_queue.append({
+            "date": date,
+            "amount": amount,
+            "shares": shares,
+            "nav": nav_on_date,
+            "remaining_shares": shares,
+        })
+        return {
+            "trans_type": "buy",
+            "nav_on_date": nav_on_date,
+            "nav_source": nav_source,
+            "shares": shares,
+            "cost": shares * nav_on_date,
+            "amount": amount,
+            "date": date,
+        }
+
+
 def calculate_holdings(purchases, current_nav, history, fund_code=""):
     """计算持仓信息和实际收益（支持买入和卖出记录，FIFO法自动抵扣）
     参数:
@@ -584,101 +676,37 @@ def calculate_holdings(purchases, current_nav, history, fund_code=""):
     sorted_purchases = sorted(purchases, key=lambda x: x["date"])
 
     for purchase in sorted_purchases:
-        date = purchase["date"]
-        amount = purchase["amount"]
-        trans_type = purchase.get("type", "buy")
-
-        # 从历史数据中查找交易日的净值
-        # before_15: 是否为15点前提交（默认True，即按当天净值确认）
-        before_15 = purchase.get("before_15", True)
-        nav_result = get_nav_from_history(history, date, before_15)
-
-        if not nav_result or nav_result["nav"] <= 0:
-            log(f"  ⚠ 无法获取 {date} 的净值，跳过此笔记录")
+        res = _process_fifo_transaction(purchase, history, buy_queue, fund_code=fund_code, log_fifo=True)
+        if res is None:
+            log(f"  ⚠ 无法获取 {purchase['date']} 的净值，跳过此笔记录")
             continue
 
-        nav_on_date = nav_result["nav"]
-        nav_source = nav_result.get("nav_source", "exact")
-
-        if trans_type == "sell":
-            # 卖出记录:按FIFO法从最早买入抵扣
-            # 优先使用 shares 字段（实际卖出份额），否则从 amount / nav 计算
-            raw_shares = purchase.get("shares")
-            if raw_shares is not None and raw_shares > 0:
-                sell_shares = raw_shares
-            else:
-                sell_shares = amount / nav_on_date
-            remaining_sell_shares = sell_shares
-            sell_realized_profit = 0  # 本笔卖出实现的盈亏
-            total_fifo_cost = 0  # 本笔卖出的FIFO总成本
-
-            log(f"  卖出记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f} (来源: {nav_source}), 份额 {sell_shares:.2f}")
-
-            # FIFO抵扣
-            for buy in buy_queue:
-                if remaining_sell_shares <= 0:
-                    break
-
-                if buy["remaining_shares"] <= 0:
-                    continue
-
-                # 本次抵扣的份额
-                deduct_shares = min(remaining_sell_shares, buy["remaining_shares"])
-                deduct_amount = deduct_shares * buy["nav"]  # 成本金额
-                total_fifo_cost += deduct_amount  # 累加FIFO成本
-                sell_value = deduct_shares * nav_on_date  # 卖出金额
-                profit = sell_value - deduct_amount
-
-                # 更新
-                buy["remaining_shares"] -= deduct_shares
-                remaining_sell_shares -= deduct_shares
-                realized_profit_loss += profit
-                sell_realized_profit += profit
-
-                log(f"    FIFO抵扣: 从 {buy['date']} 买入记录抵扣 {deduct_shares:.2f} 份, 成本 ¥{deduct_amount:.2f}, 卖出 ¥{sell_value:.2f}, 盈亏 ¥{profit:.2f}")
-
-            # 检查是否超卖（剩余未抵扣份额 > 0）
-            if remaining_sell_shares > 0.0001:
-                actual_sell_shares = sell_shares - remaining_sell_shares
-                actual_amount = actual_sell_shares * nav_on_date
-                log(f"  ⚠ 警告: 基金 {fund_code} 卖出份额超过持仓！尝试卖出 {sell_shares:.2f} 份，实际可卖出 {actual_sell_shares:.2f} 份")
-                # 修正为实际可卖出的份额和金额
-                sell_shares = actual_sell_shares
-                amount = actual_amount
-
-            # 记录卖出详情（使用本笔卖出的已实现盈亏）
+        if res["trans_type"] == "sell":
+            sell_profit = res["shares"] * res["nav_on_date"] - res["cost"]
+            realized_profit_loss += sell_profit
+            if res["is_oversell"]:
+                log(f"  ⚠ 警告: 基金 {fund_code} 卖出份额超过持仓！尝试卖出 {res['requested_shares']:.2f} 份，实际可卖出 {res['shares']:.2f} 份")
             purchase_details.append({
-                "date": date,
-                "amount": -round(amount, 2),
-                "nav": round(nav_on_date, 4),
-                "shares": -round(sell_shares, 2),
+                "date": res["date"],
+                "amount": -round(res["amount"], 2),
+                "nav": round(res["nav_on_date"], 4),
+                "shares": -round(res["shares"], 2),
                 "type": "sell",
-                "realized_profit": round(sell_realized_profit, 2),  # 本笔卖出的盈亏
-                "fifo_cost": round(total_fifo_cost, 2),  # 本笔卖出的FIFO总成本
-                "nav_source": nav_source  # 净值来源:exact / next_trading_day
+                "realized_profit": round(sell_profit, 2),  # 本笔卖出的盈亏
+                "fifo_cost": round(res["cost"], 2),  # 本笔卖出的FIFO总成本
+                "nav_source": res["nav_source"]  # 净值来源:exact / next_trading_day
             })
-
+            log(f"  卖出记录: {res['date']}, 金额 ¥{purchase['amount']}, 净值 {res['nav_on_date']:.4f} (来源: {res['nav_source']}), 份额 {res['requested_shares']:.2f}")
         else:
-            # 买入记录:加入FIFO队列
-            shares = amount / nav_on_date
-            buy_queue.append({
-                "date": date,
-                "amount": amount,
-                "shares": shares,
-                "nav": nav_on_date,
-                "remaining_shares": shares
-            })
-
             purchase_details.append({
-                "date": date,
-                "amount": amount,
-                "nav": round(nav_on_date, 4),
-                "shares": round(shares, 2),
+                "date": res["date"],
+                "amount": res["amount"],
+                "nav": round(res["nav_on_date"], 4),
+                "shares": round(res["shares"], 2),
                 "type": "buy",
-                "nav_source": nav_source  # 净值来源:exact / next_trading_day
+                "nav_source": res["nav_source"]  # 净值来源:exact / next_trading_day
             })
-
-            log(f"  买入记录: {date}, 金额 ¥{amount}, 净值 {nav_on_date:.4f}, 份额 {shares:.2f}")
+            log(f"  买入记录: {res['date']}, 金额 ¥{res['amount']:.2f}, 净值 {res['nav_on_date']:.4f}, 份额 {res['shares']:.2f}")
 
     # 计算剩余持仓
     remaining_shares = sum(b["remaining_shares"] for b in buy_queue)
@@ -736,39 +764,17 @@ def calculate_cumulative_returns(history, original_purchases=None, history_for_n
             p = sorted_purchases[purchase_idx]
             purchase_idx += 1
 
-            trans_type = p.get("type", "buy")
-            before_15 = p.get("before_15", True)
-            # 使用 history（完整历史数据）作为净值查找源，避免 history_for_nav 数据窗口不足导致 NAV 错位
-            nav_result = get_nav_from_history(history, p["date"], before_15)
-            if not nav_result or nav_result["nav"] <= 0:
+            # 复用共享 FIFO 逻辑（与 calculate_holdings() 完全一致）
+            res = _process_fifo_transaction(p, history, buy_queue)
+            if res is None:
                 continue
-            nav_on_date = nav_result["nav"]
 
-            if trans_type == "sell":
-                # 与 calculate_holdings() 保持一致：优先使用 shares 字段（实际卖出份额），否则从 amount / nav 计算
-                raw_shares = p.get("shares")
-                if raw_shares is not None and raw_shares > 0:
-                    sell_shares = raw_shares
-                else:
-                    sell_shares = p["amount"] / nav_on_date
-                remaining_sell = sell_shares
-                deducted_cost = 0.0
-                for buy in buy_queue:
-                    if remaining_sell <= 0:
-                        break
-                    if buy["remaining_shares"] <= 0:
-                        continue
-                    deduct = min(remaining_sell, buy["remaining_shares"])
-                    deducted_cost += deduct * buy["nav"]
-                    buy["remaining_shares"] -= deduct
-                    remaining_sell -= deduct
-                queue_shares -= (sell_shares - remaining_sell)
-                queue_cost -= deducted_cost
+            if res["trans_type"] == "sell":
+                queue_shares -= res["shares"]
+                queue_cost -= res["cost"]
             else:
-                shares = p["amount"] / nav_on_date
-                buy_queue.append({"date": p["date"], "nav": nav_on_date, "remaining_shares": shares})
-                queue_shares += shares
-                queue_cost += shares * nav_on_date
+                queue_shares += res["shares"]
+                queue_cost += res["cost"]
 
         if queue_cost > 0 and queue_shares > 0:
             value = h["nav"] * queue_shares
@@ -1070,42 +1076,33 @@ def process_fund(platform, code, fund_start_date, http_session,
         return (None, 0, 0, str(e))
 
 
-def main():
-    """主函数"""
-    log("="*60)
-    log(f"基金收益追踪系统 - 数据抓取")
-    log(f"开始时间: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
-    log("="*60)
+def _init_data(args):
+    """阶段 0-2 准备：自动检测新基金、加载配置/记录、初始化输出结构与并行任务。
 
-    # 解析命令行参数
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式:忽略历史缓存，全量获取')
-    args = parser.parse_args()
-
+    返回初始化上下文 dict；若前置条件不满足（无配置 / 无记录文件）返回 None。
+    """
     # 自动检测新基金（在加载配置之前执行）
     auto_detect_new_funds()
 
     # 加载基金配置
     log("\n[0/4] 加载基金配置...")
     funds, qdii_codes, fund_names = load_fund_config()
-
     if not funds:
         log("❌ 无法加载基金配置，退出")
-        return
-    
+        return None
+
     # 检查/创建模板文件
     log("\n[1/4] 检查必要文件...")
-    records_file_exists = setup_data_files(funds)
-    if not records_file_exists:
+    if not setup_data_files(funds):
         log("\n⚠️  请先编辑 data/purchase_records.json 文件，填入你的实际买入记录")
         log("   模板文件已创建，你可以参考其中的格式")
-        return
+        return None
 
     # 加载持仓记录
     log("\n[2/4] 加载持仓记录...")
     purchase_records = load_purchase_records()
     if purchase_records is None:
-        return
+        return None
 
     # 初始化输出数据
     all_data = {
@@ -1115,8 +1112,8 @@ def main():
             "total_invested": 0,
             "total_value": 0,
             "total_profit_loss": 0,
-            "total_profit_loss_percent": 0
-        }
+            "total_profit_loss_percent": 0,
+        },
     }
 
     # 加载上次数据（用于API失败时保留旧数据）
@@ -1130,7 +1127,6 @@ def main():
             log(f"✓ 已加载上次数据作为备份（更新时间: {update_time_str}）")
         except Exception as e:
             log(f"⚠️ 加载上次数据失败: {e}")
-            # 继续执行，不影响主流程
 
     # 构建上次数据的快速查找表: {fund_code: fund_data}
     prev_fund_map = {}
@@ -1138,9 +1134,6 @@ def main():
         for platform_name, fund_list in previous_data.get("funds", {}).items():
             for fund_item in fund_list:
                 prev_fund_map[fund_item["code"]] = fund_item
-
-    # 处理所有基金
-    log("\n[3/4] 获取基金数据...")
 
     # 创建共享 HTTP Session（统一重试策略）
     http_session = _create_session()
@@ -1169,9 +1162,6 @@ def main():
         else:
             log("ℹ️ 无历史缓存，将全量获取")
 
-    # 并行处理所有基金（瓶颈3修复:ThreadPoolExecutor）
-    log(f"\n[3/4] 并行获取基金数据（线程池 max_workers=3）...")
-
     # 收集所有待处理基金
     fund_tasks = []
     for platform, codes in funds.items():
@@ -1183,11 +1173,41 @@ def main():
                 fund_start_date = history_start_date
             fund_tasks.append((platform, code, fund_start_date))
 
-    failed_funds = []
-    stale_funds = []   # 使用缓存数据的基金（非失败，但数据可能过期）
     today = get_beijing_time().strftime("%Y-%m-%d")
 
-    # 使用线程池并行处理
+    return {
+        "funds": funds,
+        "qdii_codes": qdii_codes,
+        "fund_names": fund_names,
+        "purchase_records": purchase_records,
+        "all_data": all_data,
+        "prev_fund_map": prev_fund_map,
+        "history_cache": history_cache,
+        "http_session": http_session,
+        "fund_tasks": fund_tasks,
+        "today": today,
+    }
+
+
+def _process_funds(init):
+    """阶段 3：并行处理所有基金，填充 all_data 并累加汇总。
+
+    返回 (all_data, failed_funds, stale_funds)
+    """
+    all_data = init["all_data"]
+    purchase_records = init["purchase_records"]
+    qdii_codes = init["qdii_codes"]
+    fund_names = init["fund_names"]
+    prev_fund_map = init["prev_fund_map"]
+    today = init["today"]
+    history_cache = init["history_cache"]
+    http_session = init["http_session"]
+    fund_tasks = init["fund_tasks"]
+
+    failed_funds = []
+    stale_funds = []   # 使用缓存数据的基金（非失败，但数据可能过期）
+
+    log(f"\n[3/4] 并行获取基金数据（线程池 max_workers=3）...")
     with ThreadPoolExecutor(max_workers=3) as executor:
         future_to_fund = {}
         for platform, code, fund_start_date in fund_tasks:
@@ -1195,7 +1215,7 @@ def main():
                 process_fund, platform, code, fund_start_date,
                 http_session,  # 传递共享 session，避免每只基金重复创建
                 purchase_records, qdii_codes, fund_names,
-                prev_fund_map, today, history_cache
+                prev_fund_map, today, history_cache,
             )
             future_to_fund[future] = (platform, code)
 
@@ -1208,7 +1228,7 @@ def main():
                     all_data["funds"][platform].append(fund_data)
                     all_data["summary"]["total_invested"] += invested
                     all_data["summary"]["total_value"] += value
-                    # 问题1修复:缓存数据也要提示用户
+                    # 缓存数据也要提示用户
                     if error_msg and "使用缓存数据" in error_msg:
                         stale_funds.append(code)
                         log(f"  ⚠ 基金 {code} 使用缓存数据（实时数据获取失败）")
@@ -1226,7 +1246,11 @@ def main():
     except Exception as cache_err:
         log("⚠️ 保存历史缓存失败: {}".format(cache_err), "warning")
 
-    # 计算所有汇总指标（单次遍历，代替原来4次独立遍历）
+    return all_data, failed_funds, stale_funds
+
+
+def _compute_summary(all_data, stale_funds, failed_funds):
+    """阶段 4：计算所有汇总指标并打印汇总信息。原地更新 all_data["summary"]。"""
     log("\n[4/4] 计算总计收益...")
     summary = all_data["summary"]
     summary["total_profit_loss"] = round(summary["total_value"] - summary["total_invested"], 2)
@@ -1285,7 +1309,7 @@ def main():
     summary["ytd_profit_loss"] = round(_ytd_profit, 2)
     summary["ytd_profit_loss_percent"] = round(_ytd_return_weighted / _ytd_weight, 2) if _ytd_weight > 0 else 0
     summary["total_realized_profit_loss"] = round(_realized, 2)
-    
+
     # 打印汇总信息
     log("\n" + "="*60)
     log("✓ 数据抓取完成！")
@@ -1308,6 +1332,9 @@ def main():
         log(f"\n  [ERROR] 以下基金处理失败: {', '.join(failed_funds)}")
     log("="*60)
 
+
+def _save_outputs(all_data):
+    """保存数据文件、生成持仓快照、更新基准指数数据。"""
     # 保存数据
     output_file = os.path.join(BASE_DIR, "data", "funds_data.json")
     try:
@@ -1317,8 +1344,6 @@ def main():
         log(f"  更新时间: {all_data['update_time']}")
     except Exception as e:
         log(f"[ERROR] 保存数据到 {output_file} 失败: {e}")
-
-    # 历史缓存已在 main() 末尾统一保存（第1115-1119行），此处无需重复
 
     # 生成持仓快照
     log("\n生成持仓快照...")
@@ -1334,6 +1359,27 @@ def main():
         update_benchmark_index_data()
     except Exception as e:
         log("[Warning] 基准指数数据更新失败: {}".format(e))
+
+
+def main():
+    """主函数：编排数据抓取流程（初始化 → 并行处理 → 汇总 → 保存）"""
+    log("="*60)
+    log(f"基金收益追踪系统 - 数据抓取")
+    log(f"开始时间: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
+    log("="*60)
+
+    # 解析命令行参数
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--force-refresh', action='store_true', help='强制刷新模式:忽略历史缓存，全量获取')
+    args = parser.parse_args()
+
+    init = _init_data(args)
+    if init is None:
+        return
+
+    all_data, failed_funds, stale_funds = _process_funds(init)
+    _compute_summary(all_data, stale_funds, failed_funds)
+    _save_outputs(all_data)
 
 
 def _fetch_one_index(code, info, url, params_template, session):

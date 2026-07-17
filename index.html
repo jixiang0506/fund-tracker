@@ -4245,7 +4245,28 @@
         // 从天天基金网搜索基金（JSONP，带请求ID竞态保护）
         function searchFundOnline(kw, onResult, requestId) {
             const apiUrl = 'https://searchapi.eastmoney.com/api/suggest/get?input=' + encodeURIComponent(kw) + '&type=14&count=20';
+            // [SECURITY #5] JSONP 会向第三方域名(eastmoney)注入 <script>，若该域名被劫持，
+            // 恶意脚本可在页内上下文读取 localStorage 中的明文 GitHub Token。
+            // 因此在 JSONP 进行期间临时清除 Token（内存 + localStorage），结束后再恢复。
+            // 用 window.__jsonpTokenSuspended 作为并发哨兵：仅首个调用保存真实 Token，
+            // 避免快速连续搜索时后一次调用覆盖掉已保存的真实 Token 导致永久丢失。
+            if (window.__jsonpTokenSuspended === undefined) {
+                window.__jsonpTokenSuspended = { token: state.github.token, stored: safeGetItem('github_token') || '' };
+            }
+            state.github.token = '';
+            try { localStorage.removeItem('github_token'); } catch (e) {}
+            let _tokenRestored = false;
+            function _restoreToken() {
+                if (_tokenRestored) return;
+                if (window.__jsonpTokenSuspended === undefined) return; // 已被其他并发调用恢复
+                const saved = window.__jsonpTokenSuspended;
+                window.__jsonpTokenSuspended = undefined;
+                _tokenRestored = true;
+                state.github.token = saved.token;
+                if (saved.stored) { try { safeSetItem('github_token', saved.stored); } catch (e) {} }
+            }
             jsonpRequest(apiUrl, function(data) {
+                _restoreToken();
                 if (!data || !data.QuotationCodeTable || !data.QuotationCodeTable.Data) {
                     onResult([]);
                     return;
@@ -4258,6 +4279,8 @@
                     pinyin: item.PinYin || ''
                 })));
             }, requestId);
+            // 兜底：即使 JSONP 超时（onerror/timeout 不回调）也恢复 Token
+            setTimeout(_restoreToken, 5500);
         }
 
         // 搜索基金（本地 + 联网）

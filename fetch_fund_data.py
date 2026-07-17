@@ -219,7 +219,7 @@ def _create_session():
     session.headers.update(HEADERS)
     return session
 
-def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries=3, session=None):
+def fetch_fund_realtime(fund_code, fund_names=None, max_retries=3, session=None):
     """获取基金实时数据（估算净值和涨跌幅），支持重试。
     如果实时估值API返回空（非交易时段），则回退到历史数据API获取最新净值。"""
     if session is None:
@@ -227,7 +227,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
 
     # 统一回退函数，避免重复参数传递
     def _fallback():
-        return _fetch_latest_from_history(fund_code, qdii_codes, fund_names, session=session)
+        return _fetch_latest_from_history(fund_code, fund_names, session=session)
 
     for attempt in range(1, max_retries + 1):
         try:
@@ -267,7 +267,7 @@ def fetch_fund_realtime(fund_code, qdii_codes=None, fund_names=None, max_retries
                 # 最后一次也尝试回退
                 return _fallback()
 
-def _fetch_latest_from_history(fund_code, qdii_codes=None, fund_names=None, session=None):
+def _fetch_latest_from_history(fund_code, fund_names=None, session=None):
     """从历史净值API获取最新记录，作为实时数据的回退方案。
     QDII基金（T+1更新）若当天无新净值，自动沿用上一交易日净值并标记延迟。
     """
@@ -1028,7 +1028,7 @@ def process_fund(platform, code, fund_start_date, http_session,
             return (None, 0, 0, err)
 
         # --- 第2步:获取实时数据 ---
-        realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
+        realtime = fetch_fund_realtime(code, fund_names, session=http_session)
         if not realtime:
             if code in prev_fund_map:
                 # 实时数据获取失败，使用上次数据兜底（逻辑抽至 _fallback_to_cache）

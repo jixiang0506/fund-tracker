@@ -624,7 +624,8 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .fund-metrics td {
+        .fund-metrics td,
+        .fund-metrics th {
             text-align: center;
             padding: 8px 2px;
             border: none;
@@ -634,7 +635,7 @@
             font-size: 14px;
         }
 
-        .metric-labels td {
+        .metric-labels th {
             color: var(--color-text-secondary);
             font-size: 11px;
             padding-bottom: 6px;
@@ -662,12 +663,18 @@
         }
 
         /* 固定6列宽度，确保不同基金卡片之间纵向对齐 */
-        .fund-metrics td:nth-child(1) { width: 14%; }
-        .fund-metrics td:nth-child(2) { width: 16%; }
-        .fund-metrics td:nth-child(3) { width: 18%; }
-        .fund-metrics td:nth-child(4) { width: 16%; }
-        .fund-metrics td:nth-child(5) { width: 18%; }
-        .fund-metrics td:nth-child(6) { width: 22%; }
+        .fund-metrics td:nth-child(1),
+        .fund-metrics th:nth-child(1) { width: 14%; }
+        .fund-metrics td:nth-child(2),
+        .fund-metrics th:nth-child(2) { width: 16%; }
+        .fund-metrics td:nth-child(3),
+        .fund-metrics th:nth-child(3) { width: 18%; }
+        .fund-metrics td:nth-child(4),
+        .fund-metrics th:nth-child(4) { width: 16%; }
+        .fund-metrics td:nth-child(5),
+        .fund-metrics th:nth-child(5) { width: 18%; }
+        .fund-metrics td:nth-child(6),
+        .fund-metrics th:nth-child(6) { width: 22%; }
 
 
         /* 交易记录表格 */
@@ -1583,7 +1590,7 @@
                 font-size: 12px;
             }
 
-            .metric-labels td {
+            .metric-labels th {
                 font-size: 10px;
             }
 
@@ -1620,7 +1627,8 @@
             }
 
             /* 基金卡片 移动端优化 */
-            .fund-metrics td {
+            .fund-metrics td,
+            .fund-metrics th {
                 padding: 4px 2px;
                 white-space: normal;
                 font-size: 11px;
@@ -2070,10 +2078,10 @@
     </div>
 
     <!-- 管理交易记录 Modal -->
-    <div id="manageModal" class="modal">
+    <div id="manageModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="manageModalTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📝 管理交易记录</h2>
+                <h2 id="manageModalTitle">📝 管理交易记录</h2>
                 <span class="close" id="closeManageModalBtn" aria-label="关闭弹窗">&times;</span>
             </div>
             <!-- 标签页切换 -->
@@ -2332,9 +2340,9 @@
 
                 // GitHub 设置
                 github: {
-                    token: localStorage.getItem('github_token') || '',
-                    owner: localStorage.getItem('repo_owner') || '',
-                    repo: localStorage.getItem('repo_name') || ''
+                    token: safeGetItem('github_token') || '',
+                    owner: safeGetItem('repo_owner') || '',
+                    repo: safeGetItem('repo_name') || ''
                 },
 
                 // 图表状态
@@ -2610,7 +2618,7 @@
                     showMessage('已从文件加载买入记录', 'success');
                 } else {
                     // 如果文件不存在，尝试从本地存储加载
-                    const localData = localStorage.getItem('purchase_records');
+                    const localData = safeGetItem('purchase_records');
                     if (localData) {
                         applyPurchaseRecords(JSON.parse(localData));
                         console.log('从本地存储加载买入记录');
@@ -2623,7 +2631,7 @@
             } catch (error) {
                 console.error('加载交易记录文件失败:', error);
                 // 尝试从本地存储加载
-                const localData = localStorage.getItem('purchase_records');
+                const localData = safeGetItem('purchase_records');
                 if (localData) {
                     applyPurchaseRecords(JSON.parse(localData));
                     showMessage('已从本地存储加载买入记录', 'info');
@@ -2637,7 +2645,7 @@
         // 保存Token
         function saveToken() {
             state.github.token = DOM.githubToken.value;
-            localStorage.setItem('github_token', state.github.token);
+            safeSetItem('github_token', state.github.token);
             showMessage('Token 已保存', 'success');
         }
 
@@ -2645,8 +2653,8 @@
         function saveSettings() {
             state.github.owner = DOM.repoOwner.value;
             state.github.repo = DOM.repoName.value;
-            localStorage.setItem('repo_owner', state.github.owner);
-            localStorage.setItem('repo_name', state.github.repo);
+            safeSetItem('repo_owner', state.github.owner);
+            safeSetItem('repo_name', state.github.repo);
             showMessage('设置已保存', 'success');
         }
 
@@ -3008,11 +3016,11 @@
                         ` : ''}
                         <table class="fund-metrics">
                             <tr class="metric-labels">
-                                <td>${latestLabel}净值</td>
-                                <td>${latestLabel}收益率</td>
-                                <td>${latestLabel}收益</td>
-                                <td>累计收益率</td>
-                                <td>持仓收益</td>
+                                <th scope="col">${latestLabel}净值</th>
+                                <th scope="col">${latestLabel}收益率</th>
+                                <th scope="col">${latestLabel}收益</th>
+                                <th scope="col">累计收益率</th>
+                                <th scope="col">持仓收益</th>
                             </tr>
                             <tr class="metric-values">
                                 <td>
@@ -3468,8 +3476,8 @@
 
         // 统一数字格式化（消除散落的 .toFixed 调用）
         function fmtNum(v, d = 2) {
-            const n = (typeof v === 'number' && isFinite(v)) ? v : 0;
-            return n.toFixed(d);
+            const n = Number(v);
+            return (isFinite(n) ? n : 0).toFixed(d);
         }
         function fmtYuan(v) { return '¥' + fmtNum(v); }
         function fmtPct(v, d = 2) { return (v >= 0 ? '+' : '') + fmtNum(v, d) + '%'; }
@@ -3477,7 +3485,29 @@
         // 属性值编码/解码（防XSS属性注入）
         function encAttr(str) { return encodeURIComponent(String(str)); }
         function decAttr(str) { return decodeURIComponent(String(str)); }
-        
+
+        // 安全的 localStorage 封装：隐私模式/配额超限时降级而不是抛错崩溃
+        function safeGetItem(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (e) {
+                console.warn('[storage] 读取失败:', key, e);
+                return null;
+            }
+        }
+        function safeSetItem(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                console.warn('[storage] 写入失败:', key, e);
+                if (typeof showMessage === 'function') {
+                    showMessage('本地存储不可用，设置未能保存', 'warning');
+                }
+                return false;
+            }
+        }
+
         // 统一 ID 生成函数（消除硬编码的隐式约定）
         function getFundDetailsId(fundCode, platformName) {
             return `details-${encAttr(fundCode)}::${encAttr(platformName)}`;
@@ -4783,7 +4813,7 @@
         // 从本地存储加载买入记录
         function loadLocalRecords() {
             try {
-                const localData = localStorage.getItem('purchase_records');
+                const localData = safeGetItem('purchase_records');
                 if (localData) {
                     state.purchaseRecords = JSON.parse(localData);
                     renderRecordsList();
@@ -4802,7 +4832,7 @@
         // 保存买入记录到本地存储（增删改操作后自动调用）
         function saveLocalRecords() {
             try {
-                localStorage.setItem('purchase_records', JSON.stringify(state.purchaseRecords));
+                safeSetItem('purchase_records', JSON.stringify(state.purchaseRecords));
             } catch (error) {
                 console.error('保存本地记录失败:', error);
                 showMessage('保存本地记录失败', 'error');
@@ -4887,7 +4917,7 @@
                     applyPurchaseRecords(JSON.parse(content));
                     // 持久化到 localStorage，避免刷新后数据丢失
                     try {
-                        localStorage.setItem('purchase_records', JSON.stringify(state.purchaseRecords));
+                        safeSetItem('purchase_records', JSON.stringify(state.purchaseRecords));
                     } catch (e) {
                         console.warn('保存交易记录到 localStorage 失败:', e);
                     }
@@ -5438,6 +5468,15 @@ function updatePurchaseRecord() {
         }
 
         // 从文件导入买入记录
+        // 轻量结构校验：purchaseRecords 应为「平台名 -> 记录数组」的对象
+        function isValidPurchaseRecords(data) {
+            if (typeof data !== 'object' || data === null || Array.isArray(data)) return false;
+            for (const key of Object.keys(data)) {
+                if (!Array.isArray(data[key])) return false;
+            }
+            return true;
+        }
+
         function importFromFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -5445,7 +5484,12 @@ function updatePurchaseRecord() {
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    state.purchaseRecords = JSON.parse(e.target.result);
+                    const parsed = JSON.parse(e.target.result);
+                    if (!isValidPurchaseRecords(parsed)) {
+                        showMessage('导入失败: 文件结构不正确（应为平台->记录数组的对象）', 'error');
+                        return;
+                    }
+                    state.purchaseRecords = parsed;
                     renderRecordsList();
                     saveLocalRecords(); // 同时保存到本地存储
                     showMessage('已从文件导入交易记录', 'success');
@@ -5455,7 +5499,7 @@ function updatePurchaseRecord() {
                 }
             };
             reader.readAsText(file, 'utf-8');
-            
+
             // 清空input，允许重复选择同一文件
             event.target.value = '';
         }
@@ -5657,6 +5701,14 @@ function startDataUpdatePolling() {
             showMessage('⚠️ 数据更新超时，请手动刷新页面', 'warning');
         }
     }, 10000);
+}
+
+// 停止数据更新轮询（暴露公共函数，供页面卸载时清理）
+function stopPolling() {
+    if (state.dataUpdate.pollingTimer) {
+        clearInterval(state.dataUpdate.pollingTimer);
+        state.dataUpdate.pollingTimer = null;
+    }
 }
 
 
@@ -5961,6 +6013,15 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
         // action = { text: string, callback: function } 可选
         function showMessage(message, type, useHTML = false, action = null) {
+            // 限制最多 3 个 toast，避免堆积；移除最旧的并重排剩余位置（防重叠）
+            const toasts = Array.from(document.querySelectorAll('.msg-toast'));
+            while (toasts.length >= 3) {
+                toasts.shift().remove();
+            }
+            document.querySelectorAll('.msg-toast').forEach((t, i) => {
+                t.style.top = (20 + i * 70) + 'px';
+            });
+
             const div = createToastElement(message, type, useHTML, action);
             document.body.appendChild(div);
 
@@ -6178,7 +6239,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             }
 
             // 保存到 localStorage 和 state
-            localStorage.setItem('github_token', token);
+            safeSetItem('github_token', token);
             state.github.token = token;
 
             showMessage('✅ GitHub Token 已保存（下次保存记录时会自动使用）', 'success');
@@ -6190,6 +6251,8 @@ function deletePurchaseRecord(platform, fundCode, index) {
         document.addEventListener('DOMContentLoaded', function() {
             // 0. 先初始化应用（DOM.init 必须早于下方事件绑定）
             initApp();
+            // 页面卸载时清理轮询定时器（防御性，避免定时器悬挂）
+            window.addEventListener('beforeunload', stopPolling);
             // 1. 设置按钮
             document.getElementById('settingsBtn')?.addEventListener('click', function(e) {
                 toggleSettingsMenu(e);

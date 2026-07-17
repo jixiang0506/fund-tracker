@@ -3540,15 +3540,19 @@
                 btn.classList.toggle('active', btn.dataset.period === period);
             });
 
-            // 销毁旧图表，防止内存泄漏
-            if (state.charts.fundInstances[canvasId]) {
-                state.charts.fundInstances[canvasId].destroy();
-                delete state.charts.fundInstances[canvasId];
-            }
+            // 获取已有实例（用于增量更新，避免每次重渲染销毁重建，意见7）
+            const existingFundChart = state.charts.fundInstances[canvasId] || null;
 
             // 查找基金数据
             const fund = state.fundsData.funds[platformName]?.find(f => f.code === fundCode);
-            if (!fund || !fund.history || fund.history.length === 0) return;
+            if (!fund || !fund.history || fund.history.length === 0) {
+                // 无数据：清理已有实例后返回
+                if (existingFundChart) {
+                    existingFundChart.destroy();
+                    delete state.charts.fundInstances[canvasId];
+                }
+                return;
+            }
 
             // 根据周期过滤历史数据（使用北京时间）
             const purchases = fund.holdings?.purchases || [];
@@ -3671,139 +3675,153 @@
 
             const ctx = canvas.getContext('2d');
 
-            state.charts.fundInstances[canvasId] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '累计收益率',
-                        data: dataPoints,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.08)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: pointRadii,
-                        pointBackgroundColor: pointColors,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 5
-                    },
-                    // 持仓成本线（虚线）
-                    ...(costReturnRate !== null ? [{
-                        label: '持仓成本',
-                        data: labels.map(() => costReturnRate),
-                        borderColor: '#718096',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0
-                    }] : []),
-                    // 基准收益率线
-                    ...(benchmarkDataPoints && benchmarkDataPoints.some(v => v !== null) ? [{
-                        label: '业绩基准',
-                        data: benchmarkDataPoints,
-                        borderColor: '#ff9900',
-                        borderWidth: 2,
-                        borderDash: [2, 2],
-                        fill: false,
-                        pointRadius: 0,
-                        tension: 0.3,
-                        spanGaps: true // 跳过null值
-                    }] : [])]
+            // 构建 datasets（含累计收益率线、持仓成本线、业绩基准线）
+            const datasets = [{
+                label: '累计收益率',
+                data: dataPoints,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: pointRadii,
+                pointBackgroundColor: pointColors,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 5
+            },
+            // 持仓成本线（虚线）
+            ...(costReturnRate !== null ? [{
+                label: '持仓成本',
+                data: labels.map(() => costReturnRate),
+                borderColor: '#718096',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                fill: false,
+                pointRadius: 0
+            }] : []),
+            // 基准收益率线
+            ...(benchmarkDataPoints && benchmarkDataPoints.some(v => v !== null) ? [{
+                label: '业绩基准',
+                data: benchmarkDataPoints,
+                borderColor: '#ff9900',
+                borderWidth: 2,
+                borderDash: [2, 2],
+                fill: false,
+                pointRadius: 0,
+                tension: 0.3,
+                spanGaps: true // 跳过null值
+            }] : [])];
+
+            // 构建 tooltip 回调（闭包引用本函数局部变量，增量更新时需整体替换）
+            const tooltipCallbacks = {
+                title: function(items) {
+                    return items[0].label;
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: { size: 11 },
-                                color: '#e2e8f0',
-                                usePointStyle: true,
-                                padding: 15
+                label: function(context) {
+                    const idx = context.dataIndex;
+                    const datasetLabel = context.dataset.label;
+
+                    // 如果是基准线
+                    if (datasetLabel === '业绩基准') {
+                        const value = context.parsed.y;
+                        if (value !== null) {
+                            const sign = value >= 0 ? '+' : '';
+                            return `业绩基准: ${sign}${fmtNum(value)}%`;
+                        }
+                        return null;
+                    }
+
+                    // 如果是累计收益率线
+                    if (datasetLabel === '累计收益率') {
+                        const nav = fundHistory[idx].nav;
+                        const returnRate = dataPoints[idx];
+                        const sign = returnRate >= 0 ? '+' : '';
+                        const lines = [`收益率: ${sign}${fmtNum(returnRate)}%`, `净值: ${fmtNum(nav, 4)}`];
+                        const trades = tradeInfo[idx];
+                        if (trades && trades.length > 0) {
+                            // 按买入/卖出分组汇总
+                            const buys = trades.filter(t => t.type !== 'sell');
+                            const sells = trades.filter(t => t.type === 'sell');
+                            if (buys.length > 0) {
+                                const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount),0);
+                                lines.push(`买入: ${fmtYuan(totalBuy)}（${buys.length}笔）`);
                             }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title: function(items) {
-                                    return items[0].label;
-                                },
-                                label: function(context) {
-                                    const idx = context.dataIndex;
-                                    const datasetLabel = context.dataset.label;
-                                    
-                                    // 如果是基准线
-                                    if (datasetLabel === '业绩基准') {
-                                        const value = context.parsed.y;
-                                        if (value !== null) {
-                                            const sign = value >= 0 ? '+' : '';
-                                            return `业绩基准: ${sign}${fmtNum(value)}%`;
-                                        }
-                                        return null;
-                                    }
-                                    
-                                    // 如果是累计收益率线
-                                    if (datasetLabel === '累计收益率') {
-                                        const nav = fundHistory[idx].nav;
-                                        const returnRate = dataPoints[idx];
-                                        const sign = returnRate >= 0 ? '+' : '';
-                                        const lines = [`收益率: ${sign}${fmtNum(returnRate)}%`, `净值: ${fmtNum(nav, 4)}`];
-                                        const trades = tradeInfo[idx];
-                                        if (trades && trades.length > 0) {
-                                            // 按买入/卖出分组汇总
-                                            const buys = trades.filter(t => t.type !== 'sell');
-                                            const sells = trades.filter(t => t.type === 'sell');
-                                            if (buys.length > 0) {
-                                                const totalBuy = buys.reduce((sum, t) => sum + Math.abs(t.amount),0);
-                                                lines.push(`买入: ${fmtYuan(totalBuy)}（${buys.length}笔）`);
-                                            }
-                                            if (sells.length > 0) {
-                                                const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount),0);
-                                                lines.push(`卖出: ${fmtYuan(totalSell)}（${sells.length}笔）`);
-                                            }
-                                        }
-                                        return lines;
-                                    }
-                                    
-                                    // 如果是持仓成本线
-                                    if (datasetLabel === '持仓成本') {
-                                        return `持仓成本: ${fmtNum(costReturnRate)}%`;
-                                    }
-                                
-                                    return null;
-                                }
+                            if (sells.length > 0) {
+                                const totalSell = sells.reduce((sum, t) => sum + Math.abs(t.amount),0);
+                                lines.push(`卖出: ${fmtYuan(totalSell)}（${sells.length}笔）`);
                             }
                         }
+                        return lines;
+                    }
+
+                    // 如果是持仓成本线
+                    if (datasetLabel === '持仓成本') {
+                        return `持仓成本: ${fmtNum(costReturnRate)}%`;
+                    }
+
+                    return null;
+                }
+            };
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: { size: 11 },
+                            color: '#e2e8f0',
+                            usePointStyle: true,
+                            padding: 15
+                        }
                     },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                maxTicksLimit: 6,
-                                font: { size: 11 },
-                                color: '#a0aec0'
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                callback: function(value) {
-                                    return (value >= 0 ? '+' : '') + fmtNum(value, 0) + '%';
-                                },
-                                font: { size: 11 },
-                                color: '#a0aec0'
+                    tooltip: {
+                        callbacks: tooltipCallbacks
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            maxTicksLimit: 6,
+                            font: { size: 11 },
+                            color: '#a0aec0'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return (value >= 0 ? '+' : '') + fmtNum(value, 0) + '%';
                             },
-                            grid: { color: 'rgba(255,255,255,0.08)' }
-                        }
+                            font: { size: 11 },
+                            color: '#a0aec0'
+                        },
+                        grid: { color: 'rgba(255,255,255,0.08)' }
                     }
                 }
-            });
+            };
+
+            // 增量更新：复用已有实例，仅替换数据与 tooltip 回调，避免每次重渲染销毁重建（意见7）
+            if (existingFundChart) {
+                existingFundChart.data.labels = labels;
+                existingFundChart.data.datasets = datasets;
+                existingFundChart.options.plugins.tooltip.callbacks = tooltipCallbacks;
+                existingFundChart.update();
+            } else {
+                // 首次创建
+                state.charts.fundInstances[canvasId] = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels, datasets },
+                    options: chartOptions
+                });
+            }
         }
 
         // 打开管理Modal
@@ -4102,13 +4120,14 @@
                 };
             });
 
-            // 销毁旧图表
+            // 增量更新：复用已有实例，仅替换数据，避免每次重渲染销毁重建（意见7）
             if (window._compareChartInstance) {
-                try { window._compareChartInstance.destroy(); } catch(e) {}
-            }
-
-            // 创建新图表
-            window._compareChartInstance = new Chart(ctx, {
+                window._compareChartInstance.data.labels = labels;
+                window._compareChartInstance.data.datasets = datasets;
+                window._compareChartInstance.update();
+            } else {
+                // 首次创建
+                window._compareChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: { labels, datasets },
                 options: {
@@ -4158,8 +4177,9 @@
                     }
                 }
             });
+            }
 
-            // 渲染图例说明
+            // 渲染图例说明（增量更新与首次创建都会刷新图例）
             renderCompareLegend(datasets);
         }
 

@@ -958,6 +958,56 @@ def _calculate_year_to_date_metrics(history, holdings, today):
     }
 
 
+def _fallback_to_cache(code, platform, history, prev_fund_map, purchase_records):
+    """实时数据获取失败时，使用上次数据(prev_fund_map)兜底。
+
+    优先用历史中的确认净值重新计算持仓/累计收益/昨日指标；无历史或无交易记录时
+    仅更新 current_nav/nav_date/nav_status 字段，保持数据一致性。
+
+    返回: (fund_data_dict, total_invested, total_value, message) 成功
+    注意: 仅当 code 在 prev_fund_map 中时调用（调用方负责判定）。
+    """
+    # 用深拷贝避免修改 prev_fund_map 中的原始数据
+    old_fund = copy.deepcopy(prev_fund_map[code])
+    purchases = purchase_records.get(platform, {}).get(code, [])
+
+    # 确定确认净值（优先用历史数据，兜底用缓存值）
+    # history 来自确认净值 API，history[-1] 即最新已确认净值（当日已公布则为今日）
+    if history:
+        confirmed_nav = history[-1]["nav"]
+        confirmed_nav_date = history[-1]["date"]
+    else:
+        confirmed_nav = old_fund.get("current_nav", 0)
+        confirmed_nav_date = old_fund.get("nav_date", "")
+
+    if history and purchases:
+        # 使用历史中的确认净值（而非缓存的实时估算）重新计算持仓
+        new_holdings = calculate_holdings(purchases, confirmed_nav, history, fund_code=code)
+        old_fund["holdings"] = new_holdings
+        old_fund["current_nav"] = confirmed_nav
+        old_fund["nav_date"] = confirmed_nav_date
+        old_fund["nav_status"] = "confirmed"
+        # 重新计算累计收益率（精确 FIFO 模拟，路径1）
+        old_fund["return_rates"] = calculate_cumulative_returns(
+            history,
+            original_purchases=purchases, history_for_nav=history
+        )
+        # 更新昨日收益指标（使用旧 NAV）
+        m = _calculate_latest_trading_day_metrics(history, new_holdings)
+        old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
+        old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
+        old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
+    else:
+        # 无历史数据或无交易记录时，仍更新 current_nav 保证字段一致性
+        old_fund["current_nav"] = confirmed_nav
+        old_fund["nav_date"] = confirmed_nav_date
+        old_fund["nav_status"] = "confirmed" if history else old_fund.get("nav_status", "unknown")
+
+    old_fund["data_source"] = "cached"
+    return (old_fund, old_fund["holdings"]["total_invested"],
+            old_fund["holdings"]["current_value"], "使用缓存数据(已用新交易记录重新计算)")
+
+
 def process_fund(platform, code, fund_start_date, http_session,
                   purchase_records, qdii_codes, fund_names,
                   prev_fund_map, today, history_cache):
@@ -981,47 +1031,8 @@ def process_fund(platform, code, fund_start_date, http_session,
         realtime = fetch_fund_realtime(code, qdii_codes, fund_names, session=http_session)
         if not realtime:
             if code in prev_fund_map:
-                # 用深拷贝避免修改 prev_fund_map 中的原始数据
-                old_fund = copy.deepcopy(prev_fund_map[code])
-                purchases = purchase_records.get(platform, {}).get(code, [])
-
-                # 确定确认净值（优先用历史数据，兜底用缓存值）
-                # history 来自确认净值 API，history[-1] 即最新已确认净值（当日已公布则为今日）
-                if history:
-                    confirmed_nav = history[-1]["nav"]
-                    confirmed_nav_date = history[-1]["date"]
-                else:
-                    confirmed_nav = old_fund.get("current_nav", 0)
-                    confirmed_nav_date = old_fund.get("nav_date", "")
-
-                if history and purchases:
-                    # 使用历史中的确认净值（而非缓存的实时估算）重新计算持仓
-                    new_holdings = calculate_holdings(purchases, confirmed_nav, history, fund_code=code)
-                    old_fund["holdings"] = new_holdings
-                    old_fund["current_nav"] = confirmed_nav
-                    old_fund["nav_date"] = confirmed_nav_date
-                    old_fund["nav_status"] = "confirmed"
-                    # 注意：calculate_holdings() 内部已计算 current_value，无需重复计算
-                    # 重新计算累计收益率（使用路径2近似计算）
-                    # 也传入原始交易记录和完整历史，使用精确FIFO模拟（路径1）
-                    old_fund["return_rates"] = calculate_cumulative_returns(
-                        history,
-                        original_purchases=purchases, history_for_nav=history
-                    )
-                    # 更新昨日收益指标（使用旧 NAV）
-                    m = _calculate_latest_trading_day_metrics(history, new_holdings)
-                    old_fund["latest_trading_day_nav"] = round(m["latest_trading_day_nav"], 4)
-                    old_fund["latest_trading_day_return"] = round(m["latest_trading_day_return"], 2)
-                    old_fund["latest_trading_day_profit"] = m["latest_trading_day_profit"]
-                else:
-                    # 无历史数据或无交易记录时，仍更新 current_nav 保证字段一致性
-                    old_fund["current_nav"] = confirmed_nav
-                    old_fund["nav_date"] = confirmed_nav_date
-                    old_fund["nav_status"] = "confirmed" if history else old_fund.get("nav_status", "unknown")
-
-                old_fund["data_source"] = "cached"
-                return (old_fund, old_fund["holdings"]["total_invested"],
-                        old_fund["holdings"]["current_value"], "使用缓存数据(已用新交易记录重新计算)")
+                # 实时数据获取失败，使用上次数据兜底（逻辑抽至 _fallback_to_cache）
+                return _fallback_to_cache(code, platform, history, prev_fund_map, purchase_records)
             else:
                 return (None, 0, 0, "无法获取实时数据且无缓存")
 

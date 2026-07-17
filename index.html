@@ -2027,7 +2027,7 @@
             <div class="confirm-dialog-content">
                 <div class="confirm-dialog-header">
                     <h3>📝 确认</h3>
-                    <span class="close" id="closeConfirmDialogSpan">&times;</span>
+                    <span class="close" id="closeConfirmDialogSpan" role="button" tabindex="0" aria-label="关闭">&times;</span>
                 </div>
                 <div class="confirm-dialog-body" id="confirmDialogBody">
                     <!-- 动态生成确认内容 -->
@@ -2082,7 +2082,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="manageModalTitle">📝 管理交易记录</h2>
-                <span class="close" id="closeManageModalBtn" aria-label="关闭弹窗">&times;</span>
+                <span class="close" id="closeManageModalBtn" role="button" tabindex="0" aria-label="关闭弹窗">&times;</span>
             </div>
             <!-- 标签页切换 -->
             <div class="modal-tabs" role="tablist" aria-label="管理弹窗标签页">
@@ -2100,7 +2100,7 @@
                     <h3 id="addRecordTitle">添加交易记录</h3>
                 <!-- 1. 交易类型 -->
                 <div class="form-group">
-                    <label>交易类型</label>
+                    <label for="recordType">交易类型</label>
                     <select id="recordType">
                         <option value="buy">买入</option>
                         <option value="sell">卖出</option>
@@ -2108,19 +2108,19 @@
                 </div>
                 <!-- 2. 选择平台 -->
                 <div class="form-group">
-                    <label>交易平台</label>
+                    <label for="recordPlatform">交易平台</label>
                     <select id="recordPlatform">
                         <option value="">-- 选择平台 --</option>
                     </select>
                 </div>
                 <!-- 3. 基金选择：买入=搜索框，卖出=下拉框 -->
                 <div class="form-group hidden" id="buyFundSearchGroup">
-                    <label>基金名称 <span class="text-muted-sm">（输入代码或名称搜索）</span></label>
+                    <label for="fundSearchInput">基金名称 <span class="text-muted-sm">（输入代码或名称搜索）</span></label>
                     <input type="text" id="fundSearchInput" placeholder="例如：270023 或 广发全球精选" autocomplete="off">
                     <div id="fundSearchResults" class="search-results"></div>
                 </div>
                 <div class="form-group hidden" id="sellFundSelectGroup">
-                    <label>选择基金 <span class="text-muted-sm">（只显示有持仓的基金）</span></label>
+                    <label for="recordFund">选择基金 <span class="text-muted-sm">（只显示有持仓的基金）</span></label>
                     <select id="recordFund">
                         <option value="">-- 选择基金 --</option>
                     </select>
@@ -2150,22 +2150,22 @@
                 <div class="sell-quick-hint hidden" id="sellQuickHint"></div>
                 <!-- 4. 交易日期 -->
                 <div class="form-group">
-                    <label>交易日期</label>
+                    <label for="recordDate">交易日期</label>
                     <input type="date" id="recordDate">
                 </div>
                 <!-- 5. 买入金额 / 卖出份额 -->
                 <div class="form-group" id="amountGroup">
-                    <label id="amountLabel">买入金额 (元)</label>
+                    <label id="amountLabel" for="recordAmount">买入金额 (元)</label>
                     <input type="number" id="recordAmount" placeholder="1000.00" step="0.01" inputmode="decimal" autocomplete="off">
                 </div>
                 <div class="form-group hidden" id="sharesGroup">
-                    <label id="sharesLabel">卖出份额</label>
+                    <label id="sharesLabel" for="recordShares">卖出份额</label>
                     <input type="number" id="recordShares" placeholder="100.00" step="0.01" inputmode="decimal" autocomplete="off">
                     <div class="input-hint" id="sharesHint">预计卖出金额 ≈ ¥0.00</div>
                 </div>
                 <!-- 6. 净值输入（可选） -->
                 <div class="form-group" id="navGroup">
-                    <label>基金净值 <span class="text-muted-sm">（选填，不填则自动获取）</span></label>
+                    <label for="recordNav">基金净值 <span class="text-muted-sm">（选填，不填则自动获取）</span></label>
                     <input type="number" id="recordNav" placeholder="自动获取" step="0.0001" inputmode="decimal" autocomplete="off">
                     <div class="input-hint" id="navHint">留空将自动根据交易日期获取对应净值</div>
                 </div>
@@ -2225,7 +2225,7 @@
                         <h4>🚀 快速配置 GitHub PAT</h4>
                         <p class="quick-config-desc">粘贴你的 GitHub PAT（Classic 或 Fine-grained），自动保存 Token / Owner / Repo 到浏览器</p>
                         <div class="form-group">
-                            <label>GitHub PAT</label>
+                            <label for="quickTokenInput">GitHub PAT</label>
                             <textarea id="quickTokenInput" rows="3" placeholder="粘贴你的 GitHub PAT 到这里（以 ghp_ 或 github_pat_ 开头）" autocomplete="one-time-code"></textarea>
                         </div>
                         <div class="quick-config-actions">
@@ -2235,18 +2235,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label>GitHub Token</label>
+                        <label for="githubToken">GitHub Token</label>
                         <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" autocomplete="one-time-code">
                         <small id="tokenTip">
                             获取Token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token。Classic Token 请勾选 repo 权限；Fine-grained PAT 请选择目标仓库并将 Contents 权限设为 Read and write
                         </small>
                     </div>
                     <div class="form-group">
-                        <label>仓库所有者</label>
+                        <label for="repoOwner">仓库所有者</label>
                         <input type="text" id="repoOwner" placeholder="your-username" autocomplete="off">
                     </div>
                     <div class="form-group">
-                        <label>仓库名称</label>
+                        <label for="repoName">仓库名称</label>
                         <input type="text" id="repoName" placeholder="fund-tracker" autocomplete="off">
                     </div>
                     <div class="tip-box warning">
@@ -2265,7 +2265,7 @@
         <div class="modal-content" style="max-width: 1000px;">
             <div class="modal-header">
                 <h2>📊 基金同期对比</h2>
-                <span class="close" id="closeCompareModalBtn" aria-label="关闭弹窗">&times;</span>
+                <span class="close" id="closeCompareModalBtn" role="button" tabindex="0" aria-label="关闭弹窗">&times;</span>
             </div>
             <div class="modal-body">
                 <!-- 基金多选区 -->
@@ -3005,7 +3005,7 @@
                 html += `
                     <div class="fund-card" data-platform="${encAttr(platformName)}" data-code="${encAttr(fnd.code)}">
                         <div class="fund-header">
-                            <span class="fund-name" data-toggle-details="${encAttr(fnd.code)}::${encAttr(platformName)}">${escapeHtml(fnd.name)} 📊</span>
+                            <span class="fund-name" role="button" tabindex="0" aria-label="展开或收起 ${escapeHtml(fnd.name)} 详情" data-toggle-details="${encAttr(fnd.code)}::${encAttr(platformName)}">${escapeHtml(fnd.name)} 📊</span>
                             <span class="fund-code">${escapeHtml(fnd.code)}</span>
                             <span class="fund-platform">${escapeHtml(platformName)}</span>
                         </div>
@@ -6393,6 +6393,16 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 if (e.target.classList.contains('fund-name')) {
                     const detailsId = e.target.dataset.toggleDetails;
                     if (detailsId) toggleDetails(detailsId);
+                }
+            });
+
+            // 12b. 键盘可达性（意见13）：聚焦在 .close / .fund-name 上按 Enter/空格 触发点击，复用已有 click 处理器
+            document.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+                const t = e.target;
+                if (t.classList && (t.classList.contains('close') || t.classList.contains('fund-name'))) {
+                    e.preventDefault();
+                    t.click();
                 }
             });
 

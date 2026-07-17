@@ -2698,6 +2698,10 @@
                 try { state.charts.mainInstance.destroy(); } catch(e) {}
                 state.charts.mainInstance = null;
             }
+            if (window._compareChartInstance) {
+                try { window._compareChartInstance.destroy(); } catch(e) {}
+                window._compareChartInstance = null;
+            }
 
             try {
                 DOM.updateTime.textContent = `最后更新: ${state.fundsData.update_time}`;
@@ -4953,6 +4957,11 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
     // 获取手动输入的净值（如果有）
     if (navVal) {
         nav = parseFloat(navVal);
+        if (!isFinite(nav) || nav <= 0) {
+            showMessage('净值必须是大于 0 的数字', 'error');
+            if (btn) btn.classList.remove('btn-loading');
+            return Promise.resolve();
+        }
     }
     
     if (isSell) {
@@ -4964,7 +4973,12 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
             return Promise.resolve();
         }
         shares = parseFloat(sharesVal);
-        
+        if (!isFinite(shares) || shares <= 0) {
+            showMessage('卖出份额必须是大于 0 的数字', 'error');
+            if (btn) btn.classList.remove('btn-loading');
+            return Promise.resolve();
+        }
+
         // 使用手动净值或自动获取净值计算金额
         const useNav = nav || sellState.nav || getFundNav(platform, fundCode);
         if (useNav > 0) {
@@ -4983,7 +4997,12 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
             return Promise.resolve();
         }
         amount = parseFloat(amountVal);
-        
+        if (!isFinite(amount) || amount <= 0) {
+            showMessage('买入金额必须是大于 0 的数字', 'error');
+            if (btn) btn.classList.remove('btn-loading');
+            return Promise.resolve();
+        }
+
         // 如果有手动输入净值，反算份额
         if (nav > 0) {
             shares = amount / nav;
@@ -5853,7 +5872,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
         }
 
         // 显示消息（自动堆叠，防止重叠）
-        function createToastElement(message, type, useHTML = false, action = null) {
+        function createToastElement(message, type, action = null) {
             const existing = document.querySelectorAll('.msg-toast');
             const topOffset = 20 + existing.length * 70;
 
@@ -5879,11 +5898,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 div.style.backgroundColor = 'var(--color-bg-surface)';
             }
 
-            if (useHTML) {
-                div.innerHTML = message;
-            } else {
-                div.textContent = message;
-            }
+            div.textContent = message;
 
             // 如果有操作按钮，在消息内追加一个按钮
             if (action && action.text && action.callback) {
@@ -5902,7 +5917,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
         }
 
         // action = { text: string, callback: function } 可选
-        function showMessage(message, type, useHTML = false, action = null) {
+        function showMessage(message, type, action = null) {
             // 限制最多 3 个 toast，避免堆积；移除最旧的并重排剩余位置（防重叠）
             const toasts = Array.from(document.querySelectorAll('.msg-toast'));
             while (toasts.length >= 3) {
@@ -5912,7 +5927,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
                 t.style.top = (20 + i * 70) + 'px';
             });
 
-            const div = createToastElement(message, type, useHTML, action);
+            const div = createToastElement(message, type, action);
             document.body.appendChild(div);
 
             setTimeout(() => {

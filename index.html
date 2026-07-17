@@ -677,39 +677,6 @@
         .fund-metrics th:nth-child(6) { width: 22%; }
 
 
-        /* 交易记录表格 */
-        .funds-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: var(--space-lg);
-            font-family: var(--font-mono);
-            font-variant-numeric: tabular-nums;
-            font-size: 13px;
-        }
-
-        .funds-table th {
-            background: var(--color-bg-secondary);
-            padding: 10px 12px;
-            text-align: left;
-            color: var(--color-text-secondary);
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border-bottom: 2px solid var(--color-border);
-            font-family: var(--font-sans);
-        }
-
-        .funds-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--color-border);
-            font-size: 13px;
-        }
-
-        .funds-table tr:hover {
-            background: var(--color-bg-secondary);
-        }
-
         .purchase-details {
             background: var(--color-bg-secondary);
             padding: var(--pad-md);
@@ -751,34 +718,9 @@
             font-size: 12px;
         }
 
-        .chart-wrapper {
-            background: var(--color-bg-card);
-            border-radius: var(--radius-card);
-            padding: 20px;
-            margin-top: 24px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--color-border);
-        }
-
         .chart-container {
             position: relative;
             height: 400px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: var(--color-text-secondary);
-            font-size: 14px;
-        }
-
-        .error {
-            background: rgba(245, 101, 101, 0.1);
-            color: var(--color-profit);
-            padding: var(--pad-md);
-            border-radius: var(--radius-sm);
-            margin: var(--space-lg) 0;
-            border: 1px solid var(--color-profit);
         }
 
         /* ============================================================
@@ -813,11 +755,6 @@
             to { opacity: 1; }
         }
 
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-
         /* 无障碍：尊重用户的动画偏好设置 */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -833,14 +770,6 @@
 
         .modal-content {
             animation: slideIn 0.3s ease;
-        }
-
-        .modal.hide .modal-content {
-            animation: slideOut 0.3s ease;
-        }
-
-        .modal.hide {
-            animation: fadeOut 0.3s ease;
         }
 
         /* ============================================================
@@ -1598,12 +1527,6 @@
                 font-size: 12px;
             }
 
-            .funds-table {
-                display: block;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
             /* 搜索筛选栏 移动端 */
             .search-filter-bar {
                 flex-direction: column;
@@ -1716,23 +1639,6 @@
             border-top: 1px solid var(--color-border-light);
         }
 
-        /* 保存按钮组优化 */
-        .save-buttons {
-            display: flex;
-            gap: var(--space-md);
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--color-border);
-        }
-
-        .save-buttons .btn {
-            flex: 1;
-            min-width: 140px;
-            max-width: 200px;
-        }
-
         /* 提示信息优化 */
         .tip-box {
             background: var(--color-bg-secondary);
@@ -1749,11 +1655,6 @@
             border-left-color: var(--color-warning);
             background: rgba(237, 137, 54, 0.1);
             margin-top: 20px;
-        }
-
-        .tip-box.success {
-            border-left-color: var(--color-loss);
-            background: rgba(72, 187, 120, 0.1);
         }
 
         /* 交易记录平台筛选标签 */
@@ -2844,6 +2745,7 @@
                         if (nd > latestNavDate) latestNavDate = nd;
                     }
                 }
+                state.fundsData.latestNavDate = latestNavDate;
                 let html = renderSummary(state.fundsData.summary, latestNavDate);
 
                 // 为所有平台创建基金卡片
@@ -3982,17 +3884,12 @@
 
         // 计算时间范围截止日期
         function buildComparePeriodCutoff(period) {
-            const now = new Date();
-            const cutoff = new Date(now);
-            switch(period) {
-                case '7d': cutoff.setDate(cutoff.getDate() - 7); break;
-                case '1m': cutoff.setMonth(cutoff.getMonth() - 1); break;
-                case '3m': cutoff.setMonth(cutoff.getMonth() - 3); break;
-                case '6m': cutoff.setMonth(cutoff.getMonth() - 6); break;
-                case 'all': return null;
-                default: return null;
-            }
-            return cutoff.toISOString().split('T')[0];
+            if (period === 'all') return null;
+            const now = getBeijingNow();
+            const daysMap = { '7d': 7, '1m': 30, '3m': 90, '6m': 180 };
+            const days = daysMap[period] || 0;
+            const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            return cutoff.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
         }
 
         // 将 Base64 字符串解码为 UTF-8 文本（GitHub API 返回的 content 需要此函数）
@@ -4269,6 +4166,14 @@
         // 更新基金代码选择框
         // 平台选择变化时更新基金列表
         function updateFundCodes() {
+            // 补全 pendingNewFund 回填：用户先搜新基金再选平台时，自动把暂存基金加入所选平台
+            const platform = DOM.recordPlatform.value;
+            if (platform && state.search.pendingNewFund) {
+                const pf = state.search.pendingNewFund;
+                addNewFundToDefault(pf.code, pf.name, platform);
+                showMessage('新基金「' + pf.name + '」已添加到「' + platform + '」', 'info');
+                state.search.pendingNewFund = null;
+            }
             const type = DOM.recordType.value;
             if (type === 'sell') {
                 // 卖出模式：只显示有持仓的基金
@@ -5060,7 +4965,7 @@ function addPurchaseRecord() {
                 showMessage(`新基金 ${data.name} (${fundCode}) 已自动添加，正在保存记录...`, 'success');
                 
                 // ===== 自动继续添加记录（一次点击完成所有操作）=====
-                _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn);
+                return _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn);
             } else {
                 showMessage(`无法获取基金 ${fundCode} 的信息，请稍后手动添加`, 'error');
                 btn.classList.remove('btn-loading');
@@ -5070,7 +4975,7 @@ function addPurchaseRecord() {
     }
     
     // 已知基金，直接添加
-    _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn);
+    return _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn);
 }
 
 // 内部函数：执行实际的记录添加逻辑（被 addPurchaseRecord 调用）
@@ -6150,7 +6055,7 @@ function deletePurchaseRecord(platform, fundCode, index) {
             const platformSummary = computePlatformSummary(platform);
             const statsGrid = document.querySelector('#mainContent .stats-grid');
             if (statsGrid) {
-                statsGrid.outerHTML = renderSummary(platformSummary);
+                statsGrid.outerHTML = renderSummary(platformSummary, state.fundsData.latestNavDate || '');
             }
         }
 

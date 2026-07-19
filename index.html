@@ -2246,6 +2246,11 @@
                     pollCount: 0,
                     maxPollCount: 30, // 最多轮询 30 次（5 分钟）
                     newFundCode: null // 新添加的基金代码（用于检测是否出现在 funds_data.json 中）
+                },
+
+                // UI 状态（防重复提交等）
+                ui: {
+                    recordSaving: false
                 }
             };
 
@@ -4777,45 +4782,60 @@
 
         async function saveFileToGitHub(filePath, data, commitMessage) {
             const contentPath = `/contents/${filePath}`;
-            let sha = '';
-
-            try {
-                const existingResponse = await githubRequest(contentPath);
-                if (existingResponse.ok) {
-                    const existingData = await existingResponse.json();
-                    sha = existingData.sha || '';
-                }
-            } catch (error) {
-                // 文件不存在或无法读取时直接创建新文件
-            }
-
             const jsonStr = JSON.stringify(data, null, 2);
             const encoder = new TextEncoder();
             const bytes = encoder.encode(jsonStr);
             const content = btoa(Array.from(bytes).map(b => String.fromCharCode(b)).join(''));
-            const body = {
-                message: commitMessage,
-                content: content,
-                branch: 'main'
-            };
 
-            if (sha) {
-                body.sha = sha;
+            const maxAttempts = 3;
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                // 每次尝试都重新获取最新 sha，避免多设备/定时任务造成的 409 冲突
+                let sha = '';
+                try {
+                    const existingResponse = await githubRequest(contentPath);
+                    if (existingResponse.ok) {
+                        const existingData = await existingResponse.json();
+                        sha = existingData.sha || '';
+                    }
+                } catch (error) {
+                    // 文件不存在或无法读取时直接创建新文件
+                }
+
+                const body = {
+                    message: commitMessage,
+                    content: content,
+                    branch: 'main'
+                };
+                if (sha) {
+                    body.sha = sha;
+                }
+
+                const response = await githubRequest(contentPath, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.ok) {
+                    return response;
+                }
+
+                // 409 = sha 过期（远端已被其他写入更新），重试
+                if (response.status === 409 && attempt < maxAttempts) {
+                    continue;
+                }
+
+                let msg = '保存失败';
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.message) msg = errData.message;
+                } catch (e) { /* 忽略解析错误 */ }
+                throw new Error(msg);
             }
 
-            const response = await githubRequest(contentPath, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                throw new Error('保存失败');
-            }
-
-            return response;
+            throw new Error('保存失败（重试次数用尽）');
         }
 
         // 加载买入记录（从GitHub）
@@ -4857,10 +4877,16 @@
 
         // 添加或更新买入记录
         function addOrUpdatePurchaseRecord() {
-            if (state.editing.platform && state.editing.fundCode !== null && state.editing.index !== null) {
+            if (state.ui.recordSaving) {
+                showMessage('正在保存，请稍候...', 'info');
+                return;
+            }
+            state.ui.recordSaving = true;
+            if (state.editing.isActive) {
                 updatePurchaseRecord();
+                state.ui.recordSaving = false; // 编辑为同步本地保存，立即释放
             } else {
-                addPurchaseRecord();
+                addPurchaseRecord(); // 新增为异步上传，由 _addRecordInternal.finally 释放
             }
         }
 
@@ -4924,6 +4950,7 @@ function addPurchaseRecord() {
 
     if (!platform || !fundCode || !date) {
         showMessage('请填写完整信息（平台、基金、日期）', 'error');
+        state.ui.recordSaving = false;
         btn.classList.remove('btn-loading');
         return;
     }
@@ -4960,6 +4987,7 @@ function addPurchaseRecord() {
                 return _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn);
             } else {
                 showMessage(`无法获取基金 ${fundCode} 的信息，请稍后手动添加`, 'error');
+                state.ui.recordSaving = false;
                 btn.classList.remove('btn-loading');
             }
         });
@@ -4983,6 +5011,7 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
         if (!isFinite(nav) || nav <= 0) {
             showMessage('净值必须是大于 0 的数字', 'error');
             if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
             return Promise.resolve();
         }
     }
@@ -4993,12 +5022,23 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
         if (!sharesVal) {
             showMessage('请输入卖出份额', 'error');
             if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
             return Promise.resolve();
         }
         shares = parseFloat(sharesVal);
         if (!isFinite(shares) || shares <= 0) {
             showMessage('卖出份额必须是大于 0 的数字', 'error');
             if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
+            return Promise.resolve();
+        }
+
+        // #5 校验：卖出份额不得超过当前持有份额
+        const availableShares = getAvailableShares(platform, fundCode);
+        if (availableShares !== null && shares > availableShares + 1e-6) {
+            showMessage(`卖出份额 ${fmtNum(shares)} 超过当前持有份额 ${fmtNum(availableShares)} 份`, 'error');
+            if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
             return Promise.resolve();
         }
 
@@ -5009,6 +5049,7 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
         } else {
             showMessage('无法获取基金净值，无法计算卖出金额。请手动输入净值。', 'error');
             if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
             return Promise.resolve();
         }
     } else {
@@ -5017,12 +5058,14 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
         if (!amountVal) {
             showMessage('请输入买入金额', 'error');
             if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
             return Promise.resolve();
         }
         amount = parseFloat(amountVal);
         if (!isFinite(amount) || amount <= 0) {
             showMessage('买入金额必须是大于 0 的数字', 'error');
             if (btn) btn.classList.remove('btn-loading');
+            state.ui.recordSaving = false;
             return Promise.resolve();
         }
 
@@ -5077,6 +5120,7 @@ function _addRecordInternal(platform, fundCode, date, type, navVal, isSell, btn)
         console.error('自动上传失败:', err);
         showMessage('上传失败，数据将在下次 GitHub Actions 运行时更新', 'warning');
     }).finally(() => {
+        state.ui.recordSaving = false;
         if (btn) btn.classList.remove('btn-loading');
     });
 }
@@ -5182,6 +5226,14 @@ function getFundNav(platform, fundCode) {
     return fund?.current_nav || 0;
 }
 
+// 获取基金当前持有份额（用于卖出份额校验）。无数据则返回 null（跳过校验）
+function getAvailableShares(platform, fundCode) {
+    if (!state.fundsData?.funds?.[platform]) return null;
+    const fund = state.fundsData.funds[platform].find(f => f.code === fundCode);
+    if (!fund || !fund.holdings) return null;
+    return fund.holdings.total_shares || 0;
+}
+
 // 编辑交易记录 - 根据类型恢复表单状态
 function editPurchaseRecord(platform, fundCode, index) {
     // ✅ 检查记录是否存在
@@ -5284,6 +5336,18 @@ function updatePurchaseRecord() {
             return;
         }
         shares = parseFloat(sharesVal);
+        // #5 校验：卖出份额不得超过当前持有份额（编辑时可用份额需加回本条原卖出份额）
+        const availableShares = getAvailableShares(platform, fundCode);
+        let sellLimit = availableShares;
+        if (availableShares !== null && state.editing.isActive &&
+            state.editing.platform === platform && state.editing.fundCode === fundCode) {
+            const oldRec = state.purchaseRecords[platform]?.[fundCode]?.[state.editing.index];
+            if (oldRec && oldRec.shares) sellLimit = availableShares + oldRec.shares;
+        }
+        if (sellLimit !== null && shares > sellLimit + 1e-6) {
+            showMessage(`卖出份额 ${fmtNum(shares)} 超过当前持有份额 ${fmtNum(availableShares)} 份`, 'error');
+            return;
+        }
         const useNav = nav || sellState.nav || getFundNav(platform, fundCode);
         if (useNav > 0) {
             amount = shares * useNav;
@@ -6136,16 +6200,25 @@ function deletePurchaseRecord(platform, fundCode, index) {
 
         // 2. 执行保存并同步
         async function executeSaveAndSync() {
+            if (state.ui.recordSaving) {
+                showMessage('正在保存，请稍候...', 'info');
+                return;
+            }
+            state.ui.recordSaving = true;
             closeConfirmDialog();
             const btn = document.getElementById('confirmSaveBtn');
             if (btn) btn.classList.add('btn-loading');
-            // 调用保存函数（await 确保保存完成后再移除 loading 状态）
-            if (typeof savePurchaseRecords === 'function') {
-                await savePurchaseRecords();
-            } else {
-                showMessage('⚠️ 保存函数未找到', 'error');
+            try {
+                // 调用保存函数（await 确保保存完成后再移除 loading 状态）
+                if (typeof savePurchaseRecords === 'function') {
+                    await savePurchaseRecords();
+                } else {
+                    showMessage('⚠️ 保存函数未找到', 'error');
+                }
+            } finally {
+                state.ui.recordSaving = false;
+                if (btn) btn.classList.remove('btn-loading');
             }
-            if (btn) btn.classList.remove('btn-loading');
         }
 
         // 3. 保存快速配置（GitHub Token）
